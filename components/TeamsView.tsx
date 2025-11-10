@@ -1,16 +1,17 @@
 
-import React from 'react';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTribes } from '../contexts/TribesContext';
 import { useModal } from '../contexts/ModalContext';
-import { UsersIcon, TrophyIcon, PlusIcon, BosqueIcon, BroteIcon } from './Icons';
+import { UsersIcon, TrophyIcon, PlusIcon, BosqueIcon, BroteIcon, HandThumbUpIcon, MagnifyingGlassIcon } from './Icons';
 import Tooltip from './Tooltip';
 // FIX: Updated imports from deprecated 'types.ts' to 'types/tribe.ts'.
 import type { Tribe, TribeMember } from '../types/tribe';
 
 const KUDOS_PER_TREE = 250;
 
-const CollaborativeForest: React.FC<{ tribe: Tribe }> = ({ tribe }) => {
+const CollaborativeForest: React.FC<{ tribe: Tribe; onContribute: () => void; }> = ({ tribe, onContribute }) => {
     const totalKudos = tribe.collectiveKudos + tribe.members.reduce((sum, m) => sum + m.kudosReceived, 0);
     const treeCount = Math.floor(totalKudos / KUDOS_PER_TREE);
     const progressToNextTree = (totalKudos % KUDOS_PER_TREE) / KUDOS_PER_TREE * 100;
@@ -52,6 +53,14 @@ const CollaborativeForest: React.FC<{ tribe: Tribe }> = ({ tribe }) => {
                     ></div>
                 </div>
             </div>
+            <div className="mt-4 pt-4 border-t border-active-surface/50">
+                <p className="text-sm text-on-surface-secondary mb-3">
+                    Aportar tus Treevüs es un gesto que beneficia a todo el escuadrón, haciendo crecer el bosque más rápido.
+                </p>
+                <button onClick={onContribute} className="w-full bg-primary/20 text-primary font-bold py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/30 transition-colors">
+                    <PlusIcon className="w-5 h-5"/> Aportar Treevüs al Bosque
+                </button>
+            </div>
         </div>
     );
 };
@@ -60,6 +69,24 @@ const TeamsView: React.FC = () => {
     const { user } = useAuth();
     const { tribes } = useTribes();
     const { openModal } = useModal();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<TribeMember[]>([]);
+
+    const allMembers = useMemo(() => 
+        tribes.flatMap(tribe => tribe.members.map(member => ({ ...member, tribeName: tribe.name })))
+    , [tribes]);
+
+    useEffect(() => {
+        if (searchQuery.trim().length > 1) {
+            const lowercasedQuery = searchQuery.toLowerCase();
+            const results = allMembers.filter(member => 
+                member.name.toLowerCase().includes(lowercasedQuery) && member.name !== 'Tú'
+            );
+            setSearchResults(results);
+        } else {
+            setSearchResults([]);
+        }
+    }, [searchQuery, allMembers]);
 
     const myTribe = user?.tribeId ? tribes.find(t => t.id === user.tribeId) : null;
 
@@ -81,7 +108,7 @@ const TeamsView: React.FC = () => {
 
     return (
         <div className="space-y-4 animate-grow-and-fade-in">
-            <CollaborativeForest tribe={myTribe} />
+            <CollaborativeForest tribe={myTribe} onContribute={() => handleSendKudos(myTribe)} />
             
             <div className="bg-surface rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -101,29 +128,58 @@ const TeamsView: React.FC = () => {
                         <div key={member.id} className="bg-background p-3 rounded-xl flex items-center gap-3">
                             <span className="font-bold text-lg w-6 text-center text-on-surface-secondary">{index + 1}</span>
                             <div className="w-10 h-10 rounded-full bg-active-surface flex items-center justify-center font-bold text-on-surface">{member.avatarInitial}</div>
-                            <p className="flex-1 font-bold text-on-surface text-sm">{member.name}</p>
-                            <button onClick={() => handleSendKudos(member)} className="flex items-center gap-1.5 font-bold text-yellow-400 bg-yellow-400/10 px-3 py-1.5 rounded-full text-sm hover:bg-yellow-400/20 transition-colors">
-                                <TrophyIcon className="w-4 h-4"/> {member.kudosReceived}
-                            </button>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-bold text-on-surface text-sm truncate">{member.name}</p>
+                                <div className="flex items-center text-xs text-yellow-400/80 font-semibold mt-0.5">
+                                    <TrophyIcon className="w-3.5 h-3.5 mr-1"/>
+                                    <span>{member.kudosReceived} trofeos</span>
+                                </div>
+                            </div>
+                            {member.name !== 'Tú' && (
+                                <button 
+                                    onClick={() => handleSendKudos(member)}
+                                    className="flex items-center gap-1.5 font-bold text-yellow-400 bg-yellow-400/10 px-3 py-1.5 rounded-full text-sm hover:bg-yellow-400/20 transition-colors whitespace-nowrap"
+                                >
+                                    <HandThumbUpIcon className="w-4 h-4"/> Reconocer
+                                </button>
+                            )}
                         </div>
                     ))}
                 </div>
             </div>
 
             <div className="bg-surface rounded-2xl p-4">
-                 <div className="flex items-center gap-2 mb-3">
-                    <h3 className="text-lg font-bold text-on-surface">Aportar al Bosque</h3>
-                    <Tooltip
-                        id="contribute-tooltip"
-                        text="Aportar tus Treevüs es un gesto que beneficia a todo el escuadrón, haciendo crecer el bosque más rápido. Enviar un trofeo (reconocimiento) es una acción individual para un compañero y no gasta tus Treevüs."
+                <h3 className="text-lg font-bold text-on-surface mb-3">Reconocimiento General</h3>
+                <div className="relative">
+                    <MagnifyingGlassIcon className="w-5 h-5 text-on-surface-secondary absolute left-3 top-1/2 -translate-y-1/2"/>
+                    <input 
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Buscar a un colega..."
+                        className="w-full bg-background border border-active-surface rounded-xl p-2.5 pl-10"
                     />
-                 </div>
-                 <p className="text-sm text-on-surface-secondary mb-3">
-                    Cada Treevü que aportas ayuda a plantar un nuevo árbol, fortaleciendo el espíritu de equipo.
-                 </p>
-                 <button onClick={() => handleSendKudos(myTribe)} className="w-full bg-primary text-primary-dark font-bold py-2 rounded-xl flex items-center justify-center gap-2">
-                    <PlusIcon className="w-5 h-5"/> Aportar Treevüs
-                 </button>
+                </div>
+                <div className="mt-3 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                    {searchResults.map(member => (
+                         <div key={member.id} className="bg-background p-3 rounded-xl flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-active-surface flex items-center justify-center font-bold text-on-surface">{member.avatarInitial}</div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-bold text-on-surface text-sm truncate">{member.name}</p>
+                                <p className="text-xs text-on-surface-secondary">{(member as any).tribeName}</p>
+                            </div>
+                            <button 
+                                onClick={() => handleSendKudos(member)}
+                                className="flex items-center gap-1.5 font-bold text-yellow-400 bg-yellow-400/10 px-3 py-1.5 rounded-full text-sm hover:bg-yellow-400/20 transition-colors"
+                            >
+                                <HandThumbUpIcon className="w-4 h-4"/> Reconocer
+                            </button>
+                        </div>
+                    ))}
+                     {searchQuery.length > 1 && searchResults.length === 0 && (
+                        <p className="text-center text-sm text-on-surface-secondary py-4">No se encontraron colegas.</p>
+                    )}
+                </div>
             </div>
         </div>
     );

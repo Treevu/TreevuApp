@@ -26,8 +26,8 @@
   "background_color": "#1C1C1E",
   "shortcuts": [
     {
-      "name": "Registrar Gasto",
-      "short_name": "Gasto",
+      "name": "Registro de Gasto",
+      "short_name": "Registro",
       "description": "Registra un nuevo gasto con una foto o manualmente.",
       "url": "/?action=add_expense",
       "icons": [{ "src": "/icons/icon-add-96x96.png", "sizes": "96x96" }]

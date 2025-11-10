@@ -1,8 +1,11 @@
 
+
 import React, { useState } from 'react';
 import { BanknotesIcon } from './Icons';
 import { useGoals } from '../contexts/GoalsContext';
 import ModalWrapper from './ModalWrapper';
+import { trackEvent } from '../services/analyticsService';
+import { useAuth } from '../contexts/AuthContext';
 
 interface AddGoalContributionModalProps {
     onClose: () => void;
@@ -11,6 +14,7 @@ interface AddGoalContributionModalProps {
 
 const AddGoalContributionModal: React.FC<AddGoalContributionModalProps> = ({ onClose, goalId }) => {
     const { updateGoalContribution, goals } = useGoals();
+    const { user } = useAuth();
     const goal = goals.find(g => g.id === goalId);
     const [amount, setAmount] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -26,6 +30,22 @@ const AddGoalContributionModal: React.FC<AddGoalContributionModalProps> = ({ onC
             setError('Por favor, ingresa un monto válido y positivo.');
             return;
         }
+        
+        // --- Telemetry (Result): Track successful action from stimulus ---
+        const activeStimulusRaw = sessionStorage.getItem('active_stimulus');
+        if (activeStimulusRaw) {
+            const activeStimulus = JSON.parse(activeStimulusRaw);
+            if (activeStimulus.id === 'savings_challenge') {
+                trackEvent('stimulus_responded', { 
+                    stimulusId: activeStimulus.id,
+                    result: 'success',
+                    timeToConvert_ms: Date.now() - activeStimulus.shownAt,
+                    properties: { contributionAmount }
+                }, user);
+                sessionStorage.removeItem('active_stimulus'); // Track only once
+            }
+        }
+
         updateGoalContribution(goalId, contributionAmount);
         onClose();
     };

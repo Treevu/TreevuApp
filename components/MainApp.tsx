@@ -29,7 +29,7 @@ const AppContent: React.FC = () => {
     const { alert, setAlert } = useAlert();
     const { openModal, closeModal } = useModal();
     
-    const [activeTab, setActiveTab] = useState<ActiveTab>('perfil');
+    const [activeTab, setActiveTab] = useState<ActiveTab>('inicio');
     const [categoryFilter, setCategoryFilter] = useState<CategoriaGasto | null>(null);
     
     const [isTourActive, setIsTourActive] = useState(false);
@@ -44,7 +44,7 @@ const AppContent: React.FC = () => {
     const clubTabRef = useRef<HTMLButtonElement>(null);
     const perfilTabRef = useRef<HTMLButtonElement>(null);
 
-    const swipeableTabs: ActiveTab[] = ['perfil', 'billetera', 'club', 'inicio'];
+    const swipeableTabs: ActiveTab[] = ['inicio', 'billetera', 'club', 'perfil'];
     
     const handleTabClick = useCallback((tab: NavTabId) => {
         if (tab === 'registrar') {
@@ -62,12 +62,12 @@ const AppContent: React.FC = () => {
     const { swipeHandlers, swipeOffset, isSwiping } = useSwipeNavigation(activeTab, (newTab) => setActiveTab(newTab), swipeableTabs);
     
      const navTabs = useMemo(() => [
-        { id: 'perfil' as const, ref: perfilTabRef, label: 'Perfil', Icon: UserCircleIcon },
-        { id: 'billetera' as const, ref: billeteraTabRef, label: 'Billetera', Icon: BanknotesIcon },
-        { id: 'registrar' as const, ref: registrarTabRef, label: 'Registrar', Icon: PencilSquareIcon },
-        { id: 'club' as const, ref: clubTabRef, label: 'Club', Icon: StarIcon },
         { id: 'inicio' as const, ref: inicioTabRef, label: 'Inicio', Icon: HomeIcon },
-    ], [perfilTabRef, billeteraTabRef, registrarTabRef, clubTabRef, inicioTabRef]);
+        { id: 'billetera' as const, ref: billeteraTabRef, label: 'Billetera', Icon: BanknotesIcon },
+        { id: 'registrar' as const, ref: registrarTabRef, label: 'Registro', Icon: PencilSquareIcon },
+        { id: 'club' as const, ref: clubTabRef, label: 'Club', Icon: StarIcon },
+        { id: 'perfil' as const, ref: perfilTabRef, label: 'Perfil', Icon: UserCircleIcon },
+    ], [inicioTabRef, billeteraTabRef, registrarTabRef, clubTabRef, perfilTabRef]);
 
     // Handle PWA shortcut
     useEffect(() => {
@@ -114,13 +114,13 @@ const AppContent: React.FC = () => {
     }, []);
     
     const tourSteps = useMemo(() => [
-        { targetRef: perfilTabRef, text: "Bienvenido a tu perfil. Aquí gestionas tu cuenta, personalizas la app y accedes a contenido de aprendizaje.", position: 'top' as const, tab: 'perfil' },
-        { targetRef: billeteraTabRef, text: "En 'Billetera' encontrarás el historial detallado de todos tus gastos. Usa la búsqueda para encontrar cualquier movimiento.", position: 'top' as const, tab: 'billetera' },
-        { targetRef: registrarTabRef, text: "Este es el corazón de tu expedición. Transforma cada gasto en progreso real: sube una foto, registra una compra o celebra un ahorro. ¡Pruébalo!", position: 'top' as const, tab: 'billetera', isInteractive: true },
-        { targetRef: clubTabRef, text: "Bienvenido al 'Club', el corazón social y de gamificación. ¡Compite con tu equipo y canjea premios!", position: 'top' as const, tab: 'club' },
-        { targetRef: dashboardContentRef, text: 'Este es tu panel de "Inicio", el centro de mando de tu aventura financiera. Aquí tienes una vista rápida de tu presupuesto, metas y tus próximos pasos recomendados por la IA.', position: 'bottom' as const, tab: 'inicio' },
-        { targetRef: null, text: '¡Todo listo! Ya sabes cómo moverte por treevü. ¡Es hora de empezar a cultivar tus finanzas!', position: 'bottom' as const, tab: 'inicio' },
-    ], [perfilTabRef, billeteraTabRef, registrarTabRef, clubTabRef, dashboardContentRef]);
+        { targetRef: dashboardContentRef, text: 'Este es tu Campamento Base. Tu centro de mando para la expedición. Monitorea tu presupuesto, el avance de tus proyectos y recibe consejos de tu brújula IA.', position: 'bottom' as const, tab: 'inicio' },
+        { targetRef: billeteraTabRef, text: "Tu Billetera es el diario de tu expedición. Registra cada hallazgo y usa la búsqueda para rastrear tus movimientos en el mapa financiero.", position: 'top' as const, tab: 'billetera' },
+        { targetRef: registrarTabRef, text: "El botón de Registro es tu herramienta principal. Convierte cada gasto en un hallazgo, cada ahorro en un paso adelante. Captura, clasifica y conquista. ¡Pruébalo ahora!", position: 'top' as const, tab: 'billetera', isInteractive: true },
+        { targetRef: clubTabRef, text: "Bienvenido al Club. Aquí tu expedición se vuelve colectiva. Colabora con tu escuadrón, compite en misiones y cosecha recompensas en el mercado.", position: 'top' as const, tab: 'club' },
+        { targetRef: perfilTabRef, text: "Este es tu Perfil de Explorador. Aquí personalizas tu identidad, revisas tus logros y trazas tu ruta en la Senda del Conocimiento.", position: 'top' as const, tab: 'perfil' },
+        { targetRef: null, text: '¡Estás listo, explorador! Ya conoces el terreno. Es hora de iniciar tu expedición y cultivar tu bienestar financiero.', position: 'bottom' as const, tab: 'perfil' },
+    ], [dashboardContentRef, billeteraTabRef, registrarTabRef, clubTabRef, perfilTabRef]);
 
 
     const handleNextStep = useCallback(() => {
@@ -136,7 +136,7 @@ const AppContent: React.FC = () => {
         } else {
             handleEndTour();
         }
-    }, [tourStep, activeTab, handleEndTour, tourSteps.length]);
+    }, [tourStep, activeTab, handleEndTour, tourSteps]);
     
      const handlePrevStep = useCallback(() => {
         const prevStepIndex = tourStep - 1;
@@ -197,8 +197,11 @@ const AppContent: React.FC = () => {
                             transition: isSwiping ? 'none' : 'transform 0.3s ease-in-out'
                         }}
                     >
-                        <div role="tabpanel" id="panel-perfil" aria-labelledby="tab-perfil" className="w-1/4 h-full overflow-y-auto custom-scrollbar px-4 pb-28">
-                            <ProfileView setActiveTab={setActiveTab} />
+                        <div role="tabpanel" id="panel-inicio" aria-labelledby="tab-inicio" className="w-1/4 h-full overflow-y-auto custom-scrollbar px-4 pb-28">
+                            <DashboardView 
+                                dashboardContentRef={dashboardContentRef}
+                                onCategoryClick={handleCategoryClick}
+                            />
                         </div>
                         <div role="tabpanel" id="panel-billetera" aria-labelledby="tab-billetera" className="w-1/4 h-full overflow-y-auto custom-scrollbar px-4 pb-28">
                             <WalletView
@@ -212,11 +215,8 @@ const AppContent: React.FC = () => {
                         <div role="tabpanel" id="panel-club" aria-labelledby="tab-club" className="w-1/4 h-full overflow-y-auto custom-scrollbar px-4 pb-28">
                             <ClubView />
                         </div>
-                        <div role="tabpanel" id="panel-inicio" aria-labelledby="tab-inicio" className="w-1/4 h-full overflow-y-auto custom-scrollbar px-4 pb-28">
-                            <DashboardView 
-                                dashboardContentRef={dashboardContentRef}
-                                onCategoryClick={handleCategoryClick}
-                            />
+                        <div role="tabpanel" id="panel-perfil" aria-labelledby="tab-perfil" className="w-1/4 h-full overflow-y-auto custom-scrollbar px-4 pb-28">
+                            <ProfileView setActiveTab={setActiveTab} />
                         </div>
                     </div>
                 </div>

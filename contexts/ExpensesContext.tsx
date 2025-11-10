@@ -1,6 +1,8 @@
 
 
+
 import React, { createContext, useState, useContext, ReactNode, useMemo, useEffect, useCallback } from 'react';
+import { trackEvent } from '../services/analyticsService';
 import { sendInformalExpenseNotification } from '../services/notificationService';
 import { triggerInAppNotificationChecks } from '../services/inAppNotificationService';
 import { generateUniqueId } from '../utils';
@@ -181,6 +183,20 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
         };
         const updatedExpenses = [newExpense, ...expenses];
         setExpenses(updatedExpenses);
+
+        // --- Telemetry (Result): Track successful action from stimulus ---
+        const activeStimulusRaw = sessionStorage.getItem('active_stimulus');
+        if (activeStimulusRaw) {
+            const activeStimulus = JSON.parse(activeStimulusRaw);
+            if (activeStimulus.id === 'bonus_formal_expense' && newExpense.esFormal) {
+                trackEvent('stimulus_responded', { 
+                    stimulusId: activeStimulus.id,
+                    result: 'success',
+                    timeToConvert_ms: Date.now() - activeStimulus.shownAt,
+                }, user);
+                sessionStorage.removeItem('active_stimulus'); // Track only once
+            }
+        }
 
         triggerInAppNotificationChecks(updatedExpenses, goals, addNotification, lastNotificationTimes);
 

@@ -1,4 +1,3 @@
-
 import { Type } from '@google/genai';
 import { callAIApi } from './api';
 import { parseJsonFromMarkdown } from '../../utils';
@@ -78,41 +77,48 @@ export const getAIEmployerResponse = async (query: string, data: any): Promise<s
 };
 
 
-export const getAIStrategicInsight = async (metricName: string, value: number | undefined, context: any): Promise<{ status: string; insight: string; recommendation: string } | null> => {
+export const getAIStrategicInsights = async (data: any): Promise<{ metricName: string; status: string; insight: string; recommendation: string }[] | null> => {
     const prompt = `
         Eres un consultor de C-Level especializado en bienestar corporativo.
-        Tu tarea es generar un diagnóstico rápido y una recomendación estratégica para una métrica clave.
-        
-        **Métrica a Analizar:** ${metricName}
-        **Valor Actual:** ${value?.toFixed(1) || 'N/A'}%
-        **Contexto:** Se está analizando un segmento de ${context.employeeCount} colaboradores.
+        Tu tarea es generar un diagnóstico rápido y una recomendación estratégica para cada una de las siguientes métricas clave.
+
+        **Métricas a Analizar:**
+        - Salud Financiera (valor: ${data.formalityScore?.toFixed(1) || 'N/A'}%)
+        - Balance Vida-Trabajo (valor: ${data.workLifeBalanceScore?.toFixed(1) || 'N/A'}%)
+        - Desarrollo Profesional (valor: ${data.selfDevScore?.toFixed(1) || 'N/A'}%)
+        - Adopción y Engagement (valor: ${data.activationRate?.toFixed(1) || 'N/A'}%)
 
         **Instrucciones:**
-        1.  **Diagnóstico ('status'):** Basado en el valor, clasifícalo en "Saludable", "Atención Requerida" o "Crítico".
+        Para CADA UNA de las cuatro métricas:
+        1.  **Diagnóstico ('status'):** Clasifícalo en "Saludable", "Atención Requerida" o "Crítico".
         2.  **Análisis ('insight'):** Proporciona una frase corta que explique qué significa este valor en términos de negocio (ej. impacto en retención, productividad, cultura).
-        3.  **Recomendación ('recommendation'):** Sugiere UNA iniciativa de alto impacto, específica y cuantificable si es posible.
-            - Ejemplo: "Lanzar un desafío de 'Balance Vida-Trabajo'. Impacto estimado: Reducción del 4% en riesgo de fuga en 3 meses."
-            
+        3.  **Recomendación ('recommendation'):** Sugiere UNA iniciativa de alto impacto, específica y accionable.
+        
         **Barrera de Contención (Guardrail):** NO generes respuestas genéricas. Tu recomendación debe ser accionable.
-        Responde en formato JSON estricto.
+        Responde en formato JSON estricto con un array de 4 objetos. Cada objeto debe tener: 'metricName', 'status', 'insight', 'recommendation'.
     `;
      const request = {
+        model: 'gemini-2.5-pro',
         contents: prompt,
         config: {
           responseMimeType: "application/json",
           responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-                status: { type: Type.STRING },
-                insight: { type: Type.STRING },
-                recommendation: { type: Type.STRING }
-            },
-            required: ["status", "insight", "recommendation"]
+            type: Type.ARRAY,
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    metricName: { type: Type.STRING },
+                    status: { type: Type.STRING },
+                    insight: { type: Type.STRING },
+                    recommendation: { type: Type.STRING }
+                },
+                required: ["metricName", "status", "insight", "recommendation"]
+            }
           }
         }
     };
     const jsonText = await callAIApi(request);
-    return jsonText ? parseJsonFromMarkdown<{ status: string; insight: string; recommendation: string }>(jsonText) : null;
+    return jsonText ? parseJsonFromMarkdown<any[]>(jsonText) : null;
 };
 
 export const getAIChallengeSuggestion = async (data: any): Promise<Omit<Challenge, 'id'> | null> => {

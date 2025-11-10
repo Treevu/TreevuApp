@@ -448,29 +448,16 @@
     
     @media (prefers-reduced-motion: reduce) {
       .status-card-inner {
-        transition: none;
-        transform-style: flat;
-      }
-      .status-card-inner.is-flipped {
-          transform: none;
-      }
-      .status-card-inner .status-card-front {
         transition: opacity 0.4s ease;
-        opacity: 1;
       }
       .status-card-inner.is-flipped .status-card-front {
         opacity: 0;
-        pointer-events: none;
       }
       .status-card-inner .status-card-back {
-        transform: rotateY(0); /* Undo the rotation */
-        transition: opacity 0.4s ease;
-        opacity: 0;
-        pointer-events: none;
-      }
-      .status-card-inner.is-flipped .status-card-back {
         opacity: 1;
-        pointer-events: auto;
+      }
+      .status-card-back {
+        transform: rotateY(0);
       }
     }
 

@@ -1,23 +1,26 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
-    BanknotesIcon, BookOpenIcon, CheckBadgeIcon, RocketLaunchIcon, CheckIcon, LockClosedIcon, ShieldCheckIcon, BuildingBlocksIcon
+    BanknotesIcon, BookOpenIcon, CheckBadgeIcon, RocketLaunchIcon, CheckIcon, LockClosedIcon, ShieldCheckIcon, BuildingBlocksIcon, StarIcon, TrophyIcon
 } from './Icons';
 import ModalWrapper from './ModalWrapper';
 import { useAuth } from '../contexts/AuthContext';
 import { useAlert } from '../contexts/AlertContext';
 import { useAppContext } from '../contexts/AppContext';
+import { TreevuLevel } from '../types/common';
+// FIX: Import User type to fix circular reference error.
+import { type User } from '../types/user';
 
 interface Expedition {
   id: string;
   title: string;
   icon: React.FC<{className?: string}>;
-  belt: 'Cinta Blanca' | 'Cinta Verde';
-  branch: 'Tronco Fundamental' | 'Senda del Alquimista Fiscal' | 'Senda del Ahorrador';
+  belt: 'Cinta Blanca' | 'Cinta Verde' | 'Cinta Marrón' | 'Cinta Negra';
+  branch: 'Tronco Fundamental' | 'Senda del Alquimista Fiscal' | 'Senda del Ahorrador' | 'Senda del Inversor' | 'Senda del Mentor';
   description: string;
   mission: {
     description: string;
     reward: number;
-    completionKey: 'hasFormalExpense' | 'hasGoal' | 'hasBudget' | 'hasThreeFormalExpenses' | 'hasGoalContribution';
+    completionKey: 'hasFormalExpense' | 'hasGoal' | 'hasBudget' | 'hasThreeFormalExpenses' | 'hasGoalContribution' | 'hasHighFWI' | 'isMaxLevel' | 'isKudosSender';
   };
 }
 
@@ -89,6 +92,34 @@ const expeditions: Expedition[] = [
             completionKey: 'hasGoalContribution',
         },
     },
+    // --- Cinta Marrón: Senda del Inversor ---
+    {
+        id: 'exp-investor-1',
+        title: 'La Fórmula Maestra',
+        icon: CheckBadgeIcon,
+        belt: 'Cinta Marrón',
+        branch: 'Senda del Inversor',
+        description: 'Alcanzar un FWI superior a 80 te convierte en un verdadero alquimista financiero. Demuestra que has encontrado el balance perfecto entre tus hábitos de gasto, tu vida personal y tu crecimiento profesional.',
+        mission: {
+            description: 'Alcanza un Índice de Bienestar Financiero (FWI) de 80.',
+            reward: 75,
+            completionKey: 'hasHighFWI',
+        }
+    },
+    // --- Cinta Negra: Senda del Mentor ---
+    {
+        id: 'exp-mentor-1',
+        title: 'Guardián del Bosque',
+        icon: TrophyIcon,
+        belt: 'Cinta Negra',
+        branch: 'Senda del Mentor',
+        description: 'Un verdadero maestro no solo crece, sino que ayuda a crecer a los demás. Reconocer el esfuerzo de tu equipo es la máxima expresión de liderazgo y cultura.',
+        mission: {
+            description: 'Otorga 10 kudos (reconocimientos) a tus compañeros.',
+            reward: 100,
+            completionKey: 'isKudosSender',
+        }
+    }
 ];
 
 const ExpeditionDetailsModal: React.FC<{ expedition: Expedition; onClose: () => void; }> = ({ expedition, onClose }) => {
@@ -121,21 +152,33 @@ const LearnView: React.FC = () => {
     const [selectedExpedition, setSelectedExpedition] = useState<Expedition | null>(null);
 
     const completedLessons = user?.completedLessons || [];
-    const prevCompletedLessonsRef = useRef(completedLessons);
 
     const completionChecks = useMemo(() => ({
-        hasFormalExpense: (state: typeof appState) => state.expenses.some(e => e.esFormal),
-        hasGoal: (state: typeof appState) => state.goals.length > 0,
-        hasBudget: (state: typeof appState) => state.budget !== null && state.budget > 0,
-        hasThreeFormalExpenses: (state: typeof appState) => state.expenses.filter(e => e.esFormal).length >= 3,
-        hasGoalContribution: (state: typeof appState) => state.goals.some(g => g.currentAmount > 0),
+        // FIX: Replaced 'typeof user' with 'User | null' to prevent circular type reference.
+        hasFormalExpense: (state: typeof appState, user: User | null) => state.expenses.some(e => e.esFormal),
+        // FIX: Replaced 'typeof user' with 'User | null' to prevent circular type reference.
+        hasGoal: (state: typeof appState, user: User | null) => state.goals.length > 0,
+        // FIX: Replaced 'typeof user' with 'User | null' to prevent circular type reference.
+        hasBudget: (state: typeof appState, user: User | null) => state.budget !== null && state.budget > 0,
+        // FIX: Replaced 'typeof user' with 'User | null' to prevent circular type reference.
+        hasThreeFormalExpenses: (state: typeof appState, user: User | null) => state.expenses.filter(e => e.esFormal).length >= 3,
+        // FIX: Replaced 'typeof user' with 'User | null' to prevent circular type reference.
+        hasGoalContribution: (state: typeof appState, user: User | null) => state.goals.some(g => g.currentAmount > 0),
+        // FIX: Replaced 'typeof user' with 'User | null' to prevent circular type reference.
+        hasHighFWI: (state: typeof appState, user: User | null) => state.fwi_v2 >= 80,
+        // FIX: Replaced 'typeof user' with 'User | null' to prevent circular type reference.
+        isMaxLevel: (state: typeof appState, user: User | null) => user!.level === TreevuLevel.Bosque,
+        // FIX: Replaced 'typeof user' with 'User | null' to prevent circular type reference.
+        isKudosSender: (state: typeof appState, user: User | null) => (user?.kudosSent || 0) >= 10,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }), []);
 
     useEffect(() => {
+        if (!user) return;
         expeditions.forEach(exp => {
             if (!completedLessons.includes(exp.id)) {
                 const check = completionChecks[exp.mission.completionKey];
-                if (check && check(appState)) {
+                if (check && check(appState, user)) {
                     completeLesson(exp.id);
                     addTreevus(exp.mission.reward);
                     setAlert({
@@ -145,7 +188,7 @@ const LearnView: React.FC = () => {
                 }
             }
         });
-    }, [appState.expenses, appState.goals, appState.budget, completedLessons, completeLesson, addTreevus, setAlert, completionChecks]);
+    }, [appState, user, completedLessons, completeLesson, addTreevus, setAlert, completionChecks]);
 
     const expeditionsByBranch = useMemo(() => {
         return expeditions.reduce((acc, exp) => {
@@ -158,7 +201,16 @@ const LearnView: React.FC = () => {
     }, []);
 
     const isCintaBlancaComplete = useMemo(() => {
-        return expeditionsByBranch['Tronco Fundamental'].every(exp => completedLessons.includes(exp.id));
+        return expeditionsByBranch['Tronco Fundamental']?.every(exp => completedLessons.includes(exp.id));
+    }, [completedLessons, expeditionsByBranch]);
+    
+    const isCintaVerdeComplete = useMemo(() => {
+        return expeditionsByBranch['Senda del Alquimista Fiscal']?.every(exp => completedLessons.includes(exp.id)) &&
+               expeditionsByBranch['Senda del Ahorrador']?.every(exp => completedLessons.includes(exp.id));
+    }, [completedLessons, expeditionsByBranch]);
+
+    const isCintaMarronComplete = useMemo(() => {
+        return expeditionsByBranch['Senda del Inversor']?.every(exp => completedLessons.includes(exp.id));
     }, [completedLessons, expeditionsByBranch]);
 
 
@@ -181,7 +233,12 @@ const LearnView: React.FC = () => {
                                     <div className={`w-full h-full rounded-full transition-colors ${isCompleted ? 'bg-primary' : isUnlocked ? 'bg-primary/50 animate-pulse' : 'bg-active-surface'}`}></div>
                                 </div>
                                 <button
-                                    onClick={() => isUnlocked && setSelectedExpedition(expedition)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (isUnlocked) {
+                                            setSelectedExpedition(expedition);
+                                        }
+                                    }}
                                     disabled={!isUnlocked}
                                     className={`w-full p-3 bg-surface rounded-2xl border text-left flex items-center gap-3 transition-all duration-300 ${isUnlocked ? 'hover:bg-active-surface cursor-pointer' : 'cursor-not-allowed'} ${isCompleted ? 'border-transparent opacity-60' : 'border-active-surface/80'}`}
                                 >
@@ -225,6 +282,34 @@ const LearnView: React.FC = () => {
                 <div className="space-y-6">
                     {renderBranch('Senda del Alquimista Fiscal', isCintaBlancaComplete)}
                     {renderBranch('Senda del Ahorrador', isCintaBlancaComplete)}
+                </div>
+            </div>
+
+             {/* Cinta Marrón */}
+            <div className="space-y-4">
+                <h3 className={`font-bold transition-colors ${isCintaVerdeComplete ? 'text-primary' : 'text-on-surface-secondary'}`}>CINTA MARRÓN: ESTRATEGIA</h3>
+                {!isCintaVerdeComplete && (
+                    <div className="flex items-center gap-2 p-2 text-xs text-on-surface-secondary bg-background rounded-lg">
+                        <LockClosedIcon className="w-4 h-4 flex-shrink-0" />
+                        <span>Completa las misiones de la Cinta Verde para desbloquear esta senda.</span>
+                    </div>
+                )}
+                <div className="space-y-6">
+                    {renderBranch('Senda del Inversor', isCintaVerdeComplete)}
+                </div>
+            </div>
+
+            {/* Cinta Negra */}
+            <div className="space-y-4">
+                <h3 className={`font-bold transition-colors ${isCintaMarronComplete ? 'text-primary' : 'text-on-surface-secondary'}`}>CINTA NEGRA: MENTORÍA</h3>
+                {!isCintaMarronComplete && (
+                     <div className="flex items-center gap-2 p-2 text-xs text-on-surface-secondary bg-background rounded-lg">
+                        <LockClosedIcon className="w-4 h-4 flex-shrink-0" />
+                        <span>Completa las misiones de la Cinta Marrón para alcanzar la maestría.</span>
+                    </div>
+                )}
+                <div className="space-y-6">
+                    {renderBranch('Senda del Mentor', isCintaMarronComplete)}
                 </div>
             </div>
             

@@ -129,7 +129,6 @@ export const getMemberSinceYear = (): string => {
     return '24';
 };
 
-// FIX: Add missing mock data generator functions for the employer status card.
 /**
  * Generates a mock, non-financial card number.
  * @param {string} seed - A string to seed the generator.

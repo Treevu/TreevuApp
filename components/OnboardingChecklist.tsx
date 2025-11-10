@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { useModal } from '../contexts/ModalContext';
@@ -13,15 +11,15 @@ const OnboardingChecklist: React.FC = () => {
     const tasks = [
         {
             id: 'budget',
-            title: 'Establece tu Presupuesto',
-            description: 'Define un límite mensual para empezar a monitorear.',
+            title: 'Define las Fronteras de tu Territorio',
+            description: 'Establece un límite mensual para empezar a monitorear.',
             Icon: BanknotesIcon,
             isCompleted: budget !== null && budget > 0,
             action: () => openModal('setBudget'),
         },
         {
             id: 'goal',
-            title: 'Marca tu Primer Tesoro',
+            title: 'Traza el Mapa de tu Primer Tesoro',
             description: 'Crea tu primer proyecto de ahorro, como un viaje o una compra.',
             Icon: BuildingBlocksIcon,
             isCompleted: goals.length > 0,
@@ -29,7 +27,7 @@ const OnboardingChecklist: React.FC = () => {
         },
         {
             id: 'expense',
-            title: 'Registra tu Primer Hallazgo',
+            title: 'Haz tu Primer Hallazgo en el Terreno',
             description: 'Añade tu primer gasto para ver la magia en acción.',
             Icon: PencilSquareIcon,
             isCompleted: false, // This task leads to the component disappearing

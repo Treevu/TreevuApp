@@ -1,10 +1,5 @@
-
-
-
 import React, { useState, useEffect } from 'react';
-import { PencilIcon, LightBulbIcon, BanknotesIcon } from './Icons';
-// FIX: Updated import from deprecated 'geminiService.ts' to 'services/ai/employeeService.ts'.
-import { getAIBudgetProjection } from '../services/ai/employeeService';
+import { PencilIcon, BanknotesIcon } from './Icons';
 import { useAppContext } from '../contexts/AppContext';
 import { useModal } from '../contexts/ModalContext';
 import Tooltip from './Tooltip';
@@ -13,8 +8,6 @@ const BudgetTracker: React.FC = () => {
     const { state: appState } = useAppContext();
     const { expenses, budget } = appState;
     const { openModal } = useModal();
-    const [projection, setProjection] = useState<{ projectedSpending: number; insight: string; } | null>(null);
-    const [isLoadingProjection, setIsLoadingProjection] = useState(false);
     const [flashKey, setFlashKey] = useState(0);
     
     // This calculation now lives inside the component, as it's directly tied to its state.
@@ -24,25 +17,6 @@ const BudgetTracker: React.FC = () => {
         return expenseDate.getFullYear() === today.getFullYear() && expenseDate.getMonth() === today.getMonth();
     });
     const totalSpentThisMonth = expensesThisMonth.reduce((sum, e) => sum + e.total, 0);
-
-
-    useEffect(() => {
-        const fetchProjection = async () => {
-            if (budget && budget > 0 && expenses.length > 2) {
-                setIsLoadingProjection(true);
-                try {
-                    const result = await getAIBudgetProjection(expenses, budget);
-                    setProjection(result);
-                } catch (e) { console.error("Failed to fetch AI projection:", e); }
-                finally { setIsLoadingProjection(false); }
-            } else {
-                setProjection(null);
-            }
-        };
-
-        const timeoutId = setTimeout(fetchProjection, 500);
-        return () => clearTimeout(timeoutId);
-    }, [expenses, budget]);
 
     useEffect(() => {
         // This key change will force React to re-render the span, re-triggering the CSS animation
@@ -71,24 +45,22 @@ const BudgetTracker: React.FC = () => {
     const percentage = budget > 0 ? (totalSpentThisMonth / budget) * 100 : 0;
     const remaining = budget - totalSpentThisMonth;
     const progressBarColor = percentage >= 100 ? 'bg-danger' : percentage > 80 ? 'bg-warning' : 'bg-emerald-500';
-    const projectionPercentage = projection ? (projection.projectedSpending / budget) * 100 : null;
     
-    const getProjectionStatusStyle = () => {
-        if (!projectionPercentage) return { text: 'text-on-surface-secondary', bg: 'bg-on-surface-secondary' };
-        if (projectionPercentage > 100) return { text: 'text-danger', bg: 'bg-danger' };
-        if (projectionPercentage > 90) return { text: 'text-warning', bg: 'bg-warning' };
-        return { text: 'text-emerald-500', bg: 'bg-emerald-500' };
-    };
-    
-    const projectionStyle = getProjectionStatusStyle();
-
     return (
         <div className="bg-surface rounded-2xl p-4 mb-4 animate-grow-and-fade-in shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-2">
                     <h2 className="text-lg font-bold text-on-surface">Tu Presupuesto</h2>
                     <Tooltip id="presupuesto-tooltip" text="Compara tus gastos del mes actual con el límite que estableciste. Es tu brújula para saber si vas por buen camino con tu plan." />
                 </div>
+                 <button
+                    onClick={() => openModal('setBudget')}
+                    className="flex items-center text-sm font-semibold text-primary hover:opacity-80 transition-opacity"
+                    aria-label="Editar presupuesto"
+                >
+                    <PencilIcon className="w-4 h-4 mr-1" />
+                    Editar
+                </button>
             </div>
 
             <div className="space-y-2">
@@ -106,34 +78,11 @@ const BudgetTracker: React.FC = () => {
                         className={`${progressBarColor} h-2.5 rounded-full transition-all duration-500 ease-out`}
                         style={{ width: `${Math.min(percentage, 100)}%` }}
                     />
-                    {projectionPercentage !== null && !isLoadingProjection && (
-                        <div 
-                            className={`absolute top-[-2px] h-3.5 w-1 rounded-full ${projectionStyle.bg} transition-all duration-500 ease-out`}
-                            title={`Proyección: S/ ${projection.projectedSpending.toLocaleString('es-PE', { minimumFractionDigits: 2})}`}
-                            style={{ left: `clamp(0.5%, ${projectionPercentage}%, 99.5%)`, transform: 'translateX(-50%)' }}
-                        />
-                    )}
                 </div>
                 <div className="flex justify-between text-on-surface-secondary">
                     <span className="font-extrabold tracking-tight text-on-surface">S/ {totalSpentThisMonth.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
                     <span className="font-semibold">S/ {budget.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
                 </div>
-
-                 {isLoadingProjection && (
-                    <div className="mt-4 p-3 bg-background/50 rounded-lg animate-pulse">
-                        <div className="h-3 w-1/3 bg-active-surface rounded-sm mb-2"></div>
-                        <div className="h-2 w-full bg-active-surface rounded-sm"></div>
-                    </div>
-                )}
-                {projection && !isLoadingProjection && (
-                    <div className="mt-3 p-3 bg-background/50 rounded-lg flex items-start space-x-2.5 animate-grow-and-fade-in" style={{animationDelay: '100ms'}}>
-                        <LightBulbIcon className={`w-5 h-5 ${projectionStyle.text} flex-shrink-0 mt-0.5`} />
-                        <div>
-                            <p className={`text-sm font-semibold ${projectionStyle.text}`}>Análisis IA</p>
-                            <p className="text-sm text-on-surface-secondary leading-tight">{projection.insight}</p>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

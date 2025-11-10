@@ -93,9 +93,9 @@ const EmployerProfileView: React.FC<EmployerProfileViewProps> = ({ user, dashboa
     return (
         <div className="w-1/4 h-full overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6 pb-28">
             <header>
-                <h1 className="text-3xl font-bold">Mi Perfil</h1>
+                <h1 className="text-3xl font-bold">Perfil y Asistente IA</h1>
                 <p className="text-on-surface-secondary">
-                    Gestiona tu cuenta y configuración.
+                    Administra tu perfil y accede a tu copiloto estratégico.
                 </p>
             </header>
             

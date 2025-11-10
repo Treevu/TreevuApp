@@ -1,12 +1,9 @@
-
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     PencilIcon, IdentificationIcon, CheckIcon, DocumentArrowDownIcon, TrashIcon,
     InformationCircleIcon, BookOpenIcon, UserCircleIcon,
     TrophyIcon,
-    BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon
+    BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon, TreevuCoinIcon, ChevronDownIcon
 } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import GamificationBar from './GamificationBar';
@@ -119,8 +116,13 @@ const ProfileContent: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setAct
     const [isEditingDocId, setIsEditingDocId] = useState(false);
     const [docIdValue, setDocIdValue] = useState(user?.documentId || '');
     const [validationMessage, setValidationMessage] = useState('');
+    const [expandedRewardId, setExpandedRewardId] = useState<string | null>(null);
 
     if (!user) return null;
+    
+    const handleToggleReward = (id: string) => {
+        setExpandedRewardId(prevId => (prevId === id ? null : id));
+    };
 
     const handleSaveDocId = () => {
         if (docIdValue.length !== 8) {
@@ -212,6 +214,55 @@ const ProfileContent: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setAct
             <MyTribeCard />
             <AchievementsSection />
             
+             <div className="w-full">
+                <h4 className="text-sm font-bold text-on-surface-secondary mb-2">Mis Beneficios Canjeados</h4>
+                {user.redeemedRewards && user.redeemedRewards.length > 0 ? (
+                    <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                        {user.redeemedRewards.slice().reverse().map(reward => {
+                             const uniqueId = reward.rewardId + reward.date;
+                             const isExpanded = expandedRewardId === uniqueId;
+                            return (
+                                <div key={uniqueId} className="bg-background rounded-xl">
+                                    <button
+                                        onClick={() => handleToggleReward(uniqueId)}
+                                        className="w-full p-3 flex items-center gap-3 text-left"
+                                        aria-expanded={isExpanded}
+                                    >
+                                        <span className="text-2xl">{reward.icon}</span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-on-surface text-sm truncate">{reward.title}</p>
+                                            <p className="text-xs text-on-surface-secondary">
+                                                {new Date(reward.date).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            </p>
+                                        </div>
+                                        <div className="text-right flex-shrink-0 flex items-center gap-2">
+                                            <p className="font-bold text-primary text-sm flex items-center gap-1">
+                                                {reward.costInTreevus.toLocaleString()}
+                                                <TreevuCoinIcon className="w-4 h-4" level={user.level} />
+                                            </p>
+                                            <ChevronDownIcon className={`w-5 h-5 text-on-surface-secondary transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                                        </div>
+                                    </button>
+                                    <div
+                                        className="transition-all duration-300 ease-in-out overflow-hidden"
+                                        style={{ maxHeight: isExpanded ? '150px' : '0px' }}
+                                    >
+                                        <div className="px-4 pb-3 pt-1 border-t border-active-surface">
+                                            <h5 className="text-xs font-bold text-on-surface-secondary mb-1">Condiciones del Beneficio</h5>
+                                            <p className="text-xs text-on-surface-secondary">{reward.description}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                ) : (
+                    <div className="bg-background p-4 rounded-xl text-center">
+                        <p className="text-sm text-on-surface-secondary">Aún no has canjeado ningún beneficio.</p>
+                    </div>
+                )}
+            </div>
+
             <div className="w-full p-3 bg-background rounded-2xl">
                 {renderDocIdContent()}
             </div>

@@ -156,6 +156,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 icon: reward.icon,
                 date: new Date().toISOString(),
                 costInTreevus: reward.costInTreevus,
+                description: reward.description,
             };
 
             const updatedUser: User = {

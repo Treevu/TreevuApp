@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, Suspense } from 'react';
 
 // Flujo del Empleador
@@ -96,7 +97,7 @@ const App: React.FC = () => {
     // --- Renderizado del Flujo del Empleador ---
     else if (appMode === 'employer') {
         content = (
-            // FIX: The ModalProvider was throwing a 'missing children' error. This was due to an issue with how the component's props were typed. The fix has been applied in `contexts/ModalContext.tsx` by changing its definition to correctly handle children props. */}
+            // FIX: The ModalProvider was throwing a 'missing children' error. This was due to an issue with how the component's props were typed. The fix has been applied in `contexts/ModalContext.tsx` by changing its definition to correctly handle children props.
             <ModalProvider>
                 <div>
                     <div className="min-h-screen bg-background text-on-surface">
@@ -118,7 +119,7 @@ const App: React.FC = () => {
     // --- Renderizado del Portal de Acceso Inicial ---
     else {
         content = (
-            // FIX: The ModalProvider was throwing a 'missing children' error. This was due to an issue with how the component's props were typed. The fix has been applied in `contexts/ModalContext.tsx` by changing its definition to correctly handle children props. */}
+            // FIX: The ModalProvider was throwing a 'missing children' error. This was due to an issue with how the component's props were typed. The fix has been applied in `contexts/ModalContext.tsx` by changing its definition to correctly handle children props.
             <ModalProvider>
                 <div>
                     <AccessPortal onSelectType={setAppMode} />

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SparklesIcon, GiftIcon, PlusIcon, FlagIcon, ChevronDownIcon, UsersIcon, ArrowTrendingUpIcon } from '../Icons';
 import Tooltip from '../Tooltip';
@@ -61,7 +62,7 @@ const ChallengeCard: React.FC<{
                     </div>
                     <div className="h-2 w-full bg-active-surface rounded-full">
                         <div
-                            className={`h-2 rounded-full transition-all duration-500 ease-out ${isCompleted ? 'bg-primary' : 'bg-primary'}`}
+                            className={`h-2 rounded-full transition-all duration-500 ease-out ${isCompleted ? 'bg-primary' : 'bg-accent'}`}
                             style={{ width: `${progress}%` }}
                         ></div>
                     </div>

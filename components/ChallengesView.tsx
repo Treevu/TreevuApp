@@ -1,6 +1,4 @@
 
-
-
 import React from 'react';
 import { MOCK_CHALLENGES, MOCK_EMPLOYEES, calculateKpisForSegment } from '../services/employerDataService';
 import { UsersIcon, GiftIcon, SparklesIcon, CheckBadgeIcon, RocketLaunchIcon } from './Icons';

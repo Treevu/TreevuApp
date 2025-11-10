@@ -1,4 +1,6 @@
 
+
+
 import React, { Component, ReactNode } from 'react';
 import { ExclamationTriangleIcon } from './Icons';
 
@@ -12,7 +14,7 @@ interface State {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  // FIX: Replaced constructor with a class property for state initialization to resolve issues with `this.props` and `this.state` being unrecognized.
+  // FIX: Reverted to modern class property syntax for state to resolve TypeScript errors.
   state: State = { hasError: false, error: undefined };
 
   public static getDerivedStateFromError(error: Error): State {
@@ -50,7 +52,7 @@ class ErrorBoundary extends Component<Props, State> {
         </div>
       );
     }
-
+    // FIX: In a class component, props are accessed via `this.props`.
     return this.props.children;
   }
 }

@@ -1,5 +1,8 @@
 
-import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
+
+
+
+import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo, PropsWithChildren } from 'react';
 import { AddExpenseModal } from '../components/AddExpenseModal';
 import SetBudgetModal from '../components/SetBudgetModal';
 import SetIncomeModal from '../components/SetIncomeModal';
@@ -106,8 +109,8 @@ const MODAL_COMPONENTS: { [key in ModalType]: React.FC<any> } = {
     promoteLesson: PromoteLessonModal,
 };
 
-// FIX: Changed from React.FC to a standard function component with explicit children prop type to resolve the 'missing children' error from App.tsx.
-export const ModalProvider = ({ children }: { children: ReactNode }) => {
+// FIX: To resolve the 'missing children' error, we use React.FC<PropsWithChildren<{}>> which correctly types a component that accepts children, making them optional. This aligns with React 18's type definitions and ensures compatibility.
+export const ModalProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
     const [modalState, setModalState] = useState<ModalState>({ type: null, props: {} });
 
     const openModal = useCallback(<T extends ModalType>(type: T, props: Omit<ModalPropsMap[T], 'onClose'> = {} as any) => {

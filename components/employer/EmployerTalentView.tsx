@@ -38,11 +38,11 @@ const EmployerAnalysisView: React.FC<EmployerAnalysisViewProps> = ({ dashboardDa
             case 'impacto':
                 return (
                     <div className="space-y-6 animate-fade-in">
-                        <div ref={refs.benefitsImpactRef}>
-                            <BenefitsImpactWidget data={dashboardData} />
-                        </div>
                         <div ref={refs.aspirationsRef}>
                             <AspirationsWidget data={dashboardData} segmentEmployees={segmentEmployees} />
+                        </div>
+                        <div ref={refs.benefitsImpactRef}>
+                            <BenefitsImpactWidget data={dashboardData} />
                         </div>
                     </div>
                 );
@@ -81,9 +81,9 @@ const EmployerAnalysisView: React.FC<EmployerAnalysisViewProps> = ({ dashboardDa
     return (
          <div className="w-1/4 h-full overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6 pb-28">
             <header>
-                <h1 className="text-3xl font-bold">Análisis Profundo</h1>
+                <h1 className="text-3xl font-bold">Inteligencia de Talento</h1>
                 <p className="text-on-surface-secondary">
-                    Explora los datos para encontrar insights, patrones y oportunidades.
+                    Convierte los datos de bienestar de tu equipo en una ventaja competitiva.
                 </p>
             </header>
 

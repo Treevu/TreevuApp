@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ShieldCheckIcon } from './Icons';
+import { ShieldCheckIcon, LockClosedIcon } from './Icons';
 import Logo from './Logo';
 
 interface EthicalPromiseProps {
@@ -15,7 +15,10 @@ const EthicalPromise: React.FC<EthicalPromiseProps> = ({ onAccept }) => {
                     <ShieldCheckIcon className="w-16 h-16 text-primary mx-auto mb-4" />
                     <h1 className="text-3xl font-bold text-on-surface leading-tight">
                         Tu Confianza
-                        <span className="block">es Nuestra Prioridad</span>
+                        <span className="block flex items-center justify-center gap-2 mt-1">
+                            es Nuestra Prioridad
+                            <LockClosedIcon className="w-8 h-8 text-primary" />
+                        </span>
                     </h1>
                     <p className="mt-4 text-on-surface-secondary">
                         En treevü, tu privacidad es sagrada. Nos comprometemos a que tus datos de gastos personales son y siempre serán <strong className="font-semibold text-on-surface">100% anónimos y privados</strong>.

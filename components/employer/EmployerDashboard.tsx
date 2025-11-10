@@ -31,7 +31,7 @@ interface EmployerDashboardProps {
     onSignOut: () => void;
 }
 
-type EmployerActiveTab = 'resumen' | 'analisis' | 'cultura' | 'perfil';
+type EmployerActiveTab = 'resumen' | 'talento' | 'cultura' | 'perfil';
 
 const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }) => {
     const [employees] = useState(() => generateMockEmployees(195));
@@ -45,7 +45,7 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }
     const { openModal, closeModal } = useModal();
     const [activeTab, setActiveTab] = useState<EmployerActiveTab>('resumen');
 
-    const tabs: EmployerActiveTab[] = ['resumen', 'analisis', 'cultura', 'perfil'];
+    const tabs: EmployerActiveTab[] = ['resumen', 'talento', 'cultura', 'perfil'];
     
     const handleTabClick = useCallback((tab: EmployerActiveTab) => {
         setActiveTab(tab);
@@ -69,17 +69,17 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }
     const assistantBtnRef = useRef<HTMLButtonElement>(null);
 
     const resumenTabRef = useRef<HTMLButtonElement>(null);
-    const analisisTabRef = useRef<HTMLButtonElement>(null);
+    const talentoTabRef = useRef<HTMLButtonElement>(null);
     const culturaTabRef = useRef<HTMLButtonElement>(null);
     const perfilTabRef = useRef<HTMLButtonElement>(null);
 
 
     const navTabs = useMemo(() => [
         { id: 'resumen' as const, ref: resumenTabRef, label: 'Resumen', Icon: HomeIcon },
-        { id: 'analisis' as const, ref: analisisTabRef, label: 'Análisis', Icon: ChartPieIcon },
+        { id: 'talento' as const, ref: talentoTabRef, label: 'Talento', Icon: ChartPieIcon },
         { id: 'cultura' as const, ref: culturaTabRef, label: 'Cultura', Icon: HeartIcon },
         { id: 'perfil' as const, ref: perfilTabRef, label: 'Perfil', Icon: UserCircleIcon },
-    ], [resumenTabRef, analisisTabRef, culturaTabRef, perfilTabRef]);
+    ], [resumenTabRef, talentoTabRef, culturaTabRef, perfilTabRef]);
 
     const filteredEmployees = useMemo(() => {
         return employees.filter(e => 
@@ -101,17 +101,17 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }
     }, []);
 
     const tourSteps = [
-        { targetRef: dashboardContentRef, text: '¡Bienvenido al Dashboard Estratégico! Este es tu "Resumen", donde tienes una vista completa de la salud financiera de tu equipo.', position: 'bottom' as const, tab: 'resumen' },
-        { targetRef: fwiRef, text: "Todo gira en torno al FWI (Índice de Bienestar Financiero). Es tu métrica 'Estrella del Norte' para medir la salud del segmento que has elegido.", position: 'bottom' as const, tab: 'resumen' },
-        { targetRef: filtersRef, text: 'Usa estos filtros para explorar los datos. Segmenta por área o antigüedad para descubrir insights profundos y comparar el bienestar entre grupos.', position: 'bottom' as const, tab: 'resumen' },
-        { targetRef: kpisRef, text: 'Monitorea los KPIs más importantes de un vistazo, como el riesgo de fuga y el retorno de inversión (ROI) de tu programa de beneficios.', position: 'top' as const, tab: 'resumen' },
-        { targetRef: analisisTabRef, text: "Ahora, exploremos 'Análisis', tu centro neurálgico para explorar TODOS los datos sobre impacto, hábitos y adopción.", position: 'top' as const, tab: 'analisis' },
-        { targetRef: benefitsImpactRef, text: 'Mide el impacto directo de tu programa de beneficios, desde la tasa de canje hasta su correlación con el bienestar.', position: 'bottom' as const, tab: 'analisis' },
-        { targetRef: culturaTabRef, text: "En 'Cultura' encontrarás herramientas para fomentar el engagement, como las iniciativas de equipo y el ranking de reconocimiento.", position: 'top' as const, tab: 'cultura' },
-        { targetRef: teamChallengesRef, text: "Lanza 'Iniciativas' para motivar a tu equipo a alcanzar metas colectivas. Puedes usar la IA para obtener sugerencias y hacerlas más efectivas.", position: 'bottom' as const, tab: 'cultura' },
-        { targetRef: perfilTabRef, text: "Finalmente, en 'Perfil' gestionas tu cuenta y accedes al Asistente Estratégico de IA, tu aliado para análisis complejos.", position: 'top' as const, tab: 'perfil' },
-        { targetRef: assistantBtnRef, text: 'Pruébalo ahora. Pide a nuestra IA análisis o borradores de comunicados, todo basado en los datos de tu equipo.', position: 'top' as const, tab: 'perfil', isInteractive: true },
-        { targetRef: null, text: '¡Has completado el recorrido! Ahora tienes las herramientas para potenciar el bienestar y la estrategia de tu equipo. ¡Adelante!', position: 'bottom' as const, tab: 'perfil' },
+        { targetRef: dashboardContentRef, text: 'Bienvenido al Centro de Mando Estratégico. Esta vista de \'Resumen\' es el pulso en tiempo real del bienestar y el riesgo de tu equipo.', position: 'bottom' as const, tab: 'resumen' },
+        { targetRef: fwiRef, text: "El FWI (Índice de Bienestar Financiero) es tu métrica cardinal. Mide la salud financiera integral y predice el comportamiento del talento.", position: 'bottom' as const, tab: 'resumen' },
+        { targetRef: filtersRef, text: 'Los Filtros Estratégicos son tu microscopio. Segmenta los datos para descubrir patrones ocultos y oportunidades de intervención precisas.', position: 'bottom' as const, tab: 'resumen' },
+        { targetRef: kpisRef, text: 'Desde esta matriz de KPIs, monitorea indicadores de alto nivel como el Riesgo de Fuga Predictivo y el ROI del Programa para una gestión proactiva.', position: 'top' as const, tab: 'resumen' },
+        { targetRef: talentoTabRef, text: "La pestaña de 'Talento' es tu centro de inteligencia. Aquí, transformamos datos brutos en insights sobre impacto, hábitos y aspiraciones.", position: 'top' as const, tab: 'talento' },
+        { targetRef: benefitsImpactRef, text: 'En la sección de Impacto, cuantifica el ROI de tus beneficios y su correlación directa con el FWI, probando el valor de tu inversión.', position: 'bottom' as const, tab: 'talento' },
+        { targetRef: culturaTabRef, text: "La vista de 'Cultura' es tu caja de herramientas para el engagement. Lanza iniciativas, monitorea el reconocimiento y fortalece la moral del equipo.", position: 'top' as const, tab: 'cultura' },
+        { targetRef: teamChallengesRef, text: "Las Iniciativas de Equipo son catalizadores de cambio. Úsalas para gamificar metas colectivas y potenciar KPIs específicos, con sugerencias de la IA.", position: 'bottom' as const, tab: 'cultura' },
+        { targetRef: perfilTabRef, text: "Tu 'Perfil' es también el acceso a tu Asistente Estratégico IA. Gestiona tu cuenta y delega análisis complejos a Gemini.", position: 'top' as const, tab: 'perfil' },
+        { targetRef: assistantBtnRef, text: 'Pruébalo. Solicita un análisis comparativo o que redacte un comunicado. Transforma datos en acción con una simple pregunta.', position: 'top' as const, tab: 'perfil', isInteractive: true },
+        { targetRef: null, text: 'Has completado la inducción. Ahora posees la inteligencia para pilotar la estrategia de talento de tu organización. El puente de mando es tuyo.', position: 'bottom' as const, tab: 'perfil' },
     ];
     
     const handleEndTour = useCallback(() => {
@@ -134,7 +134,7 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }
         } else {
             handleEndTour();
         }
-    }, [tourStep, activeTab, handleEndTour]);
+    }, [tourStep, activeTab, handleEndTour, tourSteps]);
     
      const handlePrevStep = useCallback(() => {
         const prevStepIndex = tourStep - 1;
@@ -147,7 +147,7 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }
                 setTourStep(prevStepIndex);
             }
         }
-    }, [tourStep, activeTab]);
+    }, [tourStep, activeTab, tourSteps]);
     
     const handleCreateChallenge = useCallback((newChallengeData: Omit<Challenge, 'id'>) => {
         const newChallenge: Challenge = {

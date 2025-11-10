@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTribes } from '../contexts/TribesContext';
@@ -32,39 +33,44 @@ const MissionsView: React.FC = () => {
             </div>
 
             {/* Active Mission */}
-            {activeMission && (
-                 <div className="bg-surface rounded-2xl p-4 border-2 border-primary shadow-lg shadow-primary/10">
-                    <p className="text-sm font-bold text-primary mb-2">Misión Activa</p>
-                    <div className="flex items-start gap-4">
-                        <span className="text-4xl">{activeMission.icon}</span>
-                        <div>
-                            <h3 className="font-bold text-on-surface">{activeMission.title}</h3>
-                            <p className="text-xs text-on-surface-secondary mt-1">{activeMission.description}</p>
+            {activeMission && (() => {
+                const progress = Math.min(100, (((userTribe.missionProgress || 0) / activeMission.target) * 100));
+                const isCompleted = progress >= 100;
+
+                return (
+                    <div className="bg-surface rounded-2xl p-4 border-2 border-primary shadow-lg shadow-primary/10">
+                        <p className="text-sm font-bold text-primary mb-2">Misión Activa</p>
+                        <div className="flex items-start gap-4">
+                            <span className="text-4xl">{activeMission.icon}</span>
+                            <div>
+                                <h3 className="font-bold text-on-surface">{activeMission.title}</h3>
+                                <p className="text-xs text-on-surface-secondary mt-1">{activeMission.description}</p>
+                            </div>
                         </div>
+                        
+                        <div className="mt-4">
+                            <div className="flex justify-between items-center text-xs text-on-surface-secondary mb-1">
+                                <span>Progreso: <span className="font-bold text-on-surface">{userTribe.missionProgress || 0} / {activeMission.target}</span></span>
+                                <span className="font-bold text-primary">
+                                    {progress.toFixed(0)}%
+                                </span>
+                            </div>
+                            <div className="h-2.5 w-full bg-active-surface rounded-full">
+                                <div
+                                    className={`h-2.5 rounded-full transition-all duration-500 ease-out ${isCompleted ? 'bg-primary' : 'bg-accent'}`}
+                                    style={{ width: `${progress}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                        {isCompleted && (
+                            <div className="mt-3 text-center p-2 bg-primary/20 rounded-lg text-sm font-bold text-primary flex items-center justify-center gap-2">
+                                <CheckBadgeIcon className="w-5 h-5"/>
+                                ¡Misión Completada! El botín será distribuido.
+                            </div>
+                        )}
                     </div>
-                    
-                    <div className="mt-4">
-                        <div className="flex justify-between items-center text-xs text-on-surface-secondary mb-1">
-                            <span>Progreso: <span className="font-bold text-on-surface">{userTribe.missionProgress || 0} / {activeMission.target}</span></span>
-                            <span className="font-bold text-primary">
-                                {Math.min(100, (((userTribe.missionProgress || 0) / activeMission.target) * 100)).toFixed(0)}%
-                            </span>
-                        </div>
-                        <div className="h-2.5 w-full bg-active-surface rounded-full">
-                            <div
-                                className="h-2.5 rounded-full bg-primary"
-                                style={{ width: `${Math.min(100, (((userTribe.missionProgress || 0) / activeMission.target) * 100))}%` }}
-                            ></div>
-                        </div>
-                    </div>
-                    {(userTribe.missionProgress || 0) >= activeMission.target && (
-                        <div className="mt-3 text-center p-2 bg-primary/20 rounded-lg text-sm font-bold text-primary flex items-center justify-center gap-2">
-                            <CheckBadgeIcon className="w-5 h-5"/>
-                            ¡Misión Completada! El botín será distribuido.
-                        </div>
-                    )}
-                </div>
-            )}
+                );
+            })()}
 
             {/* Available Missions */}
             <div className="space-y-3">

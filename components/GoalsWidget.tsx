@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGoals } from '../contexts/GoalsContext';
-import { PlusIcon, TrashIcon, BuildingBlocksIcon, InformationCircleIcon } from './Icons';
+import { PlusIcon, TrashIcon, BuildingBlocksIcon, InformationCircleIcon, TrophyIcon } from './Icons';
 import { useModal } from '../contexts/ModalContext';
 
 interface GoalsWidgetProps {
@@ -14,6 +14,25 @@ const GoalsWidget: React.FC<GoalsWidgetProps> = ({ variant = 'full' }) => {
     const handleAddContribution = (goalId: string) => {
         openModal('addGoalContribution', { goalId });
     };
+
+    // Sort goals to show completed ones first, then by progress
+    const sortedGoals = [...goals].sort((a, b) => {
+        const aCompleted = a.currentAmount >= a.targetAmount;
+        const bCompleted = b.currentAmount >= b.targetAmount;
+
+        if (aCompleted && !bCompleted) return -1; // a (completed) comes first
+        if (!aCompleted && bCompleted) return 1;  // b (completed) comes first
+        
+        // If both are incomplete, sort by progress percentage descending
+        if (!aCompleted && !bCompleted) {
+             const aProgress = a.targetAmount > 0 ? a.currentAmount / a.targetAmount : 0;
+             const bProgress = b.targetAmount > 0 ? b.currentAmount / b.targetAmount : 0;
+             if (aProgress !== bProgress) return bProgress - aProgress;
+        }
+
+        // Fallback to creation date if progress is the same or both are completed
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
     if (goals.length === 0) {
         if (variant === 'full') {
@@ -80,18 +99,19 @@ const GoalsWidget: React.FC<GoalsWidgetProps> = ({ variant = 'full' }) => {
                 )}
             </div>
             <div className="space-y-4">
-                {goals.map(goal => {
+                {sortedGoals.map(goal => {
+                    const isCompleted = goal.currentAmount >= goal.targetAmount;
                     const percentage = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0;
-                    const remaining = goal.targetAmount - goal.currentAmount;
+                    
                     return (
-                        <div key={goal.id} className="bg-background p-3 rounded-xl transition-shadow duration-300 hover:shadow-lg hover:shadow-primary/20 focus-within:shadow-lg focus-within:shadow-primary/20">
+                        <div key={goal.id} className={`bg-background p-3 rounded-xl transition-all duration-300 ${isCompleted ? 'border border-dashed border-primary shadow-lg shadow-primary/10' : 'hover:shadow-lg hover:shadow-primary/20 focus-within:shadow-lg focus-within:shadow-primary/20'}`}>
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">{goal.icon}</span>
                                     <div>
                                         <p className="font-bold text-on-surface">{goal.name}</p>
                                         <p className="text-xs text-on-surface-secondary">
-                                            {remaining > 0 ? `Faltan S/ ${remaining.toLocaleString()} para el tesoro` : '¡Tesoro Desbloqueado!'}
+                                            {isCompleted ? '¡Tesoro Conquistado!' : `Faltan S/ ${(goal.targetAmount - goal.currentAmount).toLocaleString()} para el tesoro`}
                                         </p>
                                     </div>
                                 </div>
@@ -106,22 +126,31 @@ const GoalsWidget: React.FC<GoalsWidgetProps> = ({ variant = 'full' }) => {
                                     <span>S/ {goal.currentAmount.toLocaleString()}</span>
                                     <span>S/ {goal.targetAmount.toLocaleString()}</span>
                                 </div>
-                                <div className="h-2 w-full bg-active-surface rounded-full">
+                                <div className="h-2 w-full bg-active-surface rounded-full progress-bar-bg-textured">
                                     <div
-                                        className="h-2 rounded-full bg-primary transition-all duration-500 ease-out"
+                                        className={`h-2 rounded-full transition-all duration-500 ease-out ${isCompleted ? 'bg-gradient-to-r from-primary to-emerald-400 progress-bar-neon' : 'bg-primary'}`}
                                         style={{ width: `${Math.min(100, percentage)}%` }}
                                     ></div>
                                 </div>
                             </div>
                             {variant === 'full' && (
-                                 <div className="mt-3 text-right">
-                                    <button
-                                        onClick={() => handleAddContribution(goal.id)}
-                                        className="px-3 py-1 text-xs font-bold text-primary bg-primary/20 rounded-full hover:bg-primary/30"
-                                    >
-                                        + Añadir Fondos
-                                    </button>
-                                </div>
+                                isCompleted ? (
+                                    <div className="mt-3 text-center p-2 bg-primary/10 rounded-lg animate-fade-in">
+                                        <p className="font-bold text-primary flex items-center justify-center gap-2">
+                                            <TrophyIcon className="w-5 h-5" title="Trofeo" /> ¡Misión Cumplida!
+                                        </p>
+                                        <p className="text-xs text-on-surface-secondary mt-1">¡Felicidades! Usa esta motivación para tus otros proyectos.</p>
+                                    </div>
+                                ) : (
+                                    <div className="mt-3 text-right">
+                                        <button
+                                            onClick={() => handleAddContribution(goal.id)}
+                                            className="px-3 py-1 text-xs font-bold text-primary bg-primary/20 rounded-full hover:bg-primary/30"
+                                        >
+                                            + Añadir Fondos
+                                        </button>
+                                    </div>
+                                )
                             )}
                         </div>
                     );

@@ -7,6 +7,7 @@ export interface RedeemedReward {
     icon: string;
     date: string; // ISO string of redemption date
     costInTreevus: number;
+    description: string;
 }
 
 export interface Reward {

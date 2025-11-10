@@ -24,7 +24,7 @@ const EmployerCultureView: React.FC<EmployerCultureViewProps> = ({
             <header>
                 <h1 className="text-3xl font-bold">Cultura y Engagement</h1>
                 <p className="text-on-surface-secondary">
-                    Fomenta la colaboración, el reconocimiento y la motivación.
+                    Activa palancas culturales para fortalecer la moral y el rendimiento del equipo.
                 </p>
             </header>
 

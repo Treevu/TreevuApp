@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import PrivacyDisclaimer from './PrivacyDisclaimer';
 import FinancialWellnessIndexChart from './FinancialWellnessIndexChart';
@@ -36,7 +33,7 @@ interface EmployerDashboardViewProps {
         riskChartRef: React.RefObject<HTMLDivElement>;
         areaComparisonRef: React.RefObject<HTMLDivElement>; // This ref will now point to the KpiMatrixWidget
     };
-    activeTab: 'resumen' | 'analisis' | 'cultura' | 'perfil';
+    activeTab: 'resumen' | 'talento' | 'cultura' | 'perfil';
     onSignOut: () => void;
 }
 
@@ -130,7 +127,7 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
         <div className="w-1/4 h-full overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6 pb-28">
             <header>
                 <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-bold">Dashboard Estratégico</h1>
+                    <h1 className="text-3xl font-bold">Resumen Estratégico</h1>
                     <div className="flex items-center gap-4">
                         <EmployerExportButton data={dashboardData} />
                         <button
@@ -144,7 +141,7 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
                     </div>
                 </div>
                 <p className="text-on-surface-secondary">
-                    Hola, <span className="font-bold text-primary">{user.name}</span>. Bienvenido al pulso de tu equipo.
+                    Hola, <span className="font-bold text-primary">{user.name}</span>. Bienvenido al Centro de Mando. Aquí tienes el pulso de tu equipo en tiempo real.
                 </p>
             </header>
 
