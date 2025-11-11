@@ -3,7 +3,7 @@ import { PaperAirplaneIcon, LightBulbIcon, XMarkIcon } from '../Icons';
 // FIX: Updated import from deprecated 'geminiService.ts'.
 import { getAIEmployerResponse } from '../../services/ai/employerService';
 import Logo from '../Logo';
-import { parseJsonFromMarkdown } from '../../../utils';
+import { parseJsonFromMarkdown } from '@/utils';
 
 interface EmployerAIAssistantProps {
     onClose: () => void;
