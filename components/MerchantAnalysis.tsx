@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 // FIX: Updated import from deprecated 'types.ts'.
 import { type Expense } from '../types/expense';
@@ -13,7 +12,7 @@ const MerchantAnalysis: React.FC<MerchantAnalysisProps> = ({ expenses }) => {
         // FIX: Correctly typed the accumulator's initial value in the reduce function to ensure proper type inference.
         const merchantData = expenses
             .filter(expense => !expense.isProductScan) // Exclude expenses from product scans
-            .reduce((acc: Record<string, { total: number; count: number }>, expense) => {
+            .reduce((acc, expense) => {
                 const name = expense.razonSocial.trim();
                 if (!acc[name]) {
                     acc[name] = { total: 0, count: 0 };

@@ -272,3 +272,54 @@ export const getAIGoalInsight = async (topGoals: { category: string; count: numb
     const jsonText = await callAIApi(request);
     return jsonText ? parseJsonFromMarkdown<{ insight: string; recommendation: string }>(jsonText) : null;
 };
+
+export const getAIStrategicReportSummary = async (data: any): Promise<{ executiveSummary: string; recommendations: { title: string; detail: string }[] } | null> => {
+    const prompt = `
+        Eres un consultor de alta dirección de McKinsey o BCG, especializado en capital humano y estrategia de negocio.
+        Tu tarea es analizar un dashboard de People Analytics de la plataforma treevü y redactar un informe ejecutivo para un líder.
+
+        **Datos Clave del Dashboard:**
+        - Índice de Bienestar Financiero (FWI) promedio: ${data.financialWellnessIndex.toFixed(1)}
+        - Riesgo de Fuga de Talento (Predictivo): ${data.talentFlightRisk}
+        - Tasa de Activación de la plataforma: ${data.activationRate.toFixed(1)}%
+        - ROI del programa de beneficios: ${data.roiMultiplier.toFixed(1)}x
+        - Adopción de Metas de Ahorro: ${data.goalAdoptionRate.toFixed(1)}%
+        - Correlación más fuerte con el FWI: ${data.fwiCorrelations[0]?.label} (${data.fwiCorrelations[0]?.value.toFixed(2)})
+        - Departamento con FWI más bajo: ${data.kpisByDepartment.sort((a:any, b:any) => a.fwi - b.fwi)[0]?.department}
+
+        **Instrucciones de Respuesta:**
+        1.  **executiveSummary:** Escribe un párrafo conciso (máximo 60 palabras) que resuma el estado actual. Destaca el KPI más positivo y el área de mayor preocupación.
+        2.  **recommendations:** Genera un array con EXACTAMENTE 3 recomendaciones estratégicas. Cada recomendación debe tener un 'title' (la acción) y un 'detail' (el porqué y cómo). Las recomendaciones deben ser de alto impacto y basadas en los datos provistos.
+            - Ejemplo de recomendación: { "title": "Lanzar Iniciativa de Bienestar en [Área de bajo FWI]", "detail": "El bajo FWI en esta área se correlaciona con un alto riesgo de fuga. Una iniciativa focalizada puede mitigar este riesgo y mejorar la moral." }
+
+        **Barrera de Contención (Guardrail):** Tu lenguaje debe ser corporativo, estratégico y basado en datos. Evita jerga excesiva.
+        Responde en formato JSON estricto.
+    `;
+    const request = {
+        model: 'gemini-2.5-pro',
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    executiveSummary: { type: Type.STRING },
+                    recommendations: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                title: { type: Type.STRING },
+                                detail: { type: Type.STRING }
+                            },
+                            required: ["title", "detail"]
+                        }
+                    }
+                },
+                required: ["executiveSummary", "recommendations"]
+            }
+        }
+    };
+    const jsonText = await callAIApi(request);
+    return jsonText ? parseJsonFromMarkdown<any>(jsonText) : null;
+};

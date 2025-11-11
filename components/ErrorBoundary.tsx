@@ -1,6 +1,3 @@
-
-
-
 import React, { Component, ReactNode } from 'react';
 import { ExclamationTriangleIcon } from './Icons';
 
@@ -14,8 +11,11 @@ interface State {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  // FIX: Reverted to modern class property syntax for state to resolve TypeScript errors.
-  state: State = { hasError: false, error: undefined };
+  // FIX: Using constructor to initialize state, fixing 'Property 'state' does not exist' errors.
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false, error: undefined };
+  }
 
   public static getDerivedStateFromError(error: Error): State {
     // Update state so the next render will show the fallback UI.
@@ -32,6 +32,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public render(): React.ReactNode {
+    // FIX: Accessing state via `this.state` as required in class components.
     if (this.state.hasError) {
       // You can render any custom fallback UI
       return (
@@ -52,7 +53,7 @@ class ErrorBoundary extends Component<Props, State> {
         </div>
       );
     }
-    // FIX: In a class component, props are accessed via `this.props`.
+    // FIX: In a class component, props must be accessed via `this.props`.
     return this.props.children;
   }
 }

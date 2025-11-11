@@ -1,5 +1,7 @@
 import { CategoriaGasto, TipoComprobante } from './common';
 
+export type PaymentMethod = 'efectivo' | 'tarjeta' | 'yape/plin' | 'otro';
+
 export interface Expense {
     id: string;
     razonSocial: string;
@@ -15,6 +17,10 @@ export interface Expense {
     isProductScan?: boolean;
     mensaje?: string;
     intent?: 'essential' | 'desired' | 'unclassified';
+    // --- NEW FIELDS FOR ML ---
+    paymentMethod?: PaymentMethod;
+    isRecurring?: boolean;
+    notes?: string;
 }
 
 export type ExpenseData = Omit<Expense, 'id' | 'imageUrl'>;

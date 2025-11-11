@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { LightBulbIcon, SparklesIcon, ArrowTopRightOnSquareIcon } from '../Icons';
 import Tooltip from '../Tooltip';
@@ -155,47 +151,58 @@ const AspirationsWidget: React.FC<AspirationsWidgetProps> = ({ data, segmentEmpl
                     </div>
                     
                     {topGoalCategories.length > 0 ? (
-                        <div className="space-y-3 flex-grow">
-                            {topGoalCategories.slice(0, 4).map(item => {
-                                const percentage = totalGoalsInFilteredSegment > 0 ? (item.count / totalGoalsInFilteredSegment) * 100 : 0;
+                        <div className="space-y-2 flex-grow">
+                            {topGoalCategories.slice(0, 4).map(goal => {
+                                const percentage = totalGoalsInFilteredSegment > 0 ? (goal.count / totalGoalsInFilteredSegment) * 100 : 0;
                                 return (
-                                    <div key={item.category} className="space-y-1">
-                                        <div className="flex justify-between items-center text-sm font-semibold">
-                                            <span className="flex items-center gap-2">{GOAL_ICONS[item.category] || '🎯'} {item.category}</span>
-                                            <span>{item.count}</span>
+                                    <div key={goal.category}>
+                                        <div className="flex justify-between items-center text-sm mb-1">
+                                            <span className="font-semibold text-on-surface flex items-center">
+                                                <span className="text-lg mr-2">{GOAL_ICONS[goal.category] || '✨'}</span>
+                                                {goal.category}
+                                            </span>
+                                            <span className="font-bold text-on-surface-secondary">{goal.count}</span>
                                         </div>
-                                        <div className="h-2 w-full bg-active-surface rounded-full">
-                                            <div className="h-2 rounded-full bg-primary" style={{ width: `${percentage}%` }}></div>
+                                        <div className="h-1.5 w-full bg-active-surface rounded-full">
+                                            <div className="h-1.5 rounded-full bg-primary" style={{ width: `${percentage}%` }}></div>
                                         </div>
                                     </div>
                                 );
                             })}
                         </div>
                     ) : (
-                        <div className="flex-grow flex items-center justify-center text-center text-sm text-on-surface-secondary">
-                           <p>No se encontraron metas de ahorro en este segmento.</p>
+                        <div className="flex-grow flex items-center justify-center text-center text-on-surface-secondary text-sm">
+                            <p>No hay metas definidas en este segmento.</p>
                         </div>
                     )}
-                    
-                    <div className="mt-4 pt-4 border-t border-active-surface/50">
-                        <h4 className="font-bold text-on-surface mb-2 flex items-center">
-                            <SparklesIcon className="w-5 h-5 mr-1.5 text-primary" />
-                            Análisis IA
-                        </h4>
+
+                    <div className="mt-4 pt-3 border-t border-active-surface/50">
                         {isLoadingInsight ? (
-                            <div className="space-y-2 animate-pulse">
+                            <div className="animate-pulse space-y-2">
+                                <div className="h-3 w-1/4 bg-active-surface rounded"></div>
                                 <div className="h-3 w-full bg-active-surface rounded"></div>
-                                <div className="h-3 w-2/3 bg-active-surface rounded"></div>
+                                <div className="h-3 w-3/4 bg-active-surface rounded"></div>
                             </div>
                         ) : aiInsight ? (
                             <div className="space-y-2">
-                                <p className="text-sm text-on-surface"><strong className="text-on-surface-secondary">Diagnóstico:</strong> {aiInsight.insight}</p>
-                                <p className="text-sm text-on-surface"><strong className="text-primary">Acción Sugerida:</strong> {aiInsight.recommendation}</p>
+                                 <div>
+                                    <p className="text-xs font-bold text-on-surface-secondary mb-1 flex items-center">
+                                        <SparklesIcon className="w-4 h-4 mr-1 text-primary"/>
+                                        Diagnóstico IA:
+                                    </p>
+                                    <p className="text-sm text-on-surface font-semibold italic">"{aiInsight.insight}"</p>
+                                </div>
+                                <div className="p-2 bg-primary/10 rounded-lg">
+                                    <p className="text-xs font-bold text-primary mb-1 flex items-center">
+                                         <ArrowTopRightOnSquareIcon className="w-4 h-4 mr-1"/>
+                                        Acción Sugerida:
+                                    </p>
+                                    <p className="text-sm text-on-surface">{aiInsight.recommendation}</p>
+                                </div>
                             </div>
-                        ) : (
-                            <p className="text-sm text-on-surface-secondary">No hay suficientes datos para un análisis detallado.</p>
-                        )}
+                        ) : null}
                     </div>
+
                 </div>
             </div>
         </div>

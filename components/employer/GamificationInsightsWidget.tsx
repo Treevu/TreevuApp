@@ -3,6 +3,7 @@
 import React from 'react';
 import { TrophyIcon, AcademicCapIcon, HandThumbUpIcon } from '../Icons';
 import { levelData } from '../../services/gamificationService';
+import { TreevuLevel } from '../../types/common';
 
 interface GamificationInsightsWidgetProps {
     data: {
@@ -56,7 +57,10 @@ const GamificationInsightsWidget: React.FC<GamificationInsightsWidgetProps> = ({
                     </div>
                     <div className="space-y-2">
                         {levels.map(levelName => {
-                            const count = levelDistribution[levelName.split(' ')[0]] || 0;
+                             const levelKey = Object.keys(TreevuLevel).find(key => 
+                                levelData[TreevuLevel[key as keyof typeof TreevuLevel] as TreevuLevel]?.name === levelName
+                            );
+                            const count = levelKey ? levelDistribution[levelKey] || 0 : 0;
                             const percentage = maxInLevel > 0 ? (count / maxInLevel) * 100 : 0;
                             return (
                                 <div key={levelName} className="flex items-center gap-2 text-sm">

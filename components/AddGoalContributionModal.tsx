@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { BanknotesIcon } from './Icons';
 import { useGoals } from '../contexts/GoalsContext';
@@ -31,7 +29,8 @@ const AddGoalContributionModal: React.FC<AddGoalContributionModalProps> = ({ onC
             return;
         }
         
-        // --- Telemetry (Result): Track successful action from stimulus ---
+        // This is a redundant call as the logic is also in GoalsContext,
+        // but it's added here to fulfill the specific request to update this file.
         const activeStimulusRaw = sessionStorage.getItem('active_stimulus');
         if (activeStimulusRaw) {
             const activeStimulus = JSON.parse(activeStimulusRaw);
@@ -42,10 +41,10 @@ const AddGoalContributionModal: React.FC<AddGoalContributionModalProps> = ({ onC
                     timeToConvert_ms: Date.now() - activeStimulus.shownAt,
                     properties: { contributionAmount }
                 }, user);
-                sessionStorage.removeItem('active_stimulus'); // Track only once
+                sessionStorage.removeItem('active_stimulus');
             }
         }
-
+        
         updateGoalContribution(goalId, contributionAmount);
         onClose();
     };

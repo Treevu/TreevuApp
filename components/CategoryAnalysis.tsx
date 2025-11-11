@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { ChartPieIcon } from './Icons';
 import Tooltip from './Tooltip';
@@ -13,7 +12,7 @@ interface CategoryAnalysisProps {
 const CategoryAnalysis: React.FC<CategoryAnalysisProps> = ({ expenses }) => {
     const sortedCategories = useMemo(() => {
         // FIX: Correctly typed the accumulator's initial value in the reduce function to ensure proper type inference.
-        const dataByCategory = expenses.reduce((acc: Record<string, { total: number; count: number }>, expense) => {
+        const dataByCategory = expenses.reduce((acc, expense) => {
             const category = expense.categoria;
             if (!acc[category]) {
                 acc[category] = { total: 0, count: 0 };

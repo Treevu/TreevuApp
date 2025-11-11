@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useMemo, useEffect, useCallback } from 'react';
 import { levelData } from '../services/gamificationService';
 import { archetypeData, ArchetypeKey } from '../data/archetypes';
+import { trackEvent } from '../services/analyticsService';
 
 import { TreevuLevel } from '../types/common';
 import { Department, Modality, Tenure, AgeRange } from '../types/employer';
@@ -25,6 +26,7 @@ interface AuthContextType {
     updateUserStreak: (streak: { count: number; lastDate: string }) => void;
     prestigeUp: () => void;
     completeLesson: (lessonId: string) => void;
+    recordUserActivity: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,7 +59,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (isInitialLoad) return;
         try {
             if (user) {
-                localStorage.setItem('treevu-user', JSON.stringify(user));
+                // Calculate derived properties before saving
+                const engagementScore = ((user.kudosSent || 0) * 1) + ((user.completedLessons?.length || 0) * 5) + ((user.redeemedRewards?.length || 0) * 10);
+                const userToSave = {
+                    ...user,
+                    engagementScore: Math.min(100, engagementScore), // Cap at 100
+                    rewardsClaimedCount: user.redeemedRewards?.length || 0,
+                };
+                localStorage.setItem('treevu-user', JSON.stringify(userToSave));
             } else {
                 localStorage.removeItem('treevu-user');
             }
@@ -97,22 +106,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setUser(currentUser => currentUser ? { ...currentUser, level: newLevel } : null);
         }
 
-    }, [user?.progress.expensesCount, user?.progress.formalityIndex]);
+    }, [user?.progress.expensesCount, user?.progress.formalityIndex, user?.level]);
 
+    const recordUserActivity = useCallback(() => {
+        setUser(currentUser => {
+            if (!currentUser) return null;
+            return { ...currentUser, lastActivityDate: new Date().toISOString() };
+        });
+    }, []);
 
     const updateUserProgress = useCallback((progress: Partial<User['progress']>) => {
         setUser(currentUser => {
             if (!currentUser) return null;
             const currentProgress = currentUser.progress || { expensesCount: 0, formalityIndex: 0 };
             const updatedProgress = { ...currentProgress, ...progress };
-            return { ...currentUser, progress: updatedProgress };
+            return { ...currentUser, progress: updatedProgress, lastActivityDate: new Date().toISOString() };
         });
     }, []);
 
     const updateUser = useCallback((details: Partial<User>) => {
         setUser(currentUser => {
             if (!currentUser) return null;
-            return { ...currentUser, ...details };
+            return { ...currentUser, ...details, lastActivityDate: new Date().toISOString() };
         });
     }, []);
     
@@ -120,7 +135,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(currentUser => {
             if (!currentUser) return null;
             const newTotal = Math.max(0, (currentUser.treevus || 0) + amount);
-            return { ...currentUser, treevus: newTotal };
+            return { ...currentUser, treevus: newTotal, lastActivityDate: new Date().toISOString() };
         });
     }, []);
 
@@ -130,7 +145,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 return currentUser;
             }
             const updatedLessons = [...(currentUser.completedLessons || []), lessonId];
-            return { ...currentUser, completedLessons: updatedLessons };
+            return { ...currentUser, completedLessons: updatedLessons, lastActivityDate: new Date().toISOString() };
         });
     }, []);
 
@@ -140,7 +155,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return { 
                 ...currentUser, 
                 ...details,
-                isProfileComplete: true 
+                isProfileComplete: true,
+                lastActivityDate: new Date().toISOString()
             };
         });
         addTreevus(50);
@@ -163,6 +179,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 ...currentUser,
                 treevus: currentUser.treevus - reward.costInTreevus,
                 redeemedRewards: [...(currentUser.redeemedRewards || []), newRedeemedReward],
+                lastActivityDate: new Date().toISOString(),
             };
             
             return updatedUser;
@@ -172,7 +189,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const updateUserStreak = useCallback((streak: { count: number; lastDate: string }) => {
         setUser(currentUser => {
             if (!currentUser) return null;
-            return { ...currentUser, streak };
+            return { ...currentUser, streak, lastActivityDate: new Date().toISOString() };
         });
     }, []);
     
@@ -184,6 +201,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 level: TreevuLevel.Brote,
                 progress: { expensesCount: 0, formalityIndex: 0 },
                 prestigeLevel: (currentUser.prestigeLevel || 0) + 1,
+                lastActivityDate: new Date().toISOString(),
             };
         });
     }, []);
@@ -212,6 +230,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         // Finally, set the user state to trigger the app navigation
         setUser(data.user);
+        trackEvent('session_start', { archetype: archetypeKey }, data.user);
     }, []);
 
 
@@ -239,7 +258,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateUserStreak,
         prestigeUp,
         completeLesson,
-    }), [user, signInAsArchetype, signOut, updateUserProgress, updateUser, completeProfileSetup, addTreevus, redeemTreevusForReward, updateUserStreak, prestigeUp, completeLesson]);
+        recordUserActivity,
+    }), [user, signInAsArchetype, signOut, updateUserProgress, updateUser, completeProfileSetup, addTreevus, redeemTreevusForReward, updateUserStreak, prestigeUp, completeLesson, recordUserActivity]);
 
     return (
         <AuthContext.Provider value={value}>

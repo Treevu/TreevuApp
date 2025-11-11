@@ -52,4 +52,10 @@ export interface User {
     company?: string;
     prestigeLevel?: number;
     completedLessons?: string[];
+    // --- NEW FIELDS FOR ML ---
+    registrationDate: string; // ISO Date string
+    lastActivityDate: string; // ISO Date string
+    rewardsClaimedCount: number;
+    engagementScore: number; // Derived: 0-100
+    fwiTrend: 'improving' | 'stable' | 'declining'; // Derived
 }

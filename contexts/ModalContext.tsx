@@ -1,7 +1,3 @@
-
-
-
-
 import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo, PropsWithChildren } from 'react';
 import { AddExpenseModal } from '../components/AddExpenseModal';
 import SetBudgetModal from '../components/SetBudgetModal';
@@ -22,6 +18,7 @@ import PersonalizationModal from '../components/PersonalizationModal';
 import PrestigeModal from '../components/PrestigeModal';
 import ImpactSimulatorModal from '../components/employer/ImpactSimulatorModal';
 import PromoteLessonModal from '../components/employer/PromoteLessonModal';
+import StrategicReportModal from '../components/employer/StrategicReportModal';
 
 import { Tribe, TribeMember } from '../types/tribe';
 
@@ -45,7 +42,8 @@ type ModalType =
     | 'personalization'
     | 'prestige'
     | 'impactSimulator'
-    | 'promoteLesson';
+    | 'promoteLesson'
+    | 'strategicReport';
 
 
 type ModalPropsMap = {
@@ -70,6 +68,7 @@ type ModalPropsMap = {
     prestige: React.ComponentProps<typeof PrestigeModal>;
     impactSimulator: React.ComponentProps<typeof ImpactSimulatorModal>;
     promoteLesson: React.ComponentProps<typeof PromoteLessonModal>;
+    strategicReport: React.ComponentProps<typeof StrategicReportModal>;
 };
 
 // State and context definitions
@@ -107,9 +106,10 @@ const MODAL_COMPONENTS: { [key in ModalType]: React.FC<any> } = {
     prestige: PrestigeModal,
     impactSimulator: ImpactSimulatorModal,
     promoteLesson: PromoteLessonModal,
+    strategicReport: StrategicReportModal,
 };
 
-// FIX: To resolve the 'missing children' error, we use React.FC<PropsWithChildren<{}>> which correctly types a component that accepts children, making them optional. This aligns with React 18's type definitions and ensures compatibility.
+// FIX: To resolve the 'missing children' error in App.tsx, we use React.FC<PropsWithChildren<{}>> which correctly types a component that accepts children, making them optional. This aligns with React 18's type definitions and ensures compatibility.
 export const ModalProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
     const [modalState, setModalState] = useState<ModalState>({ type: null, props: {} });
 

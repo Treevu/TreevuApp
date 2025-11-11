@@ -449,7 +449,7 @@ export const calculateKpisForSegment = (employeeSegment: EmployerEmployee[]) => 
     const totalLessonsCompleted = employeeSegment.reduce((sum, e) => sum + e.completedLessons.length, 0);
     const avgLessonsCompleted = employeeSegment.length > 0 ? (totalLessonsCompleted / employeeSegment.length) : 0;
     const levelDistribution = employeeSegment.reduce((acc, e) => {
-        const levelName = TreevuLevel[e.level];
+        const levelName = Object.keys(TreevuLevel).find(key => TreevuLevel[key as keyof typeof TreevuLevel] === e.level) || 'Brote';
         acc[levelName] = (acc[levelName] || 0) + 1;
         return acc;
     }, {} as Record<string, number>);

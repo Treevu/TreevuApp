@@ -1,6 +1,3 @@
-
-
-
 import React, { createContext, useState, useContext, ReactNode, useMemo, useEffect, useCallback } from 'react';
 import { trackEvent } from '../services/analyticsService';
 import { sendInformalExpenseNotification } from '../services/notificationService';
@@ -172,7 +169,7 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
             expensesCount: expenses.length,
             formalityIndex: fwi_v2,
         });
-    }, [expenses, fwi_v2, isInitialLoad, updateUserProgress]);
+    }, [expenses.length, fwi_v2, isInitialLoad, updateUserProgress]);
     
     const addExpense = useCallback((newExpenseData: ExpenseData & { imageUrl?: string }) => {
         const isFirstExpense = expenses.length === 0;

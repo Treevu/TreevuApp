@@ -202,6 +202,7 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }
                         refs={{ dashboardContentRef, filtersRef, fwiRef, kpisRef, riskChartRef, areaComparisonRef }}
                         activeTab={activeTab}
                         onSignOut={onSignOut}
+                        onOpenCreateChallengeModal={openCreateChallengeModal}
                     />
                     <EmployerAnalysisView
                         dashboardData={dashboardData}

@@ -29,6 +29,11 @@ const intrapreneurUser: User = {
     tribeId: 'centauri-1',
     featuredBadge: 'pioneer',
     prestigeLevel: 0,
+    registrationDate: getDateString(100),
+    lastActivityDate: getDateString(1),
+    rewardsClaimedCount: 0,
+    engagementScore: 65,
+    fwiTrend: 'improving',
 };
 
 const intrapreneurExpenses: Expense[] = Array.from({ length: 35 }, (_, i) => {
@@ -63,7 +68,7 @@ const intrapreneurExpenses: Expense[] = Array.from({ length: 35 }, (_, i) => {
 });
 
 const intrapreneurGoals: Goal[] = [
-    { id: 'ig1', name: 'Maestría en el Extranjero', icon: '🎓', targetAmount: 80000, currentAmount: 12000, createdAt: getDateString(100) },
+    { id: 'ig1', name: 'Maestría en el Extranjero', icon: '🎓', targetAmount: 80000, currentAmount: 12000, createdAt: getDateString(100), status: 'active' },
 ];
 
 // --- 2. La Nómada Digital ---
@@ -84,6 +89,11 @@ const nomadUser: User = {
     tribeId: 'orion-2',
     featuredBadge: 'streak',
     prestigeLevel: 0,
+    registrationDate: getDateString(150),
+    lastActivityDate: getDateString(1),
+    rewardsClaimedCount: 2,
+    engagementScore: 78,
+    fwiTrend: 'stable',
 };
 
 const nomadExpenses: Expense[] = Array.from({ length: 55 }, (_, i) => {
@@ -118,7 +128,7 @@ const nomadExpenses: Expense[] = Array.from({ length: 55 }, (_, i) => {
 });
 
 const nomadGoals: Goal[] = [
-    { id: 'ng1', name: 'Viaje a Japón', icon: '🏯', targetAmount: 15000, currentAmount: 8000, createdAt: getDateString(120) },
+    { id: 'ng1', name: 'Viaje a Japón', icon: '🏯', targetAmount: 15000, currentAmount: 8000, createdAt: getDateString(120), status: 'active' },
 ];
 
 
@@ -139,6 +149,11 @@ const visionaryUser: User = {
     tribeId: 'andromeda-3',
     featuredBadge: 'pioneer',
     prestigeLevel: 0,
+    registrationDate: getDateString(200),
+    lastActivityDate: getDateString(2),
+    rewardsClaimedCount: 1,
+    engagementScore: 72,
+    fwiTrend: 'stable',
 };
 
 const visionaryExpenses: Expense[] = Array.from({ length: 55 }, (_, i) => {
@@ -172,8 +187,8 @@ const visionaryExpenses: Expense[] = Array.from({ length: 55 }, (_, i) => {
 });
 
 const visionaryGoals: Goal[] = [
-    { id: 'vg1', name: 'Inicial de Departamento', icon: '🏠', targetAmount: 50000, currentAmount: 35000, createdAt: getDateString(200) },
-    { id: 'vg2', name: 'Fondo de Emergencia', icon: '🛡️', targetAmount: 10000, currentAmount: 10000, createdAt: getDateString(300) },
+    { id: 'vg1', name: 'Inicial de Departamento', icon: '🏠', targetAmount: 50000, currentAmount: 35000, createdAt: getDateString(200), status: 'active' },
+    { id: 'vg2', name: 'Fondo de Emergencia', icon: '🛡️', targetAmount: 10000, currentAmount: 10000, createdAt: getDateString(300), status: 'completed' },
 ];
 
 const visionaryNotifications: Notification[] = [

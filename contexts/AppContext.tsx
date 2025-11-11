@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { ExpensesProvider, useExpenses } from './ExpensesContext';
 import { BudgetProvider, useBudget } from './BudgetContext';
@@ -8,6 +7,7 @@ import { Expense } from '../types/expense';
 import { Goal } from '../types/goal';
 import { Tribe, Mission } from '../types/tribe';
 import { FwiComponents } from '../types/common';
+import { useAuth } from './AuthContext';
 
 interface AppContextType {
     state: {
@@ -18,6 +18,7 @@ interface AppContextType {
         formalityIndexByCount: number;
         fwi_v2: number;
         fwi_v2_components: FwiComponents;
+        fwiTrend: 'improving' | 'stable' | 'declining';
         budget: number | null;
         annualIncome: number | null;
         goals: Goal[];
@@ -35,6 +36,7 @@ interface AppContextType {
     sendKudos: ReturnType<typeof useTribes>['sendKudos'];
     acceptMission: ReturnType<typeof useTribes>['acceptMission'];
     updateMissionProgress: ReturnType<typeof useTribes>['updateMissionProgress'];
+    recordUserActivity: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -46,6 +48,44 @@ const AppDataCombiner: React.FC<{ children: ReactNode }> = ({ children }) => {
     const budgetData = useBudget();
     const goalsData = useGoals();
     const tribesData = useTribes();
+    const { user, recordUserActivity, updateUser } = useAuth();
+
+    // --- ML DERIVED METRICS ---
+    const fwiTrend = useMemo(() => {
+        const { expenses } = expensesData;
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+        
+        const expensesLast30Days = expenses.filter(e => new Date(e.fecha) >= thirtyDaysAgo);
+        const expenses31to60Days = expenses.filter(e => new Date(e.fecha) >= sixtyDaysAgo && new Date(e.fecha) < thirtyDaysAgo);
+
+        const calculateFwiForSegment = (segment: Expense[]) => {
+            if (segment.length === 0) return 0;
+            const total = segment.reduce((sum, e) => sum + e.total, 0);
+            const formalTotal = segment.filter(e => e.esFormal).reduce((sum, e) => sum + e.total, 0);
+            return total > 0 ? (formalTotal / total) * 100 : 0; // Simplified FWI for trend
+        };
+
+        const fwiCurrent = calculateFwiForSegment(expensesLast30Days);
+        const fwiPrevious = calculateFwiForSegment(expenses31to60Days);
+
+        let trend: 'improving' | 'stable' | 'declining' = 'stable';
+        if (fwiPrevious > 0) {
+            if (fwiCurrent > fwiPrevious + 2) trend = 'improving';
+            else if (fwiCurrent < fwiPrevious - 2) trend = 'declining';
+        }
+        
+        // Update user object with the trend
+        if (user && user.fwiTrend !== trend) {
+             // Use a timeout to avoid being in the middle of a render cycle
+            setTimeout(() => updateUser({ fwiTrend: trend }), 0);
+        }
+
+        return trend;
+
+    }, [expensesData, user, updateUser]);
+
 
     const value = useMemo(() => ({
         state: {
@@ -56,6 +96,7 @@ const AppDataCombiner: React.FC<{ children: ReactNode }> = ({ children }) => {
             formalityIndexByCount: expensesData.formalityIndexByCount,
             fwi_v2: expensesData.fwi_v2,
             fwi_v2_components: expensesData.fwi_v2_components,
+            fwiTrend: fwiTrend,
             budget: budgetData.budget,
             annualIncome: budgetData.annualIncome,
             goals: goalsData.goals,
@@ -66,8 +107,9 @@ const AppDataCombiner: React.FC<{ children: ReactNode }> = ({ children }) => {
         ...budgetData,
         ...goalsData,
         ...tribesData,
+        recordUserActivity
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }), [expensesData, budgetData, goalsData, tribesData]);
+    }), [expensesData, budgetData, goalsData, tribesData, fwiTrend, recordUserActivity]);
 
     return (
         <AppContext.Provider value={value as AppContextType}>

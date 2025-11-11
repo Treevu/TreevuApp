@@ -36,6 +36,8 @@ const SetGoalModal: React.FC<SetGoalModalProps> = ({ onClose }) => {
             currentAmount: 0,
             icon: selectedIcon,
             createdAt: new Date().toISOString(),
+            // FIX: Added missing 'status' property to match the 'Goal' type definition.
+            status: 'active',
         };
         
         addGoal(newGoal);

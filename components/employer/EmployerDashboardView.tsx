@@ -8,7 +8,9 @@ import RiskCorrelationChart from './RiskCorrelationChart';
 import EmployerExportButton from './EmployerExportButton';
 import { TOTAL_COMPANY_EMPLOYEES, DEPARTMENT_TOTALS } from '../../services/employerDataService';
 import FilterDrawer from './FilterDrawer';
-import { AdjustmentsHorizontalIcon, ArrowLeftIcon } from '../Icons';
+import { AdjustmentsHorizontalIcon, ArrowLeftIcon, BuildingBlocksIcon, SparklesIcon } from '../Icons';
+import { useModal } from '../../contexts/ModalContext';
+import { Challenge } from '../../types/employer';
 
 interface EmployerDashboardViewProps {
     user: CurrentUserType;
@@ -35,6 +37,7 @@ interface EmployerDashboardViewProps {
     };
     activeTab: 'resumen' | 'talento' | 'cultura' | 'perfil';
     onSignOut: () => void;
+    onOpenCreateChallengeModal: (suggestion?: Omit<Challenge, 'id'>) => void;
 }
 
 const EmptyState: React.FC = () => (
@@ -52,8 +55,10 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
     refs,
     activeTab,
     onSignOut,
+    onOpenCreateChallengeModal,
 }) => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const { openModal } = useModal();
 
     useEffect(() => {
         if (activeTab !== 'resumen') {
@@ -129,6 +134,15 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-bold">Resumen Estratégico</h1>
                     <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => openModal('strategicReport', { dashboardData, user })}
+                            disabled={dashboardData.isEmpty}
+                            className="flex items-center text-sm font-bold text-primary bg-primary/20 px-3 py-2 rounded-lg hover:bg-primary/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="Generar informe estratégico"
+                        >
+                            <BuildingBlocksIcon className="w-5 h-5 mr-1.5" />
+                            Informe Estratégico
+                        </button>
                         <EmployerExportButton data={dashboardData} />
                         <button
                             onClick={onSignOut}
@@ -145,7 +159,7 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
                 </p>
             </header>
 
-            <div ref={refs.filtersRef}>
+            <div ref={refs.filtersRef} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <button 
                     onClick={() => setIsDrawerOpen(true)}
                     disabled={user.role === 'area_manager'}
@@ -162,8 +176,26 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
                     </div>
                     <span className="text-sm font-bold text-primary flex-shrink-0 ml-2">Editar</span>
                 </button>
+
+                 <button
+                    onClick={() => openModal('impactSimulator', { dashboardData: dashboardData, onLaunch: onOpenCreateChallengeModal })}
+                    disabled={dashboardData.isEmpty}
+                    className="w-full flex items-center justify-between p-3 bg-surface rounded-xl text-left hover:bg-active-surface transition-colors shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-surface"
+                >
+                    <div className="flex items-center min-w-0">
+                        <SparklesIcon className="w-6 h-6 mr-3 text-primary flex-shrink-0"/>
+                        <div className="min-w-0">
+                            <span className="font-bold text-on-surface">Simulador de Impacto</span>
+                            <p className="text-xs text-on-surface-secondary truncate">
+                               Proyecta el ROI de tus iniciativas
+                            </p>
+                        </div>
+                    </div>
+                    <span className="text-sm font-bold text-primary flex-shrink-0 ml-2">Probar</span>
+                </button>
+
                 {user.role === 'area_manager' && (
-                    <p className="text-xs text-on-surface-secondary text-center mt-2 px-2">
+                    <p className="text-xs text-on-surface-secondary text-center mt-2 px-2 md:col-span-2">
                         Los filtros están deshabilitados para este rol. Visualizas los datos de tu área: <strong>{user.department}</strong>.
                     </p>
                 )}
