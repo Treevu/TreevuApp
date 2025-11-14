@@ -19,7 +19,7 @@ const Header: React.FC<HeaderProps> = () => {
             <div className="max-w-3xl mx-auto px-4 pt-4 pb-4">
                 <div className="flex justify-between items-center">
                      <div className="flex items-center gap-2">
-                        <Logo className="w-8 h-8 text-primary" />
+                        <Logo className="w-8 h-8 text-primary" src={user?.branding?.logoUrl} />
                         <h1 className="text-3xl font-bold leading-tight treevu-text">
                             <TreevuLogoText />
                         </h1>

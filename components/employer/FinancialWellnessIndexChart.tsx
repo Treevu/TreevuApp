@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Tooltip from '../Tooltip';
 import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChevronDownIcon } from '../Icons';
-import HistoricalFWIChart from './HistoricalFWIChart';
+import { SimpleLineChart } from '../TrendAnalysis';
 
 interface FWIComponent {
     name: string;
@@ -19,6 +19,7 @@ interface FinancialWellnessIndexChartProps {
     components: FWIComponent[];
     history: FWIHistoryPoint[];
     companyAverage: number;
+    companyAverageHistory: FWIHistoryPoint[];
 }
 
 const componentColors = ['#00E0FF', '#9F70FF', '#8A91A1'];
@@ -64,7 +65,7 @@ const FwiDonutChart: React.FC<{ score: number }> = ({ score }) => {
     );
 };
 
-const FinancialWellnessIndexChart: React.FC<FinancialWellnessIndexChartProps> = ({ score, components, history, companyAverage }) => {
+const FinancialWellnessIndexChart: React.FC<FinancialWellnessIndexChartProps> = ({ score, components, history, companyAverage, companyAverageHistory }) => {
     const [showHistory, setShowHistory] = useState(false);
     const lastMonthValue = history.length > 1 ? history[history.length - 2].value : 0;
     const deltaVsLastMonth = score - lastMonthValue;
@@ -85,40 +86,51 @@ const FinancialWellnessIndexChart: React.FC<FinancialWellnessIndexChartProps> = 
         );
     };
 
+    const chartData = history.map(h => ({ label: h.month, value: h.value }));
+    const companyChartData = companyAverageHistory.map(h => ({ label: h.month, value: h.value }));
+
     return (
-        <div className="bg-surface rounded-2xl p-5 relative h-full flex flex-col justify-between">
+        <div className="bg-surface rounded-2xl p-5 relative h-full flex flex-col">
+            {/* 1. Header */}
             <div className="w-full flex items-start justify-between">
-                 <h2 className="text-lg font-bold text-on-surface">Índice de Bienestar Financiero</h2>
+                <h2 className="text-lg font-bold text-on-surface">Índice de Bienestar Financiero</h2>
                 <Tooltip id="fwi-tooltip" text="El Índice de Bienestar Financiero (FWI) es la métrica principal que resume la salud financiera del equipo. Se compone de la formalidad de sus gastos, su balance entre vida y trabajo, y su inversión en desarrollo profesional." />
             </div>
-            
-            <div className="flex-1 flex flex-col justify-center items-center my-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-4 w-full">
-                    <div className="flex justify-center">
-                        <FwiDonutChart score={score} />
+
+            {/* 2. Main content grid */}
+            <div className="grid grid-cols-1 gap-y-4 mt-4 flex-grow">
+                
+                {/* Current Status */}
+                <div className="flex flex-col justify-center space-y-4">
+                    {/* Donut and Deltas */}
+                    <div className="flex flex-row sm:flex-col md:flex-row items-center gap-4">
+                        <div className="flex justify-center">
+                            <FwiDonutChart score={score} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 flex-grow">
+                            <DeltaIndicator value={deltaVsLastMonth} label="vs Mes Anterior" />
+                            <DeltaIndicator value={deltaVsCompanyAvg} label="vs Prom. Cía" />
+                        </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                        <DeltaIndicator value={deltaVsLastMonth} label="vs Mes Anterior" />
-                        <DeltaIndicator value={deltaVsCompanyAvg} label="vs Prom. Cía" />
+                    {/* Component Breakdown */}
+                    <div className="w-full space-y-2">
+                        {components.map((comp, index) => (
+                            <div key={comp.name} className="flex items-center text-sm">
+                                <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: componentColors[index % componentColors.length] }} />
+                                <span className="text-on-surface-secondary flex-1 truncate">{comp.name}</span>
+                                <div className="w-1/4 bg-active-surface rounded-full h-2 mx-3">
+                                    <div className="h-2 rounded-full" style={{ width: `${comp.value}%`, backgroundColor: componentColors[index % componentColors.length] }} />
+                                </div>
+                                <span className="font-bold text-on-surface w-8 text-right">{comp.value.toFixed(0)}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
-
-            <div className="w-full max-w-sm space-y-2">
-                {components.map((comp, index) => (
-                    <div key={comp.name} className="flex items-center text-sm">
-                        <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: componentColors[index % componentColors.length] }} />
-                        <span className="text-on-surface-secondary flex-1 truncate">{comp.name}</span>
-                        <div className="w-1/4 bg-active-surface rounded-full h-2 mx-3">
-                            <div className="h-2 rounded-full" style={{ width: `${comp.value}%`, backgroundColor: componentColors[index % componentColors.length] }} />
-                        </div>
-                        <span className="font-bold text-on-surface w-8 text-right">{comp.value.toFixed(0)}</span>
-                    </div>
-                ))}
-            </div>
-
+            
+            {/* 3. Mobile-only History Accordion */}
             <div className="mt-4 pt-4 border-t border-active-surface/50">
-                 <button 
+                <button 
                     onClick={() => setShowHistory(!showHistory)}
                     className="w-full text-sm font-semibold text-primary flex items-center justify-center gap-2 hover:opacity-80"
                     aria-expanded={showHistory}
@@ -127,11 +139,11 @@ const FinancialWellnessIndexChart: React.FC<FinancialWellnessIndexChartProps> = 
                     <ChevronDownIcon className={`w-5 h-5 transition-transform duration-300 ${showHistory ? 'rotate-180' : ''}`} />
                 </button>
                 <div 
-                    className="grid transition-all duration-500 ease-in-out"
+                    className={`grid transition-all duration-500 ease-in-out`}
                     style={{ gridTemplateRows: showHistory ? '1fr' : '0fr' }}
                 >
-                    <div className="overflow-hidden">
-                        <HistoricalFWIChart history={history} />
+                    <div className="overflow-hidden pt-2">
+                        <SimpleLineChart data={chartData} comparisonData={companyChartData} />
                     </div>
                 </div>
             </div>

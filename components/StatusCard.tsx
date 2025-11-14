@@ -1,9 +1,7 @@
-
-
 import React, { useState, useMemo, useEffect, forwardRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppContext } from '../contexts/AppContext';
-import { TreevuCoinIcon, FireIcon, PencilIcon, BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon, TrophyIcon, CheckBadgeIcon, ShieldCheckIcon, RocketLaunchIcon, HandThumbUpIcon } from './Icons';
+import { TreevuCoinIcon, FireIcon, PencilIcon, BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon, TrophyIcon, RocketLaunchIcon, HandThumbUpIcon } from './Icons';
 import { levelData } from '../services/gamificationService';
 import { TreevuLevel } from '../types/common';
 import { useModal } from '../contexts/ModalContext';
@@ -86,30 +84,6 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
 
     const embossClass = isLightCard ? 'text-emboss-light' : 'text-emboss-dark';
     
-    const weeklyStats = useMemo(() => {
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-        const recentExpenses = expenses.filter(e => new Date(e.fecha) >= oneWeekAgo);
-        
-        const formalExpensesWeekly = recentExpenses.filter(e => e.esFormal).length;
-        
-        const treevusEarned = recentExpenses.reduce((sum, e) => {
-            // Simplified from gamificationService: ~10 for formal, 1 for informal
-            const base = e.esFormal ? 8 + Math.floor(Math.random() * 5) : 1;
-            return sum + base;
-        }, 0);
-        
-        const ghostsHuntedAllTime = expenses.filter(e => e.esFormal).length;
-
-        return {
-            treevusEarned,
-            formalExpenses: formalExpensesWeekly,
-            streak: user?.streak?.count || 0,
-            ghostsHunted: ghostsHuntedAllTime,
-        };
-    }, [expenses, user]);
-
     if (!user) {
         return (
             <div className="aspect-[1.586/1] w-full bg-surface rounded-3xl flex items-center justify-center animate-pulse">
@@ -158,7 +132,7 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
             >
                 <div className={`status-card-inner ${isFlipped ? 'is-flipped' : ''}`}>
                     {/* FRONT FACE */}
-                    <div className={`status-card-face ${cardClasses} shadow-lg`}>
+                    <div className={`status-card-face status-card-front ${cardClasses} shadow-lg`}>
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -190,9 +164,19 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
                         
                         <div className="flex justify-between items-end">
                             <div className="flex-1 min-w-0">
-                                <p className={`text-lg font-semibold truncate ${textColorClass} ${embossClass}`}>{user.name}</p>
+                                <p className={`text-lg font-semibold truncate ${textColorClass} ${embossClass}`}>
+                                    {user.name}
+                                    {user.prestigeLevel && user.prestigeLevel > 0 && 
+                                        <span className="text-yellow-400 ml-1.5" title={`Nivel de Prestigio ${user.prestigeLevel}`}>
+                                            🏆
+                                        </span>
+                                    }
+                                </p>
                                 <div className="leading-tight">
-                                    <p className={`text-xs ${subTextColorClass} ${embossClass}`}>Nivel: {currentLevelData.name}</p>
+                                    <p className={`text-xs ${subTextColorClass} ${embossClass}`}>
+                                        Nivel: {currentLevelData.name}
+                                        {user.prestigeLevel && user.prestigeLevel > 0 && ` (P${user.prestigeLevel})`}
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -215,50 +199,25 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
                             </div>
                         </div>
                     </div>
-                     {/* BACK FACE - REDESIGNED */}
+                     {/* BACK FACE */}
                     <div className={`status-card-face status-card-back ${cardClasses} shadow-lg !p-0 !justify-start`}>
                         <div className="w-full h-full flex flex-col">
                             {/* Magnetic Strip */}
                             <div className="magnetic-strip mt-5"></div>
                             
-                            <p className={`text-[8px] px-4 mt-2 ${subTextColorClass} self-end`}>treevu.pe/id/{user.name.replace(/\s/g,'.').toLowerCase()}</p>
-                            
-                            {/* Weekly Summary and QR Code */}
-                            <div className="flex-grow flex items-center justify-between p-4 -mt-2">
-                                <div className="w-[65%]">
-                                    <h4 className={`font-bold ${textColorClass} mb-2 text-xs uppercase tracking-wider`}>Resumen Semanal</h4>
-                                    <div className={`grid grid-cols-2 gap-x-4 gap-y-2 text-left ${textColorClass}`}>
-                                        <div className="flex items-center gap-2">
-                                            <TreevuCoinIcon className="w-5 h-5 text-primary" level={user.level} />
-                                            <div>
-                                                <p className="text-sm font-bold">{weeklyStats.treevusEarned}</p>
-                                                <p className={`text-[10px] ${subTextColorClass} font-semibold -mt-1`}>Treevüs</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <FireIcon className="w-5 h-5 text-accent"/>
-                                            <div>
-                                                <p className="text-sm font-bold">{weeklyStats.streak}</p>
-                                                <p className={`text-[10px] ${subTextColorClass} font-semibold -mt-1`}>Racha</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <CheckBadgeIcon className="w-5 h-5 text-primary"/>
-                                            <div>
-                                                <p className="text-sm font-bold">{weeklyStats.formalExpenses}</p>
-                                                <p className={`text-[10px] ${subTextColorClass} font-semibold -mt-1`}>Formales</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <ShieldCheckIcon className="w-5 h-5 text-primary"/>
-                                            <div>
-                                                <p className="text-sm font-bold">{weeklyStats.ghostsHunted}</p>
-                                                <p className={`text-[10px] ${subTextColorClass} font-semibold -mt-1`}>Cazados</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <div className="p-4 flex-grow flex flex-col justify-between">
+                                <div>
+                                    <h4 className={`font-bold ${textColorClass} mb-1 flex items-center gap-1.5`}>
+                                        ¿Qué es un <TreevuLogoText isTreevus={false} middleColorClass={isLightCard ? 'text-gray-800' : 'text-white'}/>?
+                                    </h4>
+                                    <p className={`text-xs ${subTextColorClass}`}>
+                                        Un treevü es más que una moneda; es el símbolo de tu crecimiento. Cada uno que cosechas es un paso adelante en tu maestría financiera, una prueba de que estás construyendo un futuro más fuerte. ¡Es el poder de tus hábitos en tus manos!
+                                    </p>
                                 </div>
-                                <div className="flex-shrink-0">
+                                <div className="flex items-end justify-between">
+                                    <div className="w-[70%] h-12 bg-white/80 flex items-center justify-start pl-2">
+                                        <p className="font-serif italic text-lg text-gray-800">El Escuadrón Treevü</p>
+                                    </div>
                                     <QrCodePlaceholder />
                                 </div>
                             </div>

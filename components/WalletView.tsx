@@ -1,11 +1,12 @@
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import TransactionList from './TransactionList';
 import { useModal } from '../contexts/ModalContext';
 import { type Expense } from '../types/expense';
 import { type CategoriaGasto } from '../types/common';
 import SubNavBar from './SubNavBar';
-import { MagnifyingGlassIcon, XMarkIcon, ChartPieIcon, ShoppingBagIcon } from './Icons';
+import { MagnifyingGlassIcon, XMarkIcon, ChartPieIcon, PlusIcon } from './Icons';
 import AnalysisView from './AnalysisView';
 import CategoryAnalysis from './CategoryAnalysis';
 import MerchantAnalysis from './MerchantAnalysis';
@@ -25,6 +26,7 @@ const WalletView: React.FC<WalletViewProps> = ({
     categoryFilter,
     onClearFilter,
 }) => {
+    const { openModal } = useModal();
     const [activeSubTab, setActiveSubTab] = useState<'transactions' | 'analysis'>('transactions');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -106,6 +108,13 @@ const WalletView: React.FC<WalletViewProps> = ({
                         categoryFilter={categoryFilter}
                         onClearFilter={onClearFilter}
                     />
+                    <button
+                        onClick={() => openModal('addExpense')}
+                        className="fixed bottom-24 right-6 w-16 h-16 bg-primary text-primary-dark rounded-full shadow-lg flex items-center justify-center transform hover:scale-110 transition-transform duration-200 ease-in-out z-30"
+                        aria-label="Añadir nuevo registro"
+                    >
+                        <PlusIcon className="w-8 h-8" />
+                    </button>
                 </div>
             )}
         </div>

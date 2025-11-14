@@ -5,7 +5,7 @@ export interface TribeMember {
     kudosReceived: number;
 }
 
-export type MissionMetric = 'formalExpenseCount' | 'kudosSentCount';
+export type MissionMetric = 'formalExpenseCount' | 'kudosSentCount' | 'lessonsCompletedCount';
 
 export interface Mission {
     id: string;
@@ -15,6 +15,8 @@ export interface Mission {
     target: number;
     reward: number; // Treevus reward for the whole team
     icon: string;
+    valueForEmployee: string;
+    valueForCompany: string;
 }
 
 export interface Tribe {
@@ -25,4 +27,9 @@ export interface Tribe {
     collectiveKudos: number;
     activeMissionId?: string;
     missionProgress?: number;
+    goal?: {
+        title: string;
+        target: number;
+        reward: string;
+    };
 }

@@ -12,7 +12,7 @@ const ClubView: React.FC = () => {
     const [activeSubTab, setActiveSubTab] = useState<ClubSubTab>('teams');
 
     const subTabs: { id: ClubSubTab; label: string; Icon: React.FC<{ className?: string }> }[] = [
-        { id: 'teams', label: 'Equipos', Icon: UsersIcon },
+        { id: 'teams', label: 'Escuadrones', Icon: UsersIcon },
         { id: 'missions', label: 'Misiones', Icon: RocketLaunchIcon },
         { id: 'rewards', label: 'Premios', Icon: GiftIcon },
     ];

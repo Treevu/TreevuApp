@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo, PropsWithChildren } from 'react';
 import { AddExpenseModal } from '../components/AddExpenseModal';
 import SetBudgetModal from '../components/SetBudgetModal';
 import SetIncomeModal from '../components/SetIncomeModal';
@@ -19,6 +18,7 @@ import PersonalizationModal from '../components/PersonalizationModal';
 import PrestigeModal from '../components/PrestigeModal';
 import ImpactSimulatorModal from '../components/employer/ImpactSimulatorModal';
 import PromoteLessonModal from '../components/employer/PromoteLessonModal';
+import StrategicReportModal from '../components/employer/StrategicReportModal';
 
 import { Tribe, TribeMember } from '../types/tribe';
 
@@ -42,7 +42,8 @@ type ModalType =
     | 'personalization'
     | 'prestige'
     | 'impactSimulator'
-    | 'promoteLesson';
+    | 'promoteLesson'
+    | 'strategicReport';
 
 
 type ModalPropsMap = {
@@ -67,6 +68,7 @@ type ModalPropsMap = {
     prestige: React.ComponentProps<typeof PrestigeModal>;
     impactSimulator: React.ComponentProps<typeof ImpactSimulatorModal>;
     promoteLesson: React.ComponentProps<typeof PromoteLessonModal>;
+    strategicReport: React.ComponentProps<typeof StrategicReportModal>;
 };
 
 // State and context definitions
@@ -104,10 +106,10 @@ const MODAL_COMPONENTS: { [key in ModalType]: React.FC<any> } = {
     prestige: PrestigeModal,
     impactSimulator: ImpactSimulatorModal,
     promoteLesson: PromoteLessonModal,
+    strategicReport: StrategicReportModal,
 };
 
-// FIX: Changed from React.FC to a standard function component with explicit children prop type to resolve the 'missing children' error from App.tsx.
-export const ModalProvider = ({ children }: { children: ReactNode }) => {
+export const ModalProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
     const [modalState, setModalState] = useState<ModalState>({ type: null, props: {} });
 
     const openModal = useCallback(<T extends ModalType>(type: T, props: Omit<ModalPropsMap[T], 'onClose'> = {} as any) => {

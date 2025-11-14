@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-// FIX: Updated import from deprecated 'types.ts' to 'types/user.ts'.
 import { type Reward } from '../types/user';
 import { TreevuCoinIcon, CheckBadgeIcon } from './Icons';
 import ModalWrapper from './ModalWrapper';

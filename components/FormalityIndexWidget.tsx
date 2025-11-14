@@ -1,7 +1,8 @@
-import React from 'react';
-import { FlaskIcon } from './Icons';
-// FIX: Add FwiComponent to import to be used for casting.
+import React, { useState } from 'react';
+import { FlaskIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
 import { FwiComponents, FwiComponent } from '../types/common';
+import { useAppContext } from '../contexts/AppContext';
+import { SimpleLineChart } from './TrendAnalysis';
 
 interface FinancialWellnessWidgetProps {
     fwi: number;
@@ -11,6 +12,8 @@ interface FinancialWellnessWidgetProps {
 const componentColors = ['var(--primary)', '#9F70FF', '#8A91A1'];
 
 const FinancialWellnessWidget: React.FC<FinancialWellnessWidgetProps> = ({ fwi, components }) => {
+    const { state: { fwiHistory } } = useAppContext();
+    const [showTrend, setShowTrend] = useState(false);
     const index = Math.round(fwi);
     const circumference = 2 * Math.PI * 34; // 2 * pi * radius
     const strokeDashoffset = circumference - (index / 100) * circumference;
@@ -23,6 +26,8 @@ const FinancialWellnessWidget: React.FC<FinancialWellnessWidgetProps> = ({ fwi, 
     };
 
     const status = getStatus();
+    
+    const chartData = fwiHistory.map(h => ({ label: h.month, value: h.value }));
 
     return (
         <div className="bg-surface rounded-2xl p-4 animate-grow-and-fade-in">
@@ -82,6 +87,15 @@ const FinancialWellnessWidget: React.FC<FinancialWellnessWidgetProps> = ({ fwi, 
                     ))}
                 </div>
             )}
+             <div className="mt-4 pt-3 border-t border-active-surface/50">
+                <button onClick={() => setShowTrend(!showTrend)} className="w-full flex justify-between items-center text-sm font-semibold text-on-surface-secondary hover:text-on-surface">
+                    <span>Evolución (6 meses)</span>
+                    {showTrend ? <ChevronUpIcon className="w-5 h-5"/> : <ChevronDownIcon className="w-5 h-5"/>}
+                </button>
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${showTrend ? 'max-h-48' : 'max-h-0'}`}>
+                    <SimpleLineChart data={chartData} />
+                </div>
+            </div>
         </div>
     );
 };

@@ -1,24 +1,12 @@
 import React from 'react';
-import { ChartPieIcon, ReceiptPercentIcon, TruckIcon, HomeIcon, ShoppingBagIcon, TicketIcon, CogIcon, HeartIcon, AcademicCapIcon, SparklesIcon } from '../Icons';
-// FIX: Updated import from deprecated 'types.ts' to 'types/common.ts'.
+import { ChartPieIcon } from '../Icons';
 import { CategoriaGasto } from '../../types/common';
 import Tooltip from '../Tooltip';
+import { categoryDetails } from '../TrendAnalysis';
 
 interface CategoryBreakdownProps {
     data: { category: CategoriaGasto; amount: number }[];
 }
-
-const categoryDetails: { [key in CategoriaGasto]: { color: string, Icon: React.FC<{className?: string}> } } = {
-    [CategoriaGasto.Alimentacion]: { color: 'bg-cyan-400', Icon: ReceiptPercentIcon },
-    [CategoriaGasto.Vivienda]: { color: 'bg-blue-500', Icon: HomeIcon },
-    [CategoriaGasto.Transporte]: { color: 'bg-yellow-400', Icon: TruckIcon },
-    [CategoriaGasto.Salud]: { color: 'bg-emerald-400', Icon: HeartIcon },
-    [CategoriaGasto.Ocio]: { color: 'bg-purple-500', Icon: TicketIcon },
-    [CategoriaGasto.Educacion]: { color: 'bg-fuchsia-500', Icon: AcademicCapIcon },
-    [CategoriaGasto.Consumos]: { color: 'bg-slate-500', Icon: ShoppingBagIcon },
-    [CategoriaGasto.Servicios]: { color: 'bg-indigo-500', Icon: CogIcon },
-    [CategoriaGasto.Otros]: { color: 'bg-gray-400', Icon: SparklesIcon },
-};
 
 const CategoryItem: React.FC<{ category: CategoriaGasto; amount: number; percentage: number }> = ({ category, amount, percentage }) => {
     const { color, Icon } = categoryDetails[category] || categoryDetails.Otros;
@@ -35,8 +23,8 @@ const CategoryItem: React.FC<{ category: CategoriaGasto; amount: number; percent
             </div>
             <div className="h-2 w-full bg-active-surface rounded-full">
                 <div
-                    className={`h-2 rounded-full ${color}`}
-                    style={{ width: `${percentage}%` }}
+                    className={`h-2 rounded-full`}
+                    style={{ width: `${percentage}%`, backgroundColor: color }}
                     title={`${percentage.toFixed(1)}%`}
                 ></div>
             </div>

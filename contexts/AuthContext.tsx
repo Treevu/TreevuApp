@@ -1,18 +1,33 @@
 import React, { createContext, useState, useContext, ReactNode, useMemo, useEffect, useCallback } from 'react';
 import { levelData } from '../services/gamificationService';
-import { archetypeData, ArchetypeKey } from '../data/archetypes';
-
+import { trackEvent } from '../services/analyticsService';
 import { TreevuLevel } from '../types/common';
-import { Department, Modality, Tenure, AgeRange } from '../types/employer';
 import { User, Reward, RedeemedReward, BadgeType } from '../types/user';
+import { generateUniqueId } from '../utils';
+import { verifyCompanyAlliance } from '../services/companyService';
+import { CompanyAlliance, Department, Modality, Tenure, AgeRange } from '../types/employer';
+import { ArchetypeKey, archetypeData } from '../data/archetypes';
+
 
 interface AuthContextType {
     user: User | null;
-    signInAsArchetype: (archetypeKey: ArchetypeKey) => void;
+    signIn: (email: string, pass: string) => Promise<void>;
+    signUp: (name: string, email: string, pass: string) => Promise<void>;
     signOut: () => void;
-    updateUserProgress: (progress: Partial<User['progress']>) => void;
     updateUser: (details: Partial<User>) => void;
-    completeProfileSetup: (details: {
+    updateUserProgress: (progressUpdate: Partial<User['progress']>) => void;
+    addTreevus: (amount: number) => void;
+    redeemTreevusForReward: (reward: Reward) => void;
+    updateUserStreak: (streak: { count: number; lastDate: string }) => void;
+    prestigeUp: () => void;
+    completeLesson: (lessonId: string) => void;
+    recordUserActivity: () => void;
+    linkCompany: (codeOrEmail: string) => Promise<CompanyAlliance>;
+    skipCompanyLink: () => void;
+    acceptEthicalPromise: () => void;
+    completeOnboarding: () => void;
+    signInAsArchetype: (archetypeKey: ArchetypeKey) => void;
+    completeProfileSetup: (profileData: {
         name: string;
         documentId: string;
         department: Department;
@@ -20,11 +35,6 @@ interface AuthContextType {
         modality: Modality;
         ageRange: AgeRange;
     }) => void;
-    addTreevus: (amount: number) => void;
-    redeemTreevusForReward: (reward: Reward) => void;
-    updateUserStreak: (streak: { count: number; lastDate: string }) => void;
-    prestigeUp: () => void;
-    completeLesson: (lessonId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -66,53 +76,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, [user, isInitialLoad]);
 
-    // Effect for automatic level-up
-    useEffect(() => {
-        if (!user || !user.progress) return;
 
-        let newLevel = user.level;
-        let didLevelUp = false;
-
-        while (true) {
-            const currentLevelData = levelData[newLevel];
-            if (!currentLevelData || !currentLevelData.nextLevel) {
-                break;
-            }
-
-            const nextLevelData = levelData[currentLevelData.nextLevel];
-            const goals = nextLevelData.goals;
-            
-            const expensesGoalMet = !goals.expensesCount || user.progress.expensesCount >= goals.expensesCount;
-            const formalityGoalMet = !goals.formalityIndex || user.progress.formalityIndex >= goals.formalityIndex;
-
-            if (expensesGoalMet && formalityGoalMet) {
-                newLevel = currentLevelData.nextLevel;
-                didLevelUp = true;
-            } else {
-                break;
-            }
-        }
-        
-        if (didLevelUp) {
-            setUser(currentUser => currentUser ? { ...currentUser, level: newLevel } : null);
-        }
-
-    }, [user?.progress.expensesCount, user?.progress.formalityIndex]);
-
-
-    const updateUserProgress = useCallback((progress: Partial<User['progress']>) => {
+    const recordUserActivity = useCallback(() => {
         setUser(currentUser => {
             if (!currentUser) return null;
-            const currentProgress = currentUser.progress || { expensesCount: 0, formalityIndex: 0 };
-            const updatedProgress = { ...currentProgress, ...progress };
-            return { ...currentUser, progress: updatedProgress };
+            return { ...currentUser, lastActivityDate: new Date().toISOString() };
         });
     }, []);
 
     const updateUser = useCallback((details: Partial<User>) => {
         setUser(currentUser => {
             if (!currentUser) return null;
-            return { ...currentUser, ...details };
+            return { ...currentUser, ...details, lastActivityDate: new Date().toISOString() };
+        });
+    }, []);
+
+    const updateUserProgress = useCallback((progressUpdate: Partial<User['progress']>) => {
+        setUser(currentUser => {
+            if (!currentUser) return null;
+            const updatedProgress = {
+                ...currentUser.progress,
+                ...progressUpdate
+            };
+            return { ...currentUser, progress: updatedProgress, lastActivityDate: new Date().toISOString() };
         });
     }, []);
     
@@ -120,7 +106,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(currentUser => {
             if (!currentUser) return null;
             const newTotal = Math.max(0, (currentUser.treevus || 0) + amount);
-            return { ...currentUser, treevus: newTotal };
+            return { ...currentUser, treevus: newTotal, lastActivityDate: new Date().toISOString() };
         });
     }, []);
 
@@ -130,21 +116,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 return currentUser;
             }
             const updatedLessons = [...(currentUser.completedLessons || []), lessonId];
-            return { ...currentUser, completedLessons: updatedLessons };
+            return { ...currentUser, completedLessons: updatedLessons, lastActivityDate: new Date().toISOString() };
         });
     }, []);
-
-    const completeProfileSetup = useCallback((details: { name: string; documentId: string; department: Department; tenure: Tenure; modality: Modality; ageRange: AgeRange; }) => {
-        setUser(currentUser => {
-            if (!currentUser) return null;
-            return { 
-                ...currentUser, 
-                ...details,
-                isProfileComplete: true 
-            };
-        });
-        addTreevus(50);
-    }, [addTreevus]);
     
     const redeemTreevusForReward = useCallback((reward: Reward) => {
         setUser(currentUser => {
@@ -156,12 +130,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 icon: reward.icon,
                 date: new Date().toISOString(),
                 costInTreevus: reward.costInTreevus,
+                description: reward.description,
             };
 
             const updatedUser: User = {
                 ...currentUser,
                 treevus: currentUser.treevus - reward.costInTreevus,
                 redeemedRewards: [...(currentUser.redeemedRewards || []), newRedeemedReward],
+                lastActivityDate: new Date().toISOString(),
             };
             
             return updatedUser;
@@ -171,7 +147,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const updateUserStreak = useCallback((streak: { count: number; lastDate: string }) => {
         setUser(currentUser => {
             if (!currentUser) return null;
-            return { ...currentUser, streak };
+            return { ...currentUser, streak, lastActivityDate: new Date().toISOString() };
         });
     }, []);
     
@@ -183,62 +159,160 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 level: TreevuLevel.Brote,
                 progress: { expensesCount: 0, formalityIndex: 0 },
                 prestigeLevel: (currentUser.prestigeLevel || 0) + 1,
+                lastActivityDate: new Date().toISOString(),
             };
         });
     }, []);
 
+    const signUp = useCallback(async (name: string, email: string, pass: string) => {
+        await new Promise(res => setTimeout(res, 1000));
+        
+        const newUser: User = {
+            id: generateUniqueId(),
+            name,
+            email,
+            picture: `https://ui-avatars.com/api/?name=${name.split(' ').join('+')}&background=random&color=fff&size=128&bold=true`,
+            level: TreevuLevel.Brote,
+            progress: { expensesCount: 0, formalityIndex: 0 },
+            treevus: 0,
+            isProfileComplete: false, 
+            kudosSent: 0,
+            kudosReceived: 0,
+            registrationDate: new Date().toISOString(),
+            lastActivityDate: new Date().toISOString(),
+            rewardsClaimedCount: 0,
+            engagementScore: 0,
+            fwiTrend: 'stable',
+            isCompanyLinkComplete: false,
+            hasCorporateCard: undefined,
+            hasAcceptedEthicalPromise: false,
+            hasCompletedOnboarding: false,
+        };
+        
+        setUser(newUser);
+        trackEvent('session_start', { signup: true }, newUser);
+    }, []);
+
+    const signIn = useCallback(async (email: string, pass: string) => {
+        await new Promise(res => setTimeout(res, 1000));
+        if (user) {
+             trackEvent('session_start', { login: true }, user);
+             return; 
+        }
+        // This is a fallback if someone tries to log in without choosing an archetype
+        const defaultUser: User = {
+            id: generateUniqueId(),
+            name: 'Usuario de Prueba',
+            email: email,
+            picture: `https://ui-avatars.com/api/?name=UP&background=random&color=fff&size=128&bold=true`,
+            level: TreevuLevel.Arbusto,
+            progress: { expensesCount: 55, formalityIndex: 71 },
+            treevus: 2800,
+            isProfileComplete: true,
+            hasCorporateCard: true,
+            department: 'Tecnología e Innovación',
+            streak: { count: 3, lastDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
+            kudosSent: 15,
+            kudosReceived: 25,
+            tribeId: 'andromeda-3',
+            featuredBadge: 'pioneer',
+            prestigeLevel: 0,
+            registrationDate: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000).toISOString(),
+            lastActivityDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            rewardsClaimedCount: 1,
+            engagementScore: 72,
+            fwiTrend: 'stable',
+            isCompanyLinkComplete: true,
+            hasAcceptedEthicalPromise: true,
+            hasCompletedOnboarding: true,
+        };
+        setUser(defaultUser);
+        trackEvent('session_start', { login: true }, defaultUser);
+    }, [user]);
+
+    const signOut = useCallback(() => {
+        setUser(null);
+        localStorage.clear();
+        window.location.reload();
+    }, []);
+
+    const linkCompany = useCallback(async (codeOrEmail: string): Promise<CompanyAlliance> => {
+        const company = await verifyCompanyAlliance(codeOrEmail);
+        updateUser({
+            companyId: company.id,
+            companyName: company.name,
+            branding: company.branding,
+            isCompanyLinkComplete: true,
+        });
+        return company;
+    }, [updateUser]);
+
+    const skipCompanyLink = useCallback(() => {
+        updateUser({ isCompanyLinkComplete: true });
+    }, [updateUser]);
+
+    const acceptEthicalPromise = useCallback(() => {
+        updateUser({ hasAcceptedEthicalPromise: true });
+    }, [updateUser]);
+
+    const completeOnboarding = useCallback(() => {
+        updateUser({ hasCompletedOnboarding: true });
+        addTreevus(50);
+    }, [updateUser, addTreevus]);
+
     const signInAsArchetype = useCallback((archetypeKey: ArchetypeKey) => {
         const data = archetypeData[archetypeKey];
-        if (!data) {
-            console.error(`Archetype "${archetypeKey}" not found.`);
-            return;
-        }
-
-        // Clear previous session data before setting new data
-        localStorage.removeItem('treevu-expenses');
-        localStorage.removeItem('treevu-goals');
-        localStorage.removeItem('treevu-budget');
-        localStorage.removeItem('treevu-annualIncome');
-        localStorage.removeItem('treevu-notifications');
-        localStorage.removeItem('treevu-tribes');
         
-        // Set new data in localStorage for other contexts to pick up on mount
+        // Clear previous session and set up the new one
+        localStorage.clear();
+        localStorage.setItem('treevu-user', JSON.stringify(data.user));
         localStorage.setItem('treevu-expenses', JSON.stringify(data.expenses));
         localStorage.setItem('treevu-goals', JSON.stringify(data.goals));
         localStorage.setItem('treevu-budget', data.budget.toString());
         localStorage.setItem('treevu-annualIncome', data.annualIncome.toString());
         localStorage.setItem('treevu-notifications', JSON.stringify(data.notifications));
-        
-        // Finally, set the user state to trigger the app navigation
+
+        // Set user state to immediately grant access, then reload to ensure all contexts are in sync
         setUser(data.user);
+        window.location.reload();
     }, []);
 
+    const completeProfileSetup = useCallback((profileData: {
+        name: string;
+        documentId: string;
+        department: Department;
+        tenure: Tenure;
+        modality: Modality;
+        ageRange: AgeRange;
+    }) => {
+        updateUser({
+            ...profileData,
+            isProfileComplete: true,
+        });
+        addTreevus(50);
+    }, [updateUser, addTreevus]);
 
-    const signOut = useCallback(() => {
-        setUser(null);
-        // Clean up all data to ensure a fresh start on next login
-        localStorage.removeItem('treevu-user');
-        localStorage.removeItem('treevu-expenses');
-        localStorage.removeItem('treevu-goals');
-        localStorage.removeItem('treevu-budget');
-        localStorage.removeItem('treevu-annualIncome');
-        localStorage.removeItem('treevu-notifications');
-        localStorage.removeItem('treevu-tribes');
-    }, []);
 
     const value = useMemo(() => ({
         user,
-        signInAsArchetype,
+        signIn,
+        signUp,
         signOut,
-        updateUserProgress,
         updateUser,
-        completeProfileSetup,
+        updateUserProgress,
         addTreevus,
         redeemTreevusForReward,
         updateUserStreak,
         prestigeUp,
         completeLesson,
-    }), [user, signInAsArchetype, signOut, updateUserProgress, updateUser, completeProfileSetup, addTreevus, redeemTreevusForReward, updateUserStreak, prestigeUp, completeLesson]);
+        recordUserActivity,
+        linkCompany,
+        skipCompanyLink,
+        acceptEthicalPromise,
+        completeOnboarding,
+        signInAsArchetype,
+        completeProfileSetup,
+    }), [user, signIn, signUp, signOut, updateUser, updateUserProgress, addTreevus, redeemTreevusForReward, updateUserStreak, prestigeUp, completeLesson, recordUserActivity, linkCompany, skipCompanyLink, acceptEthicalPromise, completeOnboarding, signInAsArchetype, completeProfileSetup]);
 
     return (
         <AuthContext.Provider value={value}>

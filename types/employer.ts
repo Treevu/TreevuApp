@@ -27,3 +27,27 @@ export interface Challenge {
     department: 'all' | string; // 'all' or a specific department name
     reward: string;
 }
+
+export interface CompanyAlliance {
+    id: string;
+    name: string;
+    validDomains: string[];
+    validCodes: string[];
+    branding: {
+        primaryColor: string;
+        logoUrl?: string;
+    }
+}
+
+export type AdminUser = {
+    name: string;
+    role: 'admin';
+};
+
+export type AreaManagerUser = {
+    name: string;
+    role: 'area_manager';
+    department: Department;
+};
+
+export type CurrentUserType = AdminUser | AreaManagerUser;

@@ -2,8 +2,10 @@ import React from 'react';
 import { BuildingOffice2Icon, ArrowLeftIcon, SparklesIcon, TrophyIcon, ChartPieIcon, UsersIcon, LightBulbIcon, CheckBadgeIcon } from '../Icons';
 import ThemeSwitcher from '../ThemeSwitcher';
 import { useModal } from '../../contexts/ModalContext';
-import { type CurrentUserType } from './EmployerDashboard';
+// FIX: Updated import for `CurrentUserType` to break circular dependency
+import { type CurrentUserType } from '../../types/employer';
 import EmployerStatusCard from './EmployerStatusCard';
+import KpiCard from './KpiCard';
 
 interface EmployerProfileViewProps {
     user: CurrentUserType;
@@ -14,41 +16,6 @@ interface EmployerProfileViewProps {
     onTourInteraction?: () => void;
     isTourActiveStep?: boolean;
 }
-
-const LeadershipStats: React.FC<{ data: any }> = ({ data }) => (
-    <div className="bg-surface rounded-2xl p-4">
-        <h3 className="text-base font-bold text-on-surface mb-3">Panel de Liderazgo</h3>
-        <div className="grid grid-cols-3 gap-3 text-center">
-            <div>
-                <ChartPieIcon className="w-8 h-8 text-primary mx-auto"/>
-                <p className="text-xl font-bold mt-1">{data.financialWellnessIndex.toFixed(0)}</p>
-                <p className="text-xs text-on-surface-secondary">FWI Equipo</p>
-            </div>
-            <div>
-                <UsersIcon className="w-8 h-8 text-primary mx-auto"/>
-                <p className="text-xl font-bold mt-1">{data.activationRate.toFixed(0)}%</p>
-                <p className="text-xs text-on-surface-secondary">Activación</p>
-            </div>
-            <div>
-                <SparklesIcon className="w-8 h-8 text-yellow-400 mx-auto"/>
-                <p className="text-xl font-bold mt-1">{data.kudosLeaderboard.reduce((acc: number, curr: any) => acc + curr.kudos, 0)}</p>
-                <p className="text-xs text-on-surface-secondary">Kudos</p>
-            </div>
-        </div>
-    </div>
-);
-
-const StrategicInsightCard: React.FC = () => (
-    <div className="bg-surface rounded-2xl p-4">
-        <h3 className="text-base font-bold text-on-surface mb-2 flex items-center">
-            <LightBulbIcon className="w-5 h-5 mr-2 text-primary"/>
-            Radar Estratégico
-        </h3>
-        <p className="text-sm text-on-surface-secondary italic">
-            "El FWI de tu equipo subió 5 pts este mes. ¡Excelente! Considera lanzar un desafío de 'Balance Vida-Trabajo' para mantener el impulso."
-        </p>
-    </div>
-);
 
 const AchievementsWidget: React.FC<{ data: any }> = ({ data }) => {
     const achievements = [
@@ -90,19 +57,44 @@ const EmployerProfileView: React.FC<EmployerProfileViewProps> = ({ user, dashboa
         }
     };
 
+    const totalKudos = dashboardData.gamification.totalKudosSent + dashboardData.gamification.totalKudosReceived;
+
     return (
         <div className="w-1/4 h-full overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6 pb-28">
             <header>
-                <h1 className="text-3xl font-bold">Mi Perfil</h1>
+                <h1 className="text-3xl font-bold">Perfil y Asistente IA</h1>
                 <p className="text-on-surface-secondary">
-                    Gestiona tu cuenta y configuración.
+                    Administra tu perfil y accede a tu copiloto estratégico.
                 </p>
             </header>
             
             {!dashboardData.isEmpty && (
                 <>
-                    <LeadershipStats data={dashboardData} />
-                    <StrategicInsightCard />
+                    <div className="space-y-4">
+                        <KpiCard 
+                            title="FWI DEL EQUIPO"
+                            value={dashboardData.financialWellnessIndex.toFixed(0)}
+                            history={dashboardData.fwiHistory}
+                            tooltipText="Evolución del Índice de Bienestar Financiero promedio para el segmento seleccionado."
+                            variant={dashboardData.financialWellnessIndex > 75 ? 'success' : dashboardData.financialWellnessIndex > 60 ? 'warning' : 'danger'}
+                        />
+                        <KpiCard 
+                            title="ACTIVACIÓN DEL EQUIPO"
+                            value={dashboardData.activationRate.toFixed(0)}
+                            valueSuffix="%"
+                            history={dashboardData.activationRateHistory}
+                            tooltipText="Evolución del porcentaje de colaboradores activos en la plataforma."
+                             variant={dashboardData.activationRate > 80 ? 'success' : dashboardData.activationRate > 60 ? 'warning' : 'danger'}
+                        />
+                         <KpiCard 
+                            title="CULTURA DE RECONOCIMIENTO"
+                            value={totalKudos.toLocaleString()}
+                            subValue="Kudos"
+                            history={dashboardData.kudosHistory}
+                            tooltipText="Evolución del total de kudos (reconocimientos) enviados y recibidos en el equipo."
+                            variant="default"
+                        />
+                    </div>
                     <AchievementsWidget data={dashboardData} />
                 </>
             )}

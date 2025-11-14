@@ -1,4 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useMemo, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
+import { hexToRgb, adjustColor, getContrastColor } from '../utils';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -10,6 +12,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const { user } = useAuth(); // Get user from AuthContext
     const [theme, setTheme] = useState<Theme>(() => {
         // 1. Check localStorage for a saved theme
         const savedTheme = localStorage.getItem('treevu-theme') as Theme | null;
@@ -36,6 +39,31 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         }
 
     }, [theme]);
+    
+    // NEW Effect for company branding
+    useEffect(() => {
+        const rootStyle = document.documentElement.style;
+        const branding = user?.branding;
+        
+        if (branding && branding.primaryColor) {
+            const primaryColor = branding.primaryColor;
+            const rgb = hexToRgb(primaryColor);
+            
+            rootStyle.setProperty('--primary', primaryColor);
+            rootStyle.setProperty('--primary-light', adjustColor(primaryColor, 20));
+            rootStyle.setProperty('--primary-dark', getContrastColor(primaryColor));
+            if (rgb) {
+                rootStyle.setProperty('--primary-rgb', `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+            }
+        } else {
+            // Revert to stylesheet defaults if no branding is present
+            rootStyle.removeProperty('--primary');
+            rootStyle.removeProperty('--primary-light');
+            rootStyle.removeProperty('--primary-dark');
+            rootStyle.removeProperty('--primary-rgb');
+        }
+
+    }, [user]); // Rerun when user object (and thus branding) changes
 
     // Listener for system theme changes
     useEffect(() => {

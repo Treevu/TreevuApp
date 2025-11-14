@@ -1,4 +1,3 @@
-
 import { Type } from '@google/genai';
 import { callAIApi } from './api';
 import { parseJsonFromMarkdown } from '../../utils';
@@ -78,41 +77,48 @@ export const getAIEmployerResponse = async (query: string, data: any): Promise<s
 };
 
 
-export const getAIStrategicInsight = async (metricName: string, value: number | undefined, context: any): Promise<{ status: string; insight: string; recommendation: string } | null> => {
+export const getAIStrategicInsights = async (data: any): Promise<{ metricName: string; status: string; insight: string; recommendation: string }[] | null> => {
     const prompt = `
         Eres un consultor de C-Level especializado en bienestar corporativo.
-        Tu tarea es generar un diagnóstico rápido y una recomendación estratégica para una métrica clave.
-        
-        **Métrica a Analizar:** ${metricName}
-        **Valor Actual:** ${value?.toFixed(1) || 'N/A'}%
-        **Contexto:** Se está analizando un segmento de ${context.employeeCount} colaboradores.
+        Tu tarea es generar un diagnóstico rápido y una recomendación estratégica para cada una de las siguientes métricas clave.
+
+        **Métricas a Analizar:**
+        - Salud Financiera (valor: ${data.formalityScore?.toFixed(1) || 'N/A'}%)
+        - Balance Vida-Trabajo (valor: ${data.workLifeBalanceScore?.toFixed(1) || 'N/A'}%)
+        - Desarrollo Profesional (valor: ${data.selfDevScore?.toFixed(1) || 'N/A'}%)
+        - Adopción y Engagement (valor: ${data.activationRate?.toFixed(1) || 'N/A'}%)
 
         **Instrucciones:**
-        1.  **Diagnóstico ('status'):** Basado en el valor, clasifícalo en "Saludable", "Atención Requerida" o "Crítico".
+        Para CADA UNA de las cuatro métricas:
+        1.  **Diagnóstico ('status'):** Clasifícalo en "Saludable", "Atención Requerida" o "Crítico".
         2.  **Análisis ('insight'):** Proporciona una frase corta que explique qué significa este valor en términos de negocio (ej. impacto en retención, productividad, cultura).
-        3.  **Recomendación ('recommendation'):** Sugiere UNA iniciativa de alto impacto, específica y cuantificable si es posible.
-            - Ejemplo: "Lanzar un desafío de 'Balance Vida-Trabajo'. Impacto estimado: Reducción del 4% en riesgo de fuga en 3 meses."
-            
+        3.  **Recomendación ('recommendation'):** Sugiere UNA iniciativa de alto impacto, específica y accionable.
+        
         **Barrera de Contención (Guardrail):** NO generes respuestas genéricas. Tu recomendación debe ser accionable.
-        Responde en formato JSON estricto.
+        Responde en formato JSON estricto con un array de 4 objetos. Cada objeto debe tener: 'metricName', 'status', 'insight', 'recommendation'.
     `;
      const request = {
+        model: 'gemini-2.5-pro',
         contents: prompt,
         config: {
           responseMimeType: "application/json",
           responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-                status: { type: Type.STRING },
-                insight: { type: Type.STRING },
-                recommendation: { type: Type.STRING }
-            },
-            required: ["status", "insight", "recommendation"]
+            type: Type.ARRAY,
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    metricName: { type: Type.STRING },
+                    status: { type: Type.STRING },
+                    insight: { type: Type.STRING },
+                    recommendation: { type: Type.STRING }
+                },
+                required: ["metricName", "status", "insight", "recommendation"]
+            }
           }
         }
     };
     const jsonText = await callAIApi(request);
-    return jsonText ? parseJsonFromMarkdown<{ status: string; insight: string; recommendation: string }>(jsonText) : null;
+    return jsonText ? parseJsonFromMarkdown<any[]>(jsonText) : null;
 };
 
 export const getAIChallengeSuggestion = async (data: any): Promise<Omit<Challenge, 'id'> | null> => {
@@ -192,77 +198,123 @@ export const getAIImpactProjection = async (simulationParams: {
         - Un 'bonus' tiene un impacto inmediato en FWI (+3 a +6 pts), pero su efecto es temporal. Aumenta el ROI a corto plazo. Impacto moderado en riesgo de fuga (-1 pt).
         - Un 'workshop' de educación financiera tiene un impacto sostenido pero lento en el FWI (+1-2 pts por trimestre) y un impacto bajo en el riesgo de fuga a corto plazo.
         - El impacto es un 20% mayor si se enfoca en un departamento con bajo FWI.
-
-        **Instrucciones de Respuesta:**
-        1.  **Proyecta los Nuevos Valores:** Basado en las heurísticas y el contexto, calcula los nuevos valores para 'newFwi', 'newRiskScore', y 'newRoi'. Sé realista.
-        2.  **Genera la Justificación ('rationale'):** Escribe una explicación concisa (máx. 40 palabras) del porqué de estos cambios. Conecta la acción con el resultado proyectado de forma lógica.
-
-        Responde en formato JSON estricto.
     `;
-    
+    // FIX: Completed the function implementation to call the AI and return a value.
     const request = {
         model: 'gemini-2.5-pro',
         contents: prompt,
         config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-                newFwi: { type: Type.NUMBER },
-                newRiskScore: { type: Type.NUMBER },
-                newRoi: { type: Type.NUMBER },
-                rationale: { type: Type.STRING }
-            },
-            required: ["newFwi", "newRiskScore", "newRoi", "rationale"]
-          }
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    newFwi: { type: Type.NUMBER },
+                    newRiskScore: { type: Type.NUMBER },
+                    newRoi: { type: Type.NUMBER },
+                    rationale: { type: Type.STRING }
+                },
+                required: ["newFwi", "newRiskScore", "newRoi", "rationale"]
+            }
         }
     };
+
     const jsonText = await callAIApi(request);
-    return jsonText ? parseJsonFromMarkdown<{ newFwi: number; newRiskScore: number; newRoi: number; rationale: string }>(jsonText) : null;
+    return jsonText ? parseJsonFromMarkdown<any>(jsonText) : null;
 };
 
-export const getAIGoalInsight = async (topGoals: { category: string; count: number }[], departmentName: string, employeeCount: number): Promise<{ insight: string; recommendation: string } | null> => {
-    if (topGoals.length === 0) {
-        return {
-            insight: "Este segmento aún no ha definido metas de ahorro.",
-            recommendation: "Lanza una comunicación interna para motivar la creación de la primera meta, quizás con un pequeño bono de Treevüs."
-        };
-    }
+// FIX: Added missing function 'getAIGoalInsight'
+export const getAIGoalInsight = async (
+    savingsByCategory: { category: string; amount: number }[],
+    department: string,
+    employeeCount: number
+): Promise<{ insight: string; recommendation: string } | null> => {
+    const topGoal = savingsByCategory.length > 0 ? savingsByCategory[0].category : 'ninguna';
+
     const prompt = `
-        Actúa como un estratega de People Analytics. Analiza las principales metas de ahorro de un segmento de la empresa.
-        
+        Actúa como un estratega de People Analytics. Analiza los siguientes datos sobre las metas de ahorro de un segmento de empleados.
+
         **Contexto del Segmento:**
-        - Segmento: ${departmentName} (${employeeCount} colaboradores)
-        - Top Metas (por popularidad): ${topGoals.map(g => `${g.category} (${g.count})`).join(', ')}
+        - Segmento: ${department}
+        - Número de colaboradores: ${employeeCount}
+        - Distribución del Ahorro: ${JSON.stringify(savingsByCategory)}
+        - Meta principal (donde más se ahorra): ${topGoal}
 
         **Instrucciones:**
-        1.  **Diagnóstico ('insight'):** En una frase, explica qué revelan estas metas sobre las aspiraciones y prioridades de este grupo. Sé directo.
-            - Ejemplo (si predomina 'Educación'): "Este equipo muestra una fuerte ambición por el crecimiento profesional."
-            - Ejemplo (si predomina 'Viaje'): "El balance vida-trabajo y las experiencias son una alta prioridad para este segmento."
-            - Ejemplo (si predomina 'Vivienda'): "Este grupo está enfocado en metas de estabilidad y largo plazo."
-        2.  **Recomendación ('recommendation'):** Sugiere una acción concreta y de alto impacto que RRHH puede tomar para conectar con estas aspiraciones.
-            - Ejemplo para 'Educación': "Considera ofrecer como beneficio suscripciones a plataformas de e-learning o un presupuesto para certificaciones."
-            - Ejemplo para 'Viaje': "Evalúa ofrecer días libres flexibles o 'workations' como parte de los beneficios para mejorar la retención."
-            - Ejemplo para 'Vivienda': "Organiza talleres sobre créditos hipotecarios o planificación financiera para la compra de una casa."
-
-        **Barrera de Contención:** Tu recomendación debe ser una iniciativa de RRHH, no un consejo financiero para el empleado.
+        1.  **'insight':** Genera una observación clave sobre las aspiraciones del equipo. ¿Qué revela la meta principal sobre sus prioridades? (ej: "El equipo prioriza la estabilidad a largo plazo", "Hay un fuerte deseo de desarrollo profesional").
+        2.  **'recommendation':** Sugiere una acción concreta que la empresa puede tomar para apoyar estas aspiraciones. (ej: "Considera ofrecer talleres sobre inversión inmobiliaria", "Evalúa crear un programa de becas para postgrados").
+        
         Responde en formato JSON estricto.
     `;
     const request = {
         model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-                insight: { type: Type.STRING },
-                recommendation: { type: Type.STRING }
-            },
-            required: ["insight", "recommendation"]
-          }
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    insight: { type: Type.STRING },
+                    recommendation: { type: Type.STRING },
+                },
+                required: ['insight', 'recommendation'],
+            }
+        }
+    };
+
+    const jsonText = await callAIApi(request);
+    return jsonText ? parseJsonFromMarkdown<{ insight: string; recommendation: string }>(jsonText) : null;
+};
+
+// FIX: Added missing function 'getAIStrategicReportSummary'
+export const getAIStrategicReportSummary = async (data: any): Promise<{ executiveSummary: string; recommendations: { title: string; detail: string }[] } | null> => {
+    const prompt = `
+        Eres un consultor de estrategia de alto nivel (C-Level) para RRHH. Analiza los siguientes KPIs de un segmento de la empresa y genera un informe ejecutivo.
+
+        **Datos del Segmento:**
+        - FWI (Índice de Bienestar Financiero) promedio: ${data.financialWellnessIndex.toFixed(1)}
+        - Riesgo de Fuga de Talento: ${data.talentFlightRisk} (${data.flightRiskScore.toFixed(1)}%)
+        - Tasa de Activación: ${data.activationRate.toFixed(1)}%
+        - ROI del Programa: ${data.roiMultiplier.toFixed(1)}x
+        - Componentes del FWI:
+            - Salud Financiera: ${data.formalityScore.toFixed(1)}%
+            - Balance Vida-Trabajo: ${data.workLifeBalanceScore.toFixed(1)}%
+            - Desarrollo Profesional: ${data.selfDevScore.toFixed(1)}%
+
+        **Instrucciones de Respuesta:**
+        1.  **'executiveSummary':** Escribe un resumen ejecutivo de 2-3 frases. Debe identificar el estado general (saludable, en riesgo, etc.), mencionar la métrica más fuerte y la de mayor oportunidad.
+        2.  **'recommendations':** Genera un array de 2 o 3 recomendaciones estratégicas. Cada una debe tener un 'title' (la iniciativa) y un 'detail' (el porqué y el impacto esperado).
+        
+        **Barreras de Contención (Guardrails):**
+        - Sé conciso y directo, como si hablaras con un CEO.
+        - Basa tus recomendaciones en los datos. Si el Riesgo de Fuga es alto, una recomendación debe abordarlo. Si el Desarrollo Profesional es bajo, sugiere una iniciativa de L&D.
+
+        Responde en formato JSON estricto.
+    `;
+    const request = {
+        model: 'gemini-2.5-pro',
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    executiveSummary: { type: Type.STRING },
+                    recommendations: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                title: { type: Type.STRING },
+                                detail: { type: Type.STRING },
+                            },
+                            required: ['title', 'detail'],
+                        },
+                    },
+                },
+                required: ['executiveSummary', 'recommendations'],
+            }
         }
     };
     const jsonText = await callAIApi(request);
-    return jsonText ? parseJsonFromMarkdown<{ insight: string; recommendation: string }>(jsonText) : null;
+    return jsonText ? parseJsonFromMarkdown<any>(jsonText) : null;
 };

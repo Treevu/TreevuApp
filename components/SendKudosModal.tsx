@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTribes } from '../contexts/TribesContext';
@@ -124,14 +125,18 @@ const SendKudosModal: React.FC<SendKudosModalProps> = ({ onClose, recipient }) =
                     </>
                 ) : (
                     <>
-                        <div className="text-center p-4 bg-background rounded-xl">
-                            <TrophyIcon className="w-12 h-12 text-yellow-400 mx-auto"/>
-                            <p className="text-sm text-on-surface-secondary mt-2">
-                                Otorgar un Kudo es un galardón para celebrar el trabajo de un compañero. ¡Ganas <strong className="text-primary">5 treevüs</strong> por hacerlo!
+                        <div className="text-center p-4 bg-background rounded-xl flex flex-col items-center">
+                            <div className="w-16 h-16 rounded-full bg-active-surface flex items-center justify-center font-bold text-2xl text-on-surface mb-3">{recipient.avatarInitial}</div>
+                             <p className="text-sm text-on-surface-secondary">
+                                Vas a otorgar un trofeo de reconocimiento a:
                             </p>
+                            <p className="font-bold text-lg text-on-surface">{recipient.name}</p>
+                        </div>
+                        <div className="p-2 bg-primary/10 text-primary text-xs font-semibold rounded-lg text-center">
+                            ¡Esta acción te recompensa con <strong>+5 treevüs</strong> por fomentar una cultura positiva!
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-on-surface-secondary mb-1">Mensaje (opcional)</label>
+                            <label className="block text-sm font-medium text-on-surface-secondary mb-1">Mensaje de reconocimiento (opcional)</label>
                             <textarea
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}

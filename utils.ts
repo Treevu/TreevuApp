@@ -129,7 +129,6 @@ export const getMemberSinceYear = (): string => {
     return '24';
 };
 
-// FIX: Add missing mock data generator functions for the employer status card.
 /**
  * Generates a mock, non-financial card number.
  * @param {string} seed - A string to seed the generator.
@@ -168,4 +167,43 @@ export const generateMockExpiryDate = (seed: string): string => {
 export const generateMockCvv = (seed: string): string => {
     let hash = getHashFromString('cvv' + seed);
     return (Math.abs(hash) % 900 + 100).toString();
+};
+
+export const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  if (!hex) return null;
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
+};
+
+// percent is a value between -100 and 100
+export const adjustColor = (hex: string, percent: number): string => {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+
+  let { r, g, b } = rgb;
+  const amount = Math.floor(255 * (percent / 100));
+
+  r = Math.max(0, Math.min(255, r + amount));
+  g = Math.max(0, Math.min(255, g + amount));
+  b = Math.max(0, Math.min(255, b + amount));
+
+  const toHex = (c: number) => `0${c.toString(16)}`.slice(-2);
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+};
+
+export const getContrastColor = (hex: string): string => {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return '#020617'; // default to dark blue/black
+    const { r, g, b } = rgb;
+    // Formula from WCAG to determine luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    // Use dark text on light colors, and white text on dark colors
+    return luminance > 0.5 ? '#020617' : '#FFFFFF';
 };

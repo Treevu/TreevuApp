@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SparklesIcon, HeartIcon, AcademicCapIcon, TicketIcon, LightBulbIcon, UsersIcon } from '../Icons';
 // FIX: Updated import from deprecated 'geminiService.ts'.
-import { getAIStrategicInsight } from '../../services/ai/employerService';
+import { getAIStrategicInsights } from '../../services/ai/employerService';
 import Tooltip from '../Tooltip';
 import AccordionItem from './AccordionItem';
 
@@ -42,29 +42,20 @@ const StrategicInsights: React.FC<StrategicInsightsProps> = ({ data }) => {
                 return;
             };
             setIsLoading(true);
-            const context = { employeeCount: data.filteredActiveEmployees };
-            
             try {
-                const insightPromises = metrics.map(metric => 
-                    getAIStrategicInsight(metric.metricName, data[metric.valueKey], context)
-                        .catch(error => {
-                            console.error(`Error fetching insight for ${metric.metricName}:`, error);
-                            // Return a structured error object so Promise.all doesn't fail
-                            return {
-                                status: 'Error',
-                                insight: 'Fallo en la conexión con la IA.',
-                                recommendation: 'Espera un momento y reintenta.'
-                            };
-                        })
-                );
+                const results = await getAIStrategicInsights(data);
                 
-                const results = await Promise.all(insightPromises);
-                
-                const populatedInsights = metrics.map((m, i) => ({ ...m, analysis: results[i] as AnalysisResult | null }));
-                setInsights(populatedInsights);
+                if (results && Array.isArray(results)) {
+                    const populatedInsights = metrics.map(m => {
+                        const analysisResult = results.find(r => r.metricName === m.metricName);
+                        return { ...m, analysis: analysisResult || null };
+                    });
+                    setInsights(populatedInsights);
+                } else {
+                    throw new Error("Invalid or empty response from AI");
+                }
 
             } catch (error) {
-                // This outer catch is for any unexpected errors in the loop itself.
                 console.error("An unexpected error occurred while fetching insights:", error);
                 const errorInsights = metrics.map(m => ({ ...m, analysis: { status: 'Error', insight: 'Ocurrió un error inesperado.', recommendation: 'Intenta recargar la página.' } }));
                 setInsights(errorInsights);

@@ -1,9 +1,7 @@
 import React from 'react';
 import { DocumentArrowDownIcon } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
-import { useExpenses } from '../contexts/ExpensesContext';
-import { useGoals } from '../contexts/GoalsContext';
-import { useBudget } from '../contexts/BudgetContext';
+import { useAppContext } from '../contexts/AppContext';
 import { levelData } from '../services/gamificationService';
 
 interface ExportButtonProps {
@@ -12,9 +10,8 @@ interface ExportButtonProps {
 
 const ExportButton: React.FC<ExportButtonProps> = ({ filename = 'mi_reporte_treevu.txt' }) => {
     const { user } = useAuth();
-    const { expenses } = useExpenses();
-    const { goals } = useGoals();
-    const { budget, annualIncome } = useBudget();
+    const { state } = useAppContext();
+    const { expenses, goals, budget, annualIncome } = state;
 
     const generateFullReport = (): string => {
         if (!user) return "Error: Usuario no encontrado.";

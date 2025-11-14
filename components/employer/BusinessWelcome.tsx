@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { type CurrentUserType } from './EmployerDashboard';
+import { type CurrentUserType } from '../../types/employer';
 import { ArrowLeftIcon, UsersIcon } from '../Icons';
 import AuthLayout from '../auth/AuthLayout';
 import TreevuLogoText from '../TreevuLogoText';

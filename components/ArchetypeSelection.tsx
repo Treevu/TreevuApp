@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeftIcon, RocketLaunchIcon, BinocularsIcon, TrophyIcon } from './Icons';
+import { ArrowLeftIcon, RocketLaunchIcon, BinocularsIcon } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { ArchetypeKey } from '../data/archetypes';
 import AuthLayout from './auth/AuthLayout';
@@ -20,12 +20,6 @@ const archetypes = [
         icon: BinocularsIcon,
         title: 'Nómada Digital',
         description: 'Un perfil tecnológico remoto con altos gastos en suscripciones, delivery y viajes. Perfecto para explorar la gestión de gastos recurrentes y no tradicionales.',
-    },
-    {
-        key: 'visionary' as ArchetypeKey,
-        icon: TrophyIcon,
-        title: 'Visionaria de Metas',
-        description: 'Una profesional enfocada en un gran proyecto a largo plazo. Este perfil destaca la planificación, el ahorro y el poder de las metas en treevü.',
     },
 ];
 

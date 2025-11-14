@@ -42,7 +42,7 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ step, currentStepIndex,
 
             // Reset textbox styles for centering
             textboxEl.style.width = '';
-            textboxEl.style.maxWidth = '';
+            textboxEl.style.maxWidth = '320px';
             textboxEl.style.opacity = '1';
             textboxEl.style.top = '50%';
             textboxEl.style.left = '50%';
@@ -72,6 +72,9 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ step, currentStepIndex,
         const updatePosition = () => {
             if (!spotlightEl || !textboxEl || !targetEl || !document.body.contains(targetEl)) {
                  if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+                 // Hide tour elements if target disappears
+                 if(spotlightEl) spotlightEl.style.opacity = '0';
+                 if(textboxEl) textboxEl.style.opacity = '0';
                  return;
             }
             const rect = targetEl.getBoundingClientRect();

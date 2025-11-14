@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useBudget } from '../contexts/BudgetContext';
+import { useAppContext } from '../contexts/AppContext';
 import { CheckIcon, ExclamationTriangleIcon, InformationCircleIcon, ArrowLeftIcon, GiftIcon } from './Icons';
 import AuthLayout from './auth/AuthLayout';
-// FIX: Updated imports from deprecated 'types.ts' to 'types/employer.ts'.
 import { Department, Modality, Tenure, AgeRange, DEPARTMENTS, TENURES, MODALITIES, AGE_RANGES } from '../types/employer';
 
 const inputClasses = "mt-1 block w-full bg-background border border-active-surface rounded-xl p-2 text-lg text-center font-bold text-on-surface outline-none transition focus:border-primary focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-primary";
@@ -54,7 +53,7 @@ interface ProfileSetupProps {
 
 const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack }) => {
     const { user, completeProfileSetup } = useAuth();
-    const { updateBudget } = useBudget();
+    const { updateBudget } = useAppContext();
     
     const [name, setName] = useState(user?.name || '');
     const [documentId, setDocumentId] = useState('');
@@ -83,7 +82,6 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack }) => {
 
         setIsSubmitting(true);
         
-        // This single call now handles updating user details and setting the profile as complete.
         completeProfileSetup({
             name,
             documentId,
@@ -93,8 +91,6 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack }) => {
             ageRange: ageRange as AgeRange,
         });
         
-        // Set a default budget so the user can start using the app.
-        // This can be changed later.
         updateBudget(0);
     };
 

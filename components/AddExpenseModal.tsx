@@ -1,14 +1,11 @@
-
 import React, { useRef, useCallback, useEffect, useReducer, useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAlert } from '../contexts/AlertContext';
-// FIX: Updated imports from deprecated 'types.ts' to domain-specific type files.
 import { type Expense, type Product, type VerificationResult, type ExpenseData } from '../types/expense';
 import { CategoriaGasto, TipoComprobante } from '../types/common';
 import { type ModalState, type ModalAction } from '../types/modal';
 import { type AISavingOpportunity } from '../types/ai';
 import { 
-    // FIX: Updated imports from deprecated 'geminiService.ts' to specific AI service files.
     getAISavingOpportunity,
 } from '../services/ai/employeeService';
 import { 
@@ -40,6 +37,7 @@ interface AddExpenseModalProps {
     initialFile?: File;
     scanMode?: 'receipt' | 'products' | 'verify' | null;
     expenseToEdit?: Expense | null;
+    initialExpenseData?: Partial<ExpenseData>;
 }
 
 const BLANK_EXPENSE: ExpenseData = {
@@ -52,6 +50,7 @@ const BLANK_EXPENSE: ExpenseData = {
     esFormal: false,
     ahorroPerdido: 0,
     igv: 0,
+    isCorporate: false,
     intent: 'unclassified',
 };
 
@@ -172,10 +171,10 @@ const VerificationDisplay = ({ result }: { result: VerificationResult }) => {
     );
 };
 
-export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initialAction, initialFile, scanMode, expenseToEdit }) => {
+export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initialAction, initialFile, scanMode, expenseToEdit, initialExpenseData }) => {
     const { state: appState, addExpense, updateExpense, updateGoalContribution } = useAppContext();
     const { expenses, goals } = appState;
-    const { addTreevus } = useAuth();
+    const { user, addTreevus } = useAuth();
     const { setAlert } = useAlert();
     
     const getInitialState = useCallback((): ModalState => {
@@ -190,11 +189,11 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
         if (initialFile || initialAction === 'file') {
             return { ...initialState, step: 'capture' }; // Start at capture to trigger useEffect
         }
-        if (initialAction === 'manual') {
-            return { ...initialState, expenseData: BLANK_EXPENSE, step: 'manual_entry' };
+        if (initialAction === 'manual' || initialExpenseData) {
+            return { ...initialState, expenseData: { ...BLANK_EXPENSE, ...initialExpenseData }, step: 'manual_entry' };
         }
         return { ...initialState, step: 'capture' };
-    }, [expenseToEdit, initialAction, initialFile]);
+    }, [expenseToEdit, initialAction, initialFile, initialExpenseData]);
     
     const [state, dispatch] = useReducer(modalReducer, getInitialState());
     const { step, image, expenseData, products, error, verificationResult, expenseSplitSuggestion, justSavedExpense, savingOpportunity, isSuggestingCategory, suggestedCategory, isVerifyingRuc, rucValidationResult } = state;
@@ -202,7 +201,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
     const [merchantSuggestions, setMerchantSuggestions] = useState<string[]>([]);
     const [divertAmount, setDivertAmount] = useState('');
     const [divertDescription, setDivertDescription] = useState('');
-    const [divertGoalId, setDivertGoalId] = useState(goals.length > 0 ? goals[0].id : '');
+    const [divertGoalId, setDivertGoalId] = useState('');
     const [divertError, setDivertError] = useState('');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -248,6 +247,18 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
             fileInputRef.current.click();
         }
     }, [initialAction]);
+
+    useEffect(() => {
+        // When switching to the divert step, if no goal is selected
+        // and goals are available, pre-select the first one.
+        if (step === 'divert_expense' && !divertGoalId && goals.length > 0) {
+            setDivertGoalId(goals[0].id);
+        }
+        // If a goal that was selected is deleted while modal is open, reset selection
+        if (step === 'divert_expense' && divertGoalId && !goals.find(g => g.id === divertGoalId)) {
+            setDivertGoalId(goals.length > 0 ? goals[0].id : '');
+        }
+    }, [step, goals, divertGoalId]);
 
     const processImage = useCallback(async (imageData: { url: string; base64: string; mimeType: string }) => {
         dispatch({ type: 'SET_IMAGE', payload: imageData });
@@ -395,8 +406,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
             updateExpense(expenseToEdit.id, finalExpenseData);
             onClose(); // Skip opportunity step on edit
         } else {
-            // FIX: The addExpense function expects a single object argument.
-            // The expense data and imageUrl are now combined into one object.
             const addedExpense = addExpense({ ...finalExpenseData, imageUrl: image?.url });
             if (goals.length > 0) {
                 dispatch({ type: 'SET_JUST_SAVED_EXPENSE', payload: addedExpense });
@@ -793,6 +802,15 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                                <span className={`block w-4 h-4 rounded-full bg-white transform transition-transform ${expenseData.esFormal ? 'translate-x-6' : 'translate-x-0'}`}></span>
                            </button>
                         </div>
+                         {user?.hasCorporateCard && (
+                            <div className="flex justify-between items-center p-3 bg-background rounded-lg">
+                               <label className="font-medium text-on-surface">Gasto Corporativo</label>
+                               <button onClick={() => handleUpdateField('isCorporate', !expenseData.isCorporate)} className={`w-12 h-6 rounded-full p-1 transition-colors ${expenseData.isCorporate ? 'bg-primary' : 'bg-active-surface'}`}>
+                                   <span className="sr-only">Es corporativo</span>
+                                   <span className={`block w-4 h-4 rounded-full bg-white transform transition-transform ${expenseData.isCorporate ? 'translate-x-6' : 'translate-x-0'}`}></span>
+                               </button>
+                            </div>
+                        )}
                         <div className={`p-2 rounded-lg text-center font-semibold text-sm flex items-center justify-center gap-2 ${expenseData.esFormal ? 'bg-primary/10 text-primary' : 'bg-yellow-400/10 text-yellow-300'}`}>
                             {expenseData.esFormal
                                 ? `Tesoro fiscal recuperable aprox.: S/ ${expenseData.igv.toFixed(2)}`

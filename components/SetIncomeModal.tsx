@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CheckIcon } from './Icons';
-import { useBudget } from '../contexts/BudgetContext';
+import { useAppContext } from '../contexts/AppContext';
 import ModalWrapper from './ModalWrapper';
 
 interface SetIncomeModalProps {
@@ -8,7 +8,7 @@ interface SetIncomeModalProps {
 }
 
 const SetIncomeModal: React.FC<SetIncomeModalProps> = ({ onClose }) => {
-    const { annualIncome: currentIncome, updateAnnualIncome } = useBudget();
+    const { state: { annualIncome: currentIncome }, updateAnnualIncome } = useAppContext();
     const [income, setIncome] = useState<string>(currentIncome ? currentIncome.toString() : '');
     const [error, setError] = useState<string | null>(null);
     const incomeSuggestions = [30000, 50000, 70000];

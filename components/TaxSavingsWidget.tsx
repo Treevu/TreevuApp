@@ -1,8 +1,9 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { useExpenses } from '../contexts/ExpensesContext';
-import { BanknotesIcon } from './Icons';
+import { useAppContext } from '../contexts/AppContext';
+import { BanknotesIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
 import { calculateEstimatedTaxReturn, getDeductibleTotals, DEDUCTIBLE_EXPENSE_LIMIT_SOLES } from '../services/taxService';
 import Tooltip from './Tooltip';
+import { SimpleLineChart } from './TrendAnalysis';
 
 interface TaxSavingsWidgetProps {
     annualIncome: number | null;
@@ -10,8 +11,9 @@ interface TaxSavingsWidgetProps {
 }
 
 const TaxSavingsWidget: React.FC<TaxSavingsWidgetProps> = ({ annualIncome, onSetup }) => {
-    const { expenses } = useExpenses();
+    const { state: { expenses } } = useAppContext();
     const [animatedReturn, setAnimatedReturn] = useState(0);
+    const [showTrend, setShowTrend] = useState(false);
     
     const { formalDeductible, potentialDeductible } = useMemo(() => getDeductibleTotals(expenses), [expenses]);
     
@@ -24,6 +26,33 @@ const TaxSavingsWidget: React.FC<TaxSavingsWidgetProps> = ({ annualIncome, onSet
         if (!annualIncome) return 0;
         return calculateEstimatedTaxReturn(potentialDeductible, annualIncome);
     }, [potentialDeductible, annualIncome]);
+
+    const monthlyDeductibleTrend = useMemo(() => {
+        if (!annualIncome) return [];
+        const history: { label: string; value: number }[] = [];
+        const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+        const now = new Date();
+        let cumulativeDeductible = 0;
+
+        for (let i = 0; i <= now.getMonth(); i++) {
+            const year = now.getFullYear();
+            const month = i;
+
+            const monthExpenses = expenses.filter(e => {
+                const expenseDate = new Date(e.fecha);
+                return expenseDate.getFullYear() === year && expenseDate.getMonth() === month;
+            });
+
+            const { formalDeductible: monthFormalDeductible } = getDeductibleTotals(monthExpenses);
+            cumulativeDeductible += monthFormalDeductible;
+
+            history.push({
+                label: monthNames[month],
+                value: calculateEstimatedTaxReturn(cumulativeDeductible, annualIncome)
+            });
+        }
+        return history;
+    }, [expenses, annualIncome]);
 
     const progressPercentage = (formalDeductible / DEDUCTIBLE_EXPENSE_LIMIT_SOLES) * 100;
 
@@ -71,7 +100,7 @@ const TaxSavingsWidget: React.FC<TaxSavingsWidgetProps> = ({ annualIncome, onSet
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold text-on-surface flex items-center">
                     <BanknotesIcon className="w-6 h-6 mr-2 text-primary"/>
-                    Potencial de Ahorro Fiscal
+                    Tu Ahorro Fiscal
                 </h2>
                 <Tooltip id="ahorro-fiscal-tooltip" text="Estimación de cuánto dinero podrías recibir como devolución de impuestos de SUNAT al final del año, gracias a tus gastos formales en categorías deducibles." />
             </div>
@@ -103,6 +132,16 @@ const TaxSavingsWidget: React.FC<TaxSavingsWidgetProps> = ({ annualIncome, onSet
                     </p>
                 </div>
             )}
+
+            <div className="mt-4 pt-3 border-t border-active-surface/50">
+                <button onClick={() => setShowTrend(!showTrend)} className="w-full flex justify-between items-center text-sm font-semibold text-on-surface-secondary hover:text-on-surface">
+                    <span>Evolución anual de la devolución</span>
+                    {showTrend ? <ChevronUpIcon className="w-5 h-5"/> : <ChevronDownIcon className="w-5 h-5"/>}
+                </button>
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${showTrend ? 'max-h-48' : 'max-h-0'}`}>
+                    <SimpleLineChart data={monthlyDeductibleTrend} />
+                </div>
+            </div>
         </div>
     );
 };

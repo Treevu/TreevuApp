@@ -4,9 +4,7 @@ import TreevuLogoText from './TreevuLogoText';
 // FIX: Updated imports from deprecated 'geminiService.ts' to specific AI service files.
 import { getAIGreeting } from '../services/ai/employeeService';
 import { getGeneralChatResponse } from '../services/ai/chatService';
-import { useBudget } from '../contexts/BudgetContext';
-import { useExpenses } from '../contexts/ExpensesContext';
-import { useGoals } from '../contexts/GoalsContext';
+import { useAppContext } from '../contexts/AppContext';
 import { useAuth } from '../contexts/AuthContext';
 import { levelData } from '../services/gamificationService';
 import { parseJsonFromMarkdown } from '../utils';
@@ -164,9 +162,8 @@ const ChatInput = React.memo(({
 
 // --- Main Component ---
 const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ onClose, onAddReceiptManual }) => {
-    const { budget } = useBudget();
-    const { expenses, formalityIndex, totalExpenses } = useExpenses();
-    const { goals } = useGoals();
+    const { state } = useAppContext();
+    const { expenses, budget, formalityIndex, totalExpenses, goals } = state;
     const { user } = useAuth();
     const { openModal } = useModal();
 

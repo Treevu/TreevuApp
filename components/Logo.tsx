@@ -2,9 +2,18 @@ import React from 'react';
 
 interface LogoProps {
     className?: string;
+    src?: string;
 }
 
-const Logo: React.FC<LogoProps> = ({ className }) => {
+const Logo: React.FC<LogoProps> = ({ className, src }) => {
+    // If a src is provided, render an img tag for the company logo.
+    if (src) {
+        return (
+            <img src={src} className={className} alt="Logotipo de la empresa" />
+        );
+    }
+
+    // Otherwise, render the default SVG logo.
     return (
         <svg
             className={className}

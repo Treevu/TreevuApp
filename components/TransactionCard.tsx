@@ -1,3 +1,2 @@
-// This file is redundant. Its content is duplicated in ExpenseCardUltraCompact.tsx.
-// It can be safely deleted from the project.
+// This file is redundant and has been deprecated in favor of ExpenseCardUltraCompact.tsx.
 export {};

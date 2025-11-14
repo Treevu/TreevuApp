@@ -1,9 +1,5 @@
-
-
-
 import React from 'react';
 import { GiftIcon, AcademicCapIcon, HeartIcon, SparklesIcon } from '../Icons';
-// FIX: Updated import from deprecated 'types.ts' to 'types/user.ts'.
 import { Reward } from '../../types/user';
 import Tooltip from '../Tooltip';
 
@@ -40,30 +36,30 @@ const DonutSegment: React.FC<{ percentage: number; color: string; offset: number
 
 const RewardCategoryDonutChart: React.FC<RewardCategoryDonutChartProps> = ({ data }) => {
     const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
-    const topCategories = data.slice(0, 4);
+    const sortedCategories = data.sort((a, b) => b.amount - a.amount);
 
-    const radius = 42;
-    const strokeWidth = 12;
+    const radius = 40;
+    const strokeWidth = 10;
     const circumference = 2 * Math.PI * radius;
     let accumulatedPercentage = 0;
 
     return (
-        <div className="bg-background rounded-xl p-4 flex flex-col h-full">
-            <div className="flex items-start justify-between mb-2">
+        <div className="bg-surface rounded-2xl p-4 flex flex-col h-full">
+            <div className="flex items-start justify-between mb-4">
                 <div>
                      <h3 className="text-base font-bold text-on-surface flex items-center">
-                        Premios por Categoría
+                        Beneficios Canjeados
                     </h3>
-                    <p className="text-xs text-on-surface-secondary">Valor canjeado (S/)</p>
+                    <p className="text-xs text-on-surface-secondary">Por categoría (valor)</p>
                 </div>
-                 <Tooltip id="reward-category-donut-tooltip" text="Distribución del valor de las recompensas canjeadas por el equipo." />
+                 <Tooltip id="reward-category-donut-tooltip" text="Distribución del valor total de recompensas canjeadas por categoría. Ayuda a entender qué beneficios son más valorados por el equipo." />
             </div>
             {data && data.length > 0 ? (
                 <div className="flex-1 flex flex-col justify-center items-center gap-4">
                     <div className="relative w-48 h-48">
                          <svg className="w-full h-full" viewBox="0 0 100 100">
-                            {topCategories.map(item => {
-                                const percentage = (item.amount / totalAmount) * 100;
+                            {sortedCategories.map(item => {
+                                const percentage = totalAmount > 0 ? (item.amount / totalAmount) * 100 : 0;
                                 const offset = (accumulatedPercentage / 100) * circumference;
                                 accumulatedPercentage += percentage;
                                 return (
@@ -82,15 +78,15 @@ const RewardCategoryDonutChart: React.FC<RewardCategoryDonutChartProps> = ({ dat
                             <div className="text-center">
                                 <span className="text-xs text-on-surface-secondary">Total Canjeado</span>
                                 <span className="block text-2xl font-extrabold text-on-surface tracking-tighter">
-                                    S/{(totalAmount).toLocaleString('es-PE', { maximumFractionDigits: 0 })}
+                                    S/{(totalAmount / 1000).toFixed(1)}K
                                 </span>
                             </div>
                         </div>
                     </div>
-                    <div className="w-full grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                        {topCategories.map(item => (
+                    <div className="w-full grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                        {sortedCategories.map(item => (
                              <div key={item.category} className="flex items-center">
-                                <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: categoryDetails[item.category]?.color || '#9ca3af' }} />
+                                <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: categoryDetails[item.category]?.color || '#9ca3af' }} />
                                 <span className="text-on-surface truncate">{item.category}</span>
                             </div>
                         ))}
@@ -98,7 +94,7 @@ const RewardCategoryDonutChart: React.FC<RewardCategoryDonutChartProps> = ({ dat
                 </div>
             ) : (
                 <div className="flex-1 flex items-center justify-center text-center text-on-surface-secondary text-sm">
-                    <p>Aún no se han canjeado premios en este segmento.</p>
+                    <p>No se han canjeado beneficios aún.</p>
                 </div>
             )}
         </div>

@@ -1,12 +1,10 @@
-
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     PencilIcon, IdentificationIcon, CheckIcon, DocumentArrowDownIcon, TrashIcon,
     InformationCircleIcon, BookOpenIcon, UserCircleIcon,
     TrophyIcon,
-    BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon
+    BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon, TreevuCoinIcon, ChevronDownIcon,
+    GiftIcon, ClipboardIcon, ShareIcon
 } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import GamificationBar from './GamificationBar';
@@ -109,6 +107,62 @@ const AchievementsSection: React.FC = () => {
     );
 };
 
+const ReferralCard: React.FC = () => {
+    const { user } = useAuth();
+    const { setAlert } = useAlert();
+
+    const referralCode = useMemo(() => {
+        if (!user) return '';
+        const namePart = user.name.split(' ')[0].toUpperCase().substring(0, 4);
+        const idPart = user.id.substring(user.id.length - 4).toUpperCase();
+        return `${namePart}-${idPart}`;
+    }, [user]);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(referralCode).then(() => {
+            setAlert({ message: '¡Código copiado!', type: 'success' });
+        });
+    };
+
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Únete a treevü',
+                text: `¡Únete a mi aventura en treevü y cultiva tu bienestar financiero! Usa mi código ${referralCode} para empezar con un bono de 100 treevüs.`,
+                url: window.location.origin,
+            }).catch(console.error);
+        } else {
+            setAlert({ message: 'La función de compartir no está disponible en este navegador. Puedes copiar el código manualmente.', type: 'info' });
+        }
+    };
+    
+    if (!user) return null;
+
+    return (
+        <div className="bg-background rounded-2xl p-4">
+            <h4 className="font-bold text-on-surface mb-3 text-sm flex items-center gap-2">
+                <GiftIcon className="w-5 h-5 text-primary" />
+                Invita y Gana Recompensas
+            </h4>
+            <p className="text-sm text-on-surface-secondary mb-3">
+                Invita a un compañero y ambos recibirán <strong className="text-on-surface">100 treevüs</strong> cuando complete su primera misión.
+            </p>
+            <div className="p-3 border-2 border-dashed border-primary/50 rounded-xl text-center mb-4">
+                <p className="text-sm text-on-surface-secondary">Tu código de invitación</p>
+                <p className="text-2xl font-bold text-primary tracking-widest">{referralCode}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+                <button onClick={handleCopy} className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-bold text-on-surface bg-active-surface rounded-xl hover:bg-background">
+                    <ClipboardIcon className="w-5 h-5 mr-2" /> Copiar
+                </button>
+                <button onClick={handleShare} className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90">
+                    <ShareIcon className="w-5 h-5 mr-2" /> Compartir
+                </button>
+            </div>
+        </div>
+    );
+};
+
 
 const ProfileContent: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTab }) => {
     const { user, signOut, updateUser } = useAuth();
@@ -119,8 +173,13 @@ const ProfileContent: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setAct
     const [isEditingDocId, setIsEditingDocId] = useState(false);
     const [docIdValue, setDocIdValue] = useState(user?.documentId || '');
     const [validationMessage, setValidationMessage] = useState('');
+    const [expandedRewardId, setExpandedRewardId] = useState<string | null>(null);
 
     if (!user) return null;
+    
+    const handleToggleReward = (id: string) => {
+        setExpandedRewardId(prevId => (prevId === id ? null : id));
+    };
 
     const handleSaveDocId = () => {
         if (docIdValue.length !== 8) {
@@ -211,7 +270,57 @@ const ProfileContent: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setAct
             <GamificationBar onOpen={() => openModal('gamificationLevels')} />
             <MyTribeCard />
             <AchievementsSection />
+            <ReferralCard />
             
+             <div className="w-full">
+                <h4 className="text-sm font-bold text-on-surface-secondary mb-2">Mis Beneficios Canjeados</h4>
+                {user.redeemedRewards && user.redeemedRewards.length > 0 ? (
+                    <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                        {user.redeemedRewards.slice().reverse().map(reward => {
+                             const uniqueId = reward.rewardId + reward.date;
+                             const isExpanded = expandedRewardId === uniqueId;
+                            return (
+                                <div key={uniqueId} className="bg-background rounded-xl">
+                                    <button
+                                        onClick={() => handleToggleReward(uniqueId)}
+                                        className="w-full p-3 flex items-center gap-3 text-left"
+                                        aria-expanded={isExpanded}
+                                    >
+                                        <span className="text-2xl">{reward.icon}</span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-on-surface text-sm truncate">{reward.title}</p>
+                                            <p className="text-xs text-on-surface-secondary">
+                                                {new Date(reward.date).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            </p>
+                                        </div>
+                                        <div className="text-right flex-shrink-0 flex items-center gap-2">
+                                            <p className="font-bold text-primary text-sm flex items-center gap-1">
+                                                {reward.costInTreevus.toLocaleString()}
+                                                <TreevuCoinIcon className="w-4 h-4" level={user.level} />
+                                            </p>
+                                            <ChevronDownIcon className={`w-5 h-5 text-on-surface-secondary transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                                        </div>
+                                    </button>
+                                    <div
+                                        className="transition-all duration-300 ease-in-out overflow-hidden"
+                                        style={{ maxHeight: isExpanded ? '150px' : '0px' }}
+                                    >
+                                        <div className="px-4 pb-3 pt-1 border-t border-active-surface">
+                                            <h5 className="text-xs font-bold text-on-surface-secondary mb-1">Condiciones del Beneficio</h5>
+                                            <p className="text-xs text-on-surface-secondary">{reward.description}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                ) : (
+                    <div className="bg-background p-4 rounded-xl text-center">
+                        <p className="text-sm text-on-surface-secondary">Aún no has canjeado ningún beneficio.</p>
+                    </div>
+                )}
+            </div>
+
             <div className="w-full p-3 bg-background rounded-2xl">
                 {renderDocIdContent()}
             </div>

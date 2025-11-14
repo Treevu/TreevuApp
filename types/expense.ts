@@ -1,4 +1,7 @@
 import { CategoriaGasto, TipoComprobante } from './common';
+import { PolicyViolation } from './policy';
+
+export type PaymentMethod = 'efectivo' | 'tarjeta' | 'yape/plin' | 'otro';
 
 export interface Expense {
     id: string;
@@ -12,12 +15,18 @@ export interface Expense {
     esFormal: boolean;
     ahorroPerdido: number;
     igv: number;
+    isCorporate?: boolean;
     isProductScan?: boolean;
     mensaje?: string;
     intent?: 'essential' | 'desired' | 'unclassified';
+    violations?: PolicyViolation[];
+    // --- NEW FIELDS FOR ML ---
+    paymentMethod?: PaymentMethod;
+    isRecurring?: boolean;
+    notes?: string;
 }
 
-export type ExpenseData = Omit<Expense, 'id' | 'imageUrl'>;
+export type ExpenseData = Omit<Expense, 'id' | 'imageUrl' | 'violations'>;
 
 export interface Product {
   productName: string;

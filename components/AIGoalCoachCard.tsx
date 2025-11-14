@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { LightBulbIcon, SparklesIcon, ArrowTopRightOnSquareIcon } from './Icons';
-import { useGoals } from '../contexts/GoalsContext';
-import { useExpenses } from '../contexts/ExpensesContext';
-// FIX: Updated import from deprecated 'geminiService.ts'.
+import { useAppContext } from '../contexts/AppContext';
 import { getAIGoalCoaching } from '../services/ai/employeeService';
-// FIX: Updated import from deprecated 'types.ts'.
 import { CategoriaGasto } from '../types/common';
 
 interface AIGoalCoachCardProps {
@@ -12,13 +9,11 @@ interface AIGoalCoachCardProps {
 }
 
 const AIGoalCoachCard: React.FC<AIGoalCoachCardProps> = ({ onCategoryClick }) => {
-    const { goals } = useGoals();
-    const { expenses } = useExpenses();
+    const { state: { goals, expenses } } = useAppContext();
     const [coaching, setCoaching] = useState<{ plan: string; insight: string } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Find the goal closest to completion to focus on
     const primaryGoal = useMemo(() => {
         if (!goals || goals.length === 0) return null;
         return [...goals].sort((a, b) => (b.currentAmount / b.targetAmount) - (a.currentAmount / a.targetAmount))[0];
@@ -37,7 +32,6 @@ const AIGoalCoachCard: React.FC<AIGoalCoachCardProps> = ({ onCategoryClick }) =>
                 if (result) {
                     setCoaching(result);
                 } else {
-                    // Set coaching to null to trigger empty state, rather than an error
                     setCoaching(null);
                 }
             } catch (err) {
@@ -49,7 +43,7 @@ const AIGoalCoachCard: React.FC<AIGoalCoachCardProps> = ({ onCategoryClick }) =>
         };
 
         if (primaryGoal) {
-            const timer = setTimeout(fetchCoaching, 300); // Small delay to not block UI
+            const timer = setTimeout(fetchCoaching, 300);
             return () => clearTimeout(timer);
         }
 
@@ -57,7 +51,6 @@ const AIGoalCoachCard: React.FC<AIGoalCoachCardProps> = ({ onCategoryClick }) =>
     
     const suggestedCategory = useMemo(() => {
         if (!coaching?.plan) return null;
-        // Find a category name inside single quotes in the plan text
         const match = coaching.plan.match(/'([^']+)'/);
         const categoryString = match ? match[1] : null;
 

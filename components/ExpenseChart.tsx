@@ -1,26 +1,13 @@
 import React, { useMemo } from 'react';
 import { ChartPieIcon } from './Icons';
 import Tooltip from './Tooltip';
-
+import { categoryDetails } from './TrendAnalysis';
 import { CategoriaGasto } from '../types/common';
 import { Expense } from '../types/expense';
 
 interface ExpenseChartProps {
     expenses: Expense[];
 }
-
-const categoryColors: { [key in CategoriaGasto]: string } = {
-    [CategoriaGasto.Alimentacion]: '#00E0FF', // Primary
-    [CategoriaGasto.Vivienda]: '#5E81AC', // A calming blue
-    [CategoriaGasto.Transporte]: '#FFC700', // Warning yellow
-    [CategoriaGasto.Salud]: '#50E3C2', // Mint green
-    [CategoriaGasto.Ocio]: '#9F70FF', // Accent purple
-    [CategoriaGasto.Educacion]: '#BD10E0', // Magenta
-    [CategoriaGasto.Consumos]: '#8A91A1', // on-surface-secondary
-    [CategoriaGasto.Servicios]: '#4A90E2', // A softer blue
-    [CategoriaGasto.Otros]: '#B8B8B8', // A neutral grey
-};
-
 
 const ExpenseChart: React.FC<ExpenseChartProps> = ({ expenses }) => {
     const chartData = useMemo(() => {
@@ -57,7 +44,7 @@ const ExpenseChart: React.FC<ExpenseChartProps> = ({ expenses }) => {
             <div className="space-y-4">
                 {chartData.map(({ categoria, total }) => {
                     const percentage = maxTotal > 0 ? (total / maxTotal) * 100 : 0;
-                    const color = categoryColors[categoria as CategoriaGasto] || categoryColors[CategoriaGasto.Otros];
+                    const color = categoryDetails[categoria as CategoriaGasto]?.color || categoryDetails[CategoriaGasto.Otros].color;
                     return (
                         <div key={categoria} className="text-sm">
                             <div className="flex justify-between items-center mb-1">

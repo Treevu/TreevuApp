@@ -1,22 +1,38 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import ArchetypeSelection from './ArchetypeSelection';
 import MainApp from './MainApp';
+import AuthScreen from './auth/AuthScreen';
+import LinkCompanyScreen from './auth/LinkCompanyScreen';
+import EthicalPromise from './EthicalPromise';
+import OnboardingWizard from './OnboardingWizard';
 import ProfileSetup from './ProfileSetup';
+import CorporateCardScreen from './auth/CorporateCardScreen';
 
-interface AppRouterProps {
-    onBackToPortal: () => void;
-}
-
-const AppRouter: React.FC<AppRouterProps> = ({ onBackToPortal }) => {
-    const { user } = useAuth();
+const AppRouter: React.FC = () => {
+    const { user, signOut } = useAuth();
 
     if (!user) {
-        return <ArchetypeSelection onBack={onBackToPortal} />;
+        return <AuthScreen />;
+    }
+    
+    if (!user.isCompanyLinkComplete) {
+        return <LinkCompanyScreen />;
+    }
+
+    if (user.companyId && typeof user.hasCorporateCard === 'undefined') {
+        return <CorporateCardScreen />;
+    }
+    
+    if (!user.hasAcceptedEthicalPromise) {
+        return <EthicalPromise />;
     }
 
     if (!user.isProfileComplete) {
-        return <ProfileSetup onBack={onBackToPortal} />;
+        return <ProfileSetup onBack={signOut} />;
+    }
+
+    if (!user.hasCompletedOnboarding) {
+        return <OnboardingWizard />;
     }
 
     return <MainApp />;

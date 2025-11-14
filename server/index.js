@@ -109,9 +109,11 @@ app.post('/api/gemini', async (req, res) => {
             });
         }
         
+        // Correctly extract text according to the latest @google/genai SDK guidelines.
         const text = geminiResponse.text;
+
         if (text === undefined || text === null) {
-             throw new Error("La respuesta de la IA no contiene texto.");
+             throw new Error("La respuesta de la IA no contiene texto o está vacía.");
         }
         
         console.log(`[${new Date().toISOString()}] Successfully received response from Gemini.`);

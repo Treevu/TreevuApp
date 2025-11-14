@@ -3,7 +3,7 @@ import { callAIApi } from './api';
 import { parseJsonFromMarkdown } from '../../utils';
 import { levelData } from '../gamificationService';
 
-import { CategoriaGasto } from '../../types/common';
+import { CategoriaGasto, FwiComponents } from '../../types/common';
 import { User, Reward } from '../../types/user';
 import { Expense } from '../../types/expense';
 import { Goal } from '../../types/goal';
@@ -201,30 +201,22 @@ export const getAIGoalCoaching = async (goal: Goal, expenses: Expense[]): Promis
     const progress = (goal.currentAmount / goal.targetAmount) * 100;
     const remaining = goal.targetAmount - goal.currentAmount;
     
-    // Simple analysis of spending patterns
-    const totalSpentLast30Days = expenses
-        .filter(e => new Date(e.fecha) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-        .reduce((sum, e) => sum + e.total, 0);
-    
     const discretionarySpending = expenses
         .filter(e => [CategoriaGasto.Ocio, CategoriaGasto.Consumos].includes(e.categoria))
         .reduce((sum, e) => sum + e.total, 0);
 
     const prompt = `
-      Eres un coach financiero motivacional. Tu objetivo es dar un plan de acción y un insight para ayudar a un usuario a alcanzar su meta.
-      Tu tono es el de un partner estratégico: inteligente, empático y orientado a la acción.
+      Eres un coach financiero motivacional y estratégico. Tu objetivo es dar un plan de acción y un insight para ayudar a un usuario a alcanzar su meta.
       
       **Contexto de la Meta: "${goal.name}"**
       - Progreso: ${progress.toFixed(0)}%
       - Restante: S/ ${remaining.toFixed(2)}
-      - Gasto total (últimos 30 días): S/ ${totalSpentLast30Days.toFixed(2)}
-      - Gasto discrecional (Ocio, Consumos): S/ ${discretionarySpending.toFixed(2)}
+      - Gasto discrecional (Ocio, Consumos) reciente: S/ ${discretionarySpending.toFixed(2)}
 
       **Tu Playbook de Estrategias (Elige la más adecuada):**
-      - **Reducir:** Identifica una categoría específica donde se pueda recortar (ej. 'Ocio'). Sugiere reducirlo temporalmente. Es la opción clásica.
+      - **Reducir:** Si el gasto discrecional es alto, identifica una categoría específica donde se pueda recortar (ej. 'Ocio'). Sugiere reducirlo temporalmente.
       - **Optimizar:** En lugar de cortar, sugiere encontrar una alternativa más barata. (ej. 'optimiza tu gasto en Transporte buscando rutas más eficientes').
       - **Generar:** Si el progreso es alto y falta poco, sugiere una forma de generar un ingreso extra pequeño (ej. 'vender algo que no uses').
-      - **Reestructurar:** Si hay múltiples metas, sugiere pausar una menos prioritaria para acelerar esta. (Dado el contexto, puedes asumir que esta es la prioritaria).
 
       **Instrucciones de Respuesta:**
       1.  **"plan":** Una frase de acción directa (máx. 15 palabras). Debe ser concreta.
@@ -236,12 +228,13 @@ export const getAIGoalCoaching = async (goal: Goal, expenses: Expense[]): Promis
 
       **Barreras de Contención (Guardrails):**
       - NO generes planes genéricos como "ahorra más". Sé específico.
-      - Si sugieres reducir, incluye la categoría entre comillas simples (ej. 'Ocio') para que la UI pueda detectarla.
+      - Si sugieres reducir una categoría, inclúyela entre comillas simples (ej. 'Ocio') para que la UI la detecte.
       - Elige la estrategia que tenga más sentido según el contexto provisto.
 
       Responde en formato JSON estricto.
     `;
     const request = {
+      model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
           responseMimeType: "application/json",
@@ -344,4 +337,100 @@ export const getAINotificationContent = async (
     };
     const jsonText = await callAIApi(request);
     return jsonText ? parseJsonFromMarkdown<{ title: string; message: string }>(jsonText) : null;
+};
+
+export const getFWIExplanation = async (user: User, components: FwiComponents): Promise<Record<string, string> | null> => {
+    const prompt = `
+      Eres un coach financiero conciso y empático para ${user.name}.
+      Analiza cada componente del Índice de Bienestar Financiero (FWI) del usuario y genera una explicación CORTA (máx 15 palabras) para cada uno.
+      Tu objetivo es explicar *por qué* el puntaje es el que es, de forma simple.
+
+      **Contexto del Usuario:**
+      - Salud Financiera (basado en formalidad): ${components.financialHealth.value.toFixed(0)}
+      - Balance Vida-Trabajo (basado en gasto en ocio vs esencial): ${components.workLifeBalance.value.toFixed(0)}
+      - Desarrollo Profesional (basado en gasto en educación): ${components.selfDevelopment.value.toFixed(0)}
+
+      **Instrucciones de Respuesta:**
+      - Para "Salud Financiera": Si es alto, felicita por pedir boletas. Si es bajo, anímale a hacerlo más seguido.
+      - Para "Balance Vida-Trabajo": Si es alto, celebra su equilibrio. Si es bajo, sugiere que se dé un gusto.
+      - Para "Desarrollo Profesional": Si es alto, reconoce su inversión en sí mismo. Si es bajo, anímale a aprender algo nuevo.
+      
+      Responde en formato JSON estricto con los nombres de los componentes como claves.
+    `;
+
+    const request = {
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            "Salud Financiera": { type: Type.STRING },
+            "Balance Vida-Trabajo": { type: Type.STRING },
+            "Desarrollo Profesional": { type: Type.STRING }
+          },
+          required: ["Salud Financiera", "Balance Vida-Trabajo", "Desarrollo Profesional"]
+        }
+      }
+    };
+    const jsonText = await callAIApi(request);
+    return jsonText ? parseJsonFromMarkdown<Record<string, string>>(jsonText) : null;
+};
+
+export const getAI7DaySpendingAnalysis = async (last7DaysExpenses: Expense[]): Promise<{ title: string; analysis: string[] } | null> => {
+    if (last7DaysExpenses.length === 0) return null;
+
+    const totalSpent = last7DaysExpenses.reduce((sum, e) => sum + e.total, 0);
+    const topCategoryMap = last7DaysExpenses.reduce((acc, e) => {
+        acc[e.categoria] = (acc[e.categoria] || 0) + e.total;
+        return acc;
+    }, {} as Record<string, number>);
+
+    const topCategoryName = Object.keys(topCategoryMap).length > 0
+        ? Object.keys(topCategoryMap).sort((a, b) => topCategoryMap[b] - topCategoryMap[a])[0]
+        : 'ninguna';
+
+    const prompt = `
+        Eres "treevü", un coach financiero que analiza los gastos de los últimos 7 días de un usuario en Perú. Tu tono es conciso, amigable y da insights accionables.
+
+        **Contexto de Gastos (Últimos 7 Días):**
+        - Total Gastado: S/ ${totalSpent.toFixed(2)} en ${last7DaysExpenses.length} transacciones.
+        - Categoría Principal: '${topCategoryName}'
+
+        **Instrucciones de Respuesta:**
+        1.  Genera un 'title' corto y llamativo para el análisis (ej: "Radiografía Semanal", "Pulso de tu Gasto").
+        2.  Genera un array 'analysis' con 2 o 3 puntos clave (strings). Cada punto debe ser una frase corta y útil.
+            - Punto 1: Un resumen del gasto total y número de transacciones.
+            - Punto 2: Un insight sobre la categoría principal. Si es 'Ocio' o 'Consumos', sugiere balance. Si es 'Alimentación' o 'Transporte', enfócate en la consistencia del gasto.
+            - Punto 3 (opcional): Una recomendación para la próxima semana.
+        
+        **Ejemplo:**
+        {
+          "title": "Radiografía Semanal",
+          "analysis": [
+            "Tu gasto total fue de S/ ${totalSpent.toFixed(2)} en ${last7DaysExpenses.length} hallazgos.",
+            "La mayor parte se destinó a '${topCategoryName}', ¡asegúrate de que se alinee con tu presupuesto!",
+            "Para la próxima semana, intenta planificar tus comidas para optimizar ese gasto."
+          ]
+        }
+
+        Responde en formato JSON estricto.
+    `;
+    const request = {
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    title: { type: Type.STRING },
+                    analysis: { type: Type.ARRAY, items: { type: Type.STRING } }
+                },
+                required: ["title", "analysis"]
+            }
+        }
+    };
+    const jsonText = await callAIApi(request);
+    return jsonText ? parseJsonFromMarkdown<{ title: string; analysis: string[] }>(jsonText) : null;
 };

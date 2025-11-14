@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BinocularsIcon, TreasureChestIcon, CheckIcon } from './Icons';
 import Logo from './Logo';

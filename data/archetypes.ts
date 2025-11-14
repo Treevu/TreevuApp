@@ -22,6 +22,7 @@ const intrapreneurUser: User = {
     progress: { expensesCount: 35, formalityIndex: 68 },
     treevus: 1250,
     isProfileComplete: true,
+    hasCorporateCard: true,
     department: 'Ventas y Marketing',
     streak: { count: 4, lastDate: getDateString(1) },
     kudosSent: 18,
@@ -29,6 +30,14 @@ const intrapreneurUser: User = {
     tribeId: 'centauri-1',
     featuredBadge: 'pioneer',
     prestigeLevel: 0,
+    registrationDate: getDateString(100),
+    lastActivityDate: getDateString(1),
+    rewardsClaimedCount: 0,
+    engagementScore: 65,
+    fwiTrend: 'improving',
+    isCompanyLinkComplete: true,
+    hasAcceptedEthicalPromise: true,
+    hasCompletedOnboarding: true,
 };
 
 const intrapreneurExpenses: Expense[] = Array.from({ length: 35 }, (_, i) => {
@@ -63,7 +72,7 @@ const intrapreneurExpenses: Expense[] = Array.from({ length: 35 }, (_, i) => {
 });
 
 const intrapreneurGoals: Goal[] = [
-    { id: 'ig1', name: 'Maestría en el Extranjero', icon: '🎓', targetAmount: 80000, currentAmount: 12000, createdAt: getDateString(100) },
+    { id: 'ig1', name: 'Maestría en el Extranjero', icon: '🎓', targetAmount: 80000, currentAmount: 12000, createdAt: getDateString(100), status: 'active' },
 ];
 
 // --- 2. La Nómada Digital ---
@@ -76,6 +85,7 @@ const nomadUser: User = {
     progress: { expensesCount: 55, formalityIndex: 78 },
     treevus: 3200,
     isProfileComplete: true,
+    hasCorporateCard: true,
     department: 'Tecnología e Innovación',
     modality: 'Remoto',
     streak: { count: 8, lastDate: getDateString(1) },
@@ -84,6 +94,14 @@ const nomadUser: User = {
     tribeId: 'orion-2',
     featuredBadge: 'streak',
     prestigeLevel: 0,
+    registrationDate: getDateString(150),
+    lastActivityDate: getDateString(1),
+    rewardsClaimedCount: 2,
+    engagementScore: 78,
+    fwiTrend: 'stable',
+    isCompanyLinkComplete: true,
+    hasAcceptedEthicalPromise: true,
+    hasCompletedOnboarding: true,
 };
 
 const nomadExpenses: Expense[] = Array.from({ length: 55 }, (_, i) => {
@@ -118,70 +136,10 @@ const nomadExpenses: Expense[] = Array.from({ length: 55 }, (_, i) => {
 });
 
 const nomadGoals: Goal[] = [
-    { id: 'ng1', name: 'Viaje a Japón', icon: '🏯', targetAmount: 15000, currentAmount: 8000, createdAt: getDateString(120) },
+    { id: 'ng1', name: 'Viaje a Japón', icon: '🏯', targetAmount: 15000, currentAmount: 8000, createdAt: getDateString(120), status: 'active' },
 ];
 
-
-// --- 3. La Visionaria de Metas ---
-const visionaryUser: User = {
-    id: 'user-visionary',
-    name: 'Sofía Castillo',
-    email: 'sofia.castillo@example.com',
-    picture: `https://ui-avatars.com/api/?name=SC&background=f87171&color=fff&size=128&bold=true`,
-    level: TreevuLevel.Arbusto,
-    progress: { expensesCount: 55, formalityIndex: 71 },
-    treevus: 2800,
-    isProfileComplete: true,
-    department: 'Tecnología e Innovación',
-    streak: { count: 3, lastDate: getDateString(1) },
-    kudosSent: 15,
-    kudosReceived: 25,
-    tribeId: 'andromeda-3',
-    featuredBadge: 'pioneer',
-    prestigeLevel: 0,
-};
-
-const visionaryExpenses: Expense[] = Array.from({ length: 55 }, (_, i) => {
-    const daysAgo = (i % 55) + 3; // Spread over the last ~2 months
-    const isFormal = i % 3 !== 0; // ~66% formal to maintain the ratio
-    let razonSocial, ruc, categoria, total, tipoComprobante, intent;
-    if (isFormal) {
-        const vendors = [
-            { name: 'Plaza Vea', ruc: '20100070970', cat: CategoriaGasto.Alimentacion, t: 60 + Math.random() * 150, intent: 'essential' as const },
-            { name: 'Promart', ruc: '20536557858', cat: CategoriaGasto.Vivienda, t: 50 + Math.random() * 100, intent: 'essential' as const },
-            { name: 'Oechsle', ruc: '20493020618', cat: CategoriaGasto.Consumos, t: 80 + Math.random() * 120, intent: 'desired' as const },
-            { name: 'Movistar', ruc: '20100017491', cat: CategoriaGasto.Servicios, t: 70, intent: 'essential' as const },
-        ];
-        const vendor = vendors[i % vendors.length];
-        razonSocial = vendor.name; ruc = vendor.ruc; categoria = vendor.cat; total = vendor.t; tipoComprobante = TipoComprobante.BoletaVentaElectronica; intent = vendor.intent;
-    } else {
-         const vendors = [
-            { name: 'Café para llevar', cat: CategoriaGasto.Alimentacion, t: 15 + Math.random() * 5, intent: 'desired' as const },
-            { name: 'Mercado local', cat: CategoriaGasto.Alimentacion, t: 40 + Math.random() * 20, intent: 'essential' as const }
-        ];
-        const vendor = vendors[i % vendors.length];
-        razonSocial = vendor.name; ruc = 'N/A'; categoria = vendor.cat; total = vendor.t; tipoComprobante = TipoComprobante.SinComprobante; intent = vendor.intent;
-    }
-    total = parseFloat(total.toFixed(2));
-    const igv = isFormal ? total * (18 / 118) : 0;
-    const ahorroPerdido = !isFormal ? total * 0.18 : 0;
-    return {
-        id: `v${i + 1}`, razonSocial, ruc, fecha: getDateString(daysAgo), total, categoria, tipoComprobante, intent,
-        esFormal: isFormal, ahorroPerdido: parseFloat(ahorroPerdido.toFixed(2)), igv: parseFloat(igv.toFixed(2)),
-    };
-});
-
-const visionaryGoals: Goal[] = [
-    { id: 'vg1', name: 'Inicial de Departamento', icon: '🏠', targetAmount: 50000, currentAmount: 35000, createdAt: getDateString(200) },
-    { id: 'vg2', name: 'Fondo de Emergencia', icon: '🛡️', targetAmount: 10000, currentAmount: 10000, createdAt: getDateString(300) },
-];
-
-const visionaryNotifications: Notification[] = [
-    { id: 'vn1', type: NotificationType.GoalMilestone, title: '¡Meta casi completada!', message: 'Estás al 70% de tu meta "Inicial de Departamento". ¡Sigue así!', timestamp: Date.now() - 1 * 24 * 60 * 60 * 1000, isRead: false },
-    { id: 'vn2', type: NotificationType.Info, title: '¡Nuevo Nivel!', message: 'Alcanzaste el nivel Arbusto Consciente. ¡+100 Treevüs para ti!', timestamp: Date.now() - 5 * 24 * 60 * 60 * 1000, isRead: true },
-];
-
-export type ArchetypeKey = 'intrapreneur' | 'nomad' | 'visionary';
+export type ArchetypeKey = 'intrapreneur' | 'nomad';
 
 export const archetypeData: {
     [key in ArchetypeKey]: {
@@ -212,13 +170,5 @@ export const archetypeData: {
         notifications: [
             { id: 'nn1', type: NotificationType.StreakBonus, title: '¡Racha de 8 Días!', message: '¡Tu constancia te dio un bono de +15 treevüs! Sigue así.', timestamp: Date.now() - 20 * 60 * 60 * 1000, isRead: false },
         ],
-    },
-    visionary: {
-        user: visionaryUser,
-        expenses: visionaryExpenses,
-        goals: visionaryGoals,
-        budget: 3500,
-        annualIncome: 80000,
-        notifications: visionaryNotifications,
     },
 };

@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -110,6 +111,10 @@ const AnalysisView: React.FC = () => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
             <div className="md:col-span-2">
+                <AIInsightCard />
+            </div>
+            
+            <div className="md:col-span-2">
                 <WalletSummaryCard expenses={expenses} />
             </div>
             
@@ -119,10 +124,6 @@ const AnalysisView: React.FC = () => {
             />
             
             <SpendingIntentWidget expenses={expenses} />
-            
-            <div className="md:col-span-2">
-                <AIInsightCard />
-            </div>
 
             <div className="bg-surface rounded-2xl p-4 md:col-span-2">
                 <SubNavBar

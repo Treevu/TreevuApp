@@ -1,27 +1,12 @@
 
-
-
 import React from 'react';
-import { ReceiptPercentIcon, TruckIcon, HomeIcon, ShoppingBagIcon, TicketIcon, CogIcon, HeartIcon, AcademicCapIcon, SparklesIcon } from '../Icons';
-// FIX: Updated import from deprecated 'types.ts'.
 import { CategoriaGasto } from '../../types/common';
 import Tooltip from '../Tooltip';
+import { categoryDetails } from '../TrendAnalysis';
 
 interface CategoryDonutChartProps {
     data: { category: CategoriaGasto; amount: number }[];
 }
-
-const categoryDetails: { [key in CategoriaGasto]: { color: string, Icon: React.FC<{className?: string}> } } = {
-    [CategoriaGasto.Alimentacion]: { color: '#00E0FF', Icon: ReceiptPercentIcon },
-    [CategoriaGasto.Vivienda]: { color: '#5E81AC', Icon: HomeIcon },
-    [CategoriaGasto.Transporte]: { color: '#FFC700', Icon: TruckIcon },
-    [CategoriaGasto.Salud]: { color: '#50E3C2', Icon: HeartIcon },
-    [CategoriaGasto.Ocio]: { color: '#9F70FF', Icon: TicketIcon },
-    [CategoriaGasto.Educacion]: { color: '#BD10E0', Icon: AcademicCapIcon },
-    [CategoriaGasto.Consumos]: { color: '#8A91A1', Icon: ShoppingBagIcon },
-    [CategoriaGasto.Servicios]: { color: '#4A90E2', Icon: CogIcon },
-    [CategoriaGasto.Otros]: { color: '#B8B8B8', Icon: SparklesIcon },
-};
 
 const DonutSegment: React.FC<{ percentage: number; color: string; offset: number; radius: number; strokeWidth: number }> = ({ percentage, color, offset, radius, strokeWidth }) => {
     const circumference = 2 * Math.PI * radius;

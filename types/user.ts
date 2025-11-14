@@ -7,6 +7,7 @@ export interface RedeemedReward {
     icon: string;
     date: string; // ISO string of redemption date
     costInTreevus: number;
+    description: string;
 }
 
 export interface Reward {
@@ -17,6 +18,7 @@ export interface Reward {
     icon: string; // Could be an emoji or an icon name
     category: 'Bienestar' | 'Educación' | 'Ocio' | 'Impacto Social';
     minLevel?: TreevuLevel;
+    isCompanyExclusive?: boolean;
 }
 
 export type BadgeType = 'pioneer' | 'level' | 'streak' | 'kudos';
@@ -51,4 +53,22 @@ export interface User {
     company?: string;
     prestigeLevel?: number;
     completedLessons?: string[];
+    // --- NEW FIELDS FOR ML ---
+    registrationDate: string; // ISO Date string
+    lastActivityDate: string; // ISO Date string
+    rewardsClaimedCount: number;
+    engagementScore: number; // Derived: 0-100
+    fwiTrend: 'improving' | 'stable' | 'declining'; // Derived
+
+    // --- NEW FIELDS FOR COMPANY LINKING ---
+    companyId?: string;
+    companyName?: string;
+    branding?: {
+        primaryColor: string;
+        logoUrl?: string;
+    };
+    isCompanyLinkComplete?: boolean;
+    hasCorporateCard?: boolean;
+    hasAcceptedEthicalPromise?: boolean;
+    hasCompletedOnboarding?: boolean;
 }

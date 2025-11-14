@@ -12,6 +12,8 @@ const MOCK_MISSIONS: Mission[] = [
         target: 50,
         reward: 1000,
         icon: '🧾',
+        valueForEmployee: "Ganas más Treevüs y potencias tu devolución de impuestos.",
+        valueForCompany: "Tu aporte mejora la predictibilidad de gastos del equipo y fortalece nuestra cultura de cumplimiento."
     },
     {
         id: 'mission-kudos-1',
@@ -21,7 +23,20 @@ const MOCK_MISSIONS: Mission[] = [
         target: 100,
         reward: 500,
         icon: '💖',
+        valueForEmployee: "Fomentas un ambiente positivo y te conectas con tus compañeros.",
+        valueForCompany: "Tu reconocimiento aumenta la moral del equipo, fortalece el engagement y contribuye a la retención del talento."
     },
+    {
+        id: 'mission-learning-1',
+        title: 'Expedición del Conocimiento',
+        description: 'Lean colectivamente 15 pergaminos de la Biblioteca para expandir la sabiduría financiera del escuadrón.',
+        metric: 'lessonsCompletedCount',
+        target: 15,
+        reward: 750,
+        icon: '📚',
+        valueForEmployee: "Ganas Treevüs por cada lección y te vuelves un experto en finanzas personales.",
+        valueForCompany: "Tu crecimiento individual eleva el conocimiento colectivo del equipo, impulsando mejores decisiones."
+    }
 ];
 
 
@@ -34,36 +49,56 @@ const generateMockTribes = (): Tribe[] => {
             icon: '💫',
             members: [
                 { id: 'user-mock-id', name: 'Tú', avatarInitial: 'AC', kudosReceived: 42 },
-                { id: 'member-2', name: 'Ana', avatarInitial: 'A', kudosReceived: 210 },
-                { id: 'member-3', name: 'Carlos', avatarInitial: 'C', kudosReceived: 180 },
-                { id: 'member-4', name: 'Laura', avatarInitial: 'L', kudosReceived: 150 },
+                { id: 'member-2', name: 'Ana Morales', avatarInitial: 'AM', kudosReceived: 210 },
+                { id: 'member-3', name: 'Carlos Diaz', avatarInitial: 'CD', kudosReceived: 180 },
+                { id: 'member-4', name: 'Laura Fernández', avatarInitial: 'LF', kudosReceived: 150 },
+                { id: 'member-12', name: 'Roberto Gómez', avatarInitial: 'RG', kudosReceived: 95 },
+                { id: 'member-13', name: 'Patricia Soto', avatarInitial: 'PS', kudosReceived: 110 },
             ],
             collectiveKudos: 1250,
             activeMissionId: 'mission-formal-1', // Active mission for demo
             missionProgress: 35, // Some progress for demo
+            goal: {
+                title: "Meta Trimestral de Bienestar",
+                target: 5000,
+                reward: "Presupuesto para Almuerzo de Equipo 🍕"
+            }
         },
         {
             id: 'orion-2',
             name: 'Flota de Orión',
             icon: '🚀',
             members: [
-                { id: 'member-5', name: 'Pedro', avatarInitial: 'P', kudosReceived: 195 },
-                { id: 'member-6', name: 'Sofía', avatarInitial: 'S', kudosReceived: 230 },
-                { id: 'member-7', name: 'Mateo', avatarInitial: 'M', kudosReceived: 160 },
+                { id: 'member-5', name: 'Pedro Castillo', avatarInitial: 'PC', kudosReceived: 195 },
+                { id: 'member-6', name: 'Sofía Torres', avatarInitial: 'ST', kudosReceived: 230 },
+                { id: 'member-7', name: 'Mateo Flores', avatarInitial: 'MF', kudosReceived: 160 },
+                { id: 'member-14', name: 'Gabriela Reyes', avatarInitial: 'GR', kudosReceived: 135 },
             ],
             collectiveKudos: 850,
+            goal: {
+                title: "Fondo para After Office",
+                target: 3000,
+                reward: "Noche de Bowling para el equipo 🎳"
+            }
         },
         {
             id: 'andromeda-3',
             name: 'Alianza Andrómeda',
             icon: '🌌',
             members: [
-                { id: 'member-8', name: 'Valeria', avatarInitial: 'V', kudosReceived: 140 },
-                { id: 'member-9', name: 'Diego', avatarInitial: 'D', kudosReceived: 175 },
-                { id: 'member-10', name: 'Isabella', avatarInitial: 'I', kudosReceived: 200 },
-                { id: 'member-11', name: 'Javier', avatarInitial: 'J', kudosReceived: 130 },
+                { id: 'member-8', name: 'Valeria Mendoza', avatarInitial: 'VM', kudosReceived: 140 },
+                { id: 'member-9', name: 'Diego Quispe', avatarInitial: 'DQ', kudosReceived: 175 },
+                { id: 'member-10', name: 'Isabella Rojas', avatarInitial: 'IR', kudosReceived: 200 },
+                { id: 'member-11', name: 'Javier Vargas', avatarInitial: 'JV', kudosReceived: 130 },
+                { id: 'member-15', name: 'Camila Paredes', avatarInitial: 'CP', kudosReceived: 155 },
+                { id: 'member-16', name: 'Andrés Cruz', avatarInitial: 'AC', kudosReceived: 115 },
             ],
             collectiveKudos: 980,
+            goal: {
+                title: "Inversión en Desarrollo",
+                target: 4000,
+                reward: "Suscripción a Platzi Expert+ para todos 🎓"
+            }
         },
     ];
 };

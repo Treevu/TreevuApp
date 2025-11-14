@@ -30,6 +30,4 @@ const SubNavBar = <T extends string>({ tabs, activeTab, onTabClick }: SubNavBarP
     );
 };
 
-// FIX: Removed React.memo wrapper. The previous type assertion for memoizing a generic component
-// may have caused a runtime error, preventing the app from loading. This change ensures stability.
 export default SubNavBar;

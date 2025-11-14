@@ -1,6 +1,5 @@
 import React from 'react';
 import Tooltip from '../Tooltip';
-// FIX: Updated imports from deprecated 'types.ts' to 'types/employer.ts'.
 import { DEPARTMENTS, TENURES, MODALITIES, AGE_RANGES } from '../../types/employer';
 
 interface StrategicFiltersProps {

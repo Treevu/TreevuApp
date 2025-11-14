@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDownIcon } from './Icons';
+import { ChevronDownIcon, CheckBadgeIcon } from './Icons';
 
 // Truncate to ~2-3 lines to encourage clicking "Ver más".
 const TRUNCATE_HEIGHT_PX = 55;
@@ -13,12 +13,15 @@ interface Article {
 
 interface ArticleCardProps {
     article: Article;
+    isCompleted?: boolean;
+    onFirstOpen?: () => void;
 }
 
-const ArticleCard: React.FC<ArticleCardProps> = ({ article }) => {
+const ArticleCard: React.FC<ArticleCardProps> = ({ article, isCompleted, onFirstOpen }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isCollapsible, setIsCollapsible] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
+    const hasBeenOpened = useRef(isCompleted); // Initialize with completion status
     const Icon = article.icon;
 
     useEffect(() => {
@@ -29,12 +32,16 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article }) => {
 
     const toggleExpansion = () => {
         if (isCollapsible) {
+            if (!isExpanded && !hasBeenOpened.current) {
+                onFirstOpen?.();
+                hasBeenOpened.current = true;
+            }
             setIsExpanded(!isExpanded);
         }
     };
 
     return (
-        <div className="bg-surface rounded-2xl border border-active-surface/50 overflow-hidden">
+        <div className={`bg-surface rounded-2xl border transition-colors ${isCompleted ? 'border-primary/30' : 'border-active-surface/50'} overflow-hidden`}>
             <button
                 className={`w-full p-4 flex items-center gap-4 text-left ${isCollapsible ? '' : 'cursor-default'}`}
                 onClick={toggleExpansion}
@@ -45,7 +52,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article }) => {
                     <Icon className={`w-7 h-7 ${article.color}`} />
                 </div>
                 <div className="min-w-0 overflow-hidden flex-1">
-                    <h3 className="font-bold text-on-surface break-words">{article.title}</h3>
+                    <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-on-surface break-words">{article.title}</h3>
+                        {isCompleted && <CheckBadgeIcon className="w-5 h-5 text-primary flex-shrink-0 animate-grow-and-fade-in" />}
+                    </div>
                 </div>
                  {isCollapsible && (
                     <ChevronDownIcon className={`w-6 h-6 text-on-surface-secondary flex-shrink-0 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />

@@ -8,7 +8,7 @@ interface BenefitsImpactWidgetProps {
 }
 
 const BenefitsImpactWidget: React.FC<BenefitsImpactWidgetProps> = ({ data }) => {
-    const { redemptionRate, fwiComparison, rewardCategoryDistribution } = data;
+    const { redemptionRate, fwiComparison, rewardCategoryDistribution, redemptionRateHistory, totalRedeemedValueHistory } = data;
     const totalRedeemedValue = rewardCategoryDistribution.reduce((sum: number, item: any) => sum + item.amount, 0);
     const fwiDifference = fwiComparison.redeemers - fwiComparison.nonRedeemers;
 
@@ -41,6 +41,7 @@ const BenefitsImpactWidget: React.FC<BenefitsImpactWidgetProps> = ({ data }) => 
                     description="Colaboradores que han canjeado al menos un premio."
                     tooltipText="Porcentaje de colaboradores activos que han utilizado sus treevüs para canjear al menos una recompensa."
                     variant={getRedemptionVariant(redemptionRate)}
+                    history={redemptionRateHistory}
                 />
                  <KpiCard
                     title="IMPACTO EN BIENESTAR (FWI)"
@@ -55,6 +56,7 @@ const BenefitsImpactWidget: React.FC<BenefitsImpactWidgetProps> = ({ data }) => 
                     description="Valor monetario de los beneficios canjeados."
                     tooltipText="Suma del valor en soles de todas las recompensas canjeadas, un indicador clave del ROI del programa."
                     variant="default"
+                    history={totalRedeemedValueHistory}
                 />
             </div>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, forwardRef, useMemo } from 'react';
-import { CurrentUserType } from './EmployerDashboard';
+// FIX: Updated import for `CurrentUserType` to break circular dependency
+import { type CurrentUserType } from '../../types/employer';
 import { UsersIcon, ArrowTrendingDownIcon, ArrowTrendingUpIcon, PencilIcon, TreevuNetworkIcon } from '../Icons';
 import { useModal } from '../../contexts/ModalContext';
 import { generateMockCardNumber, generateMockExpiryDate, generateMockCvv } from '../../utils';
@@ -96,7 +97,7 @@ const EmployerStatusCard = forwardRef<HTMLButtonElement, EmployerStatusCardProps
 
 
     return (
-        <button ref={ref} className="w-full max-w-sm mx-auto aspect-[1.586/1] p-0 border-0 bg-transparent text-left" onClick={handleFlip} aria-label="Voltear tarjeta para ver detalles">
+        <button ref={ref} className="w-full max-w-sm mx-auto aspect-[1.586/1] p-0 border-0 bg-transparent text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary rounded-3xl" onClick={handleFlip} aria-label="Voltear tarjeta para ver detalles">
             <div className="status-card-container w-full h-full">
                 <div className={`status-card-inner ${isFlipped ? 'is-flipped' : ''}`}>
                     {/* Front of card */}

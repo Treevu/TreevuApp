@@ -13,9 +13,9 @@ interface BudgetContextType {
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 
 export const BudgetProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // Set initial state for a rich demo experience
-    const [budget, setBudget] = useState<number | null>(3500);
-    const [annualIncome, setAnnualIncome] = useState<number | null>(80000);
+    // Set initial state to null, will be populated by archetype data from localStorage
+    const [budget, setBudget] = useState<number | null>(null);
+    const [annualIncome, setAnnualIncome] = useState<number | null>(null);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
     const { addTreevus } = useAuth();
     const { setAlert } = useAlert();

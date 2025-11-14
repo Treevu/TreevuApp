@@ -16,40 +16,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 const MAX_NOTIFICATIONS = 50;
 const NOTIFICATION_STORAGE_KEY = 'treevu-notifications';
 
-const initialNotifications: Notification[] = [
-    {
-        id: 'demo-1',
-        type: NotificationType.StreakBonus,
-        title: '¡Racha de 5 días!',
-        message: '¡Felicidades! Ganaste 30 treevüs de bonificación por mantener tu constancia.',
-        timestamp: Date.now() - 2 * 60 * 60 * 1000, // 2 hours ago
-        isRead: false,
-    },
-    {
-        id: 'demo-2',
-        type: NotificationType.GoalMilestone,
-        title: '¡Meta casi completada!',
-        message: 'Estás al 95% de tu meta "Fondo de Emergencia". ¡Un último esfuerzo!',
-        timestamp: Date.now() - 1 * 24 * 60 * 60 * 1000, // 1 day ago
-        isRead: false,
-    },
-    {
-        id: 'demo-3',
-        type: NotificationType.SpendingAnomaly,
-        title: 'Ojo con los gastos en Ocio',
-        message: 'Notamos varios gastos seguidos en Ocio. ¿Se alinea con tu presupuesto?',
-        timestamp: Date.now() - 3 * 24 * 60 * 60 * 1000, // 3 days ago
-        isRead: true,
-    },
-     {
-        id: 'demo-4',
-        type: NotificationType.Kudos,
-        title: '¡Recibiste Kudos!',
-        message: 'Ana te envió 25 treevüs por tu gran ayuda en el proyecto Centauri.',
-        timestamp: Date.now() - 5 * 24 * 60 * 60 * 1000, // 5 days ago
-        isRead: true,
-    }
-];
+const initialNotifications: Notification[] = [];
 
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [notifications, setNotifications] = useState<Notification[]>([]);

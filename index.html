@@ -449,28 +449,12 @@
     @media (prefers-reduced-motion: reduce) {
       .status-card-inner {
         transition: none;
-        transform-style: flat;
-      }
-      .status-card-inner.is-flipped {
-          transform: none;
-      }
-      .status-card-inner .status-card-front {
-        transition: opacity 0.4s ease;
-        opacity: 1;
       }
       .status-card-inner.is-flipped .status-card-front {
-        opacity: 0;
-        pointer-events: none;
+        transform: rotateY(180deg);
       }
       .status-card-inner .status-card-back {
-        transform: rotateY(0); /* Undo the rotation */
-        transition: opacity 0.4s ease;
-        opacity: 0;
-        pointer-events: none;
-      }
-      .status-card-inner.is-flipped .status-card-back {
-        opacity: 1;
-        pointer-events: auto;
+        transform: rotateY(0);
       }
     }
 
@@ -479,7 +463,8 @@
     .status-card-chip::after { content: ''; position: absolute; top: 0; left: 45%; width: 1px; height: 100%; background-color: #e0c268; }
     
     /* Card Material Presets */
-    .card-material-carbon-fiber { background-color: #2a2a2a; background-image: linear-gradient(45deg, rgba(0,0,0,0.2) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2) 75%, transparent 75%, transparent); background-size: 20px 20px; border: 1px solid #444; }
+    .card-material-default { background: linear-gradient(135deg, var(--surface) 0%, var(--active-surface) 100%); border: 1px solid var(--active-surface); }
+    .card-material-carbon-fiber { background-color: #2a2a2a; background-image: linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.05) 75%, transparent 75%, transparent); background-size: 20px 20px; border: 1px solid #444; }
     .card-material-brushed-metal { background-color: #c0c0c0; background-image: linear-gradient(to right, #d3d3d3, #a9a9a9, #d3d3d3); }
     .card-material-holographic { background-image: linear-gradient(115deg, #4fcf70, #fad648, #a767e5, #12bcfe, #44ce7b); background-size: 500% 500%; animation: holographic-bg 15s ease infinite; }
     @keyframes holographic-bg { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
@@ -490,6 +475,39 @@
     .text-emboss-dark { text-shadow: 1px 1px 1px rgba(0,0,0,0.4), 0 0 0 rgba(255,255,255,0); }
     .text-emboss-light { text-shadow: 1px 1px 2px rgba(255,255,255,0.7), -1px -1px 2px rgba(0,0,0,0.2); }
 
+    @media print {
+        body {
+            background-color: white !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body * {
+            visibility: hidden;
+        }
+
+        #strategic-report-content-wrapper, #strategic-report-content-wrapper * {
+            visibility: visible;
+        }
+        
+        #strategic-report-content-wrapper {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: auto;
+            overflow: visible !important;
+            padding: 1.5rem !important;
+        }
+
+        .text-primary { color: #22C55E !important; }
+        .bg-primary { background-color: #22C55E !important; }
+        .text-on-surface { color: #0F172A !important; }
+        .text-on-surface-secondary { color: #64748B !important; }
+        .bg-background { background-color: #F8FAFC !important; }
+        .border-primary\/50 { border-color: rgba(34, 197, 94, 0.5) !important; }
+        .break-inside-avoid { page-break-inside: avoid; }
+    }
 </style>
 <link rel="stylesheet" href="/index.css">
 </head>

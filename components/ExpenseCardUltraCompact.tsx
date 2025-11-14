@@ -1,21 +1,12 @@
 import React from 'react';
 import {
-    ReceiptPercentIcon,
-    TruckIcon,
-    HomeIcon,
-    ShoppingBagIcon,
-    TicketIcon,
-    CogIcon,
-    HeartIcon,
-    AcademicCapIcon,
-    SparklesIcon,
     ExclamationTriangleIcon,
     PencilIcon,
     TrashIcon,
     ChevronDownIcon,
     EyeIcon,
 } from './Icons';
-
+import { categoryDetails } from './TrendAnalysis';
 import { CategoriaGasto } from '../types/common';
 import { Expense } from '../types/expense';
 
@@ -28,18 +19,6 @@ interface ExpenseCardUltraCompactProps {
     index: number;
 }
 
-const categoryIcons: { [key in CategoriaGasto]: React.FC<{className?: string}> } = {
-    [CategoriaGasto.Alimentacion]: ReceiptPercentIcon,
-    [CategoriaGasto.Transporte]: TruckIcon,
-    [CategoriaGasto.Vivienda]: HomeIcon,
-    [CategoriaGasto.Consumos]: ShoppingBagIcon,
-    [CategoriaGasto.Ocio]: TicketIcon,
-    [CategoriaGasto.Servicios]: CogIcon,
-    [CategoriaGasto.Salud]: HeartIcon,
-    [CategoriaGasto.Educacion]: AcademicCapIcon,
-    [CategoriaGasto.Otros]: SparklesIcon,
-};
-
 const ExpenseCardUltraCompact: React.FC<ExpenseCardUltraCompactProps> = ({
     expense,
     onDelete,
@@ -48,10 +27,12 @@ const ExpenseCardUltraCompact: React.FC<ExpenseCardUltraCompactProps> = ({
     onToggle,
     index,
 }) => {
-    const Icon = categoryIcons[expense.categoria] || categoryIcons[CategoriaGasto.Otros];
+    const Icon = categoryDetails[expense.categoria]?.Icon || categoryDetails[CategoriaGasto.Otros].Icon;
     
     const isInformalAndLost = !expense.esFormal && expense.ahorroPerdido > 0;
-    const cardClasses = `w-full text-left bg-surface rounded-2xl transition-all duration-300 ease-in-out group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10 ${isInformalAndLost ? 'informal-expense' : 'border-l-4 border-transparent'}`;
+    const hasViolations = expense.violations && expense.violations.length > 0;
+    
+    const cardClasses = `w-full text-left bg-surface rounded-2xl transition-all duration-300 ease-in-out group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10 ${isInformalAndLost ? 'informal-expense' : hasViolations ? 'border-l-4 border-warning' : 'border-l-4 border-transparent'}`;
 
     return (
         <div 
@@ -76,6 +57,12 @@ const ExpenseCardUltraCompact: React.FC<ExpenseCardUltraCompactProps> = ({
                                     Ahorro perdido
                                 </span>
                             )}
+                            {hasViolations && (
+                                <span className="flex items-center ml-2 text-warning font-semibold">
+                                    <ExclamationTriangleIcon className="w-3.5 h-3.5 mr-1" />
+                                    Incumplimiento
+                                </span>
+                            )}
                         </div>
                     </div>
                     <div className="text-right flex-shrink-0 flex items-center gap-3">
@@ -89,12 +76,22 @@ const ExpenseCardUltraCompact: React.FC<ExpenseCardUltraCompactProps> = ({
             {/* Collapsible details part */}
             <div
                 className="transition-all duration-300 ease-in-out overflow-hidden"
-                style={{ maxHeight: isExpanded ? '150px' : '0px' }}
+                style={{ maxHeight: isExpanded ? '250px' : '0px' }}
                 aria-hidden={!isExpanded}
             >
                 <div className="bg-surface rounded-b-2xl">
                     <div className="border-t border-active-surface/50"></div>
                     <div className="p-3 text-xs text-on-surface-secondary space-y-2">
+                        {hasViolations && (
+                            <div className="bg-warning/10 p-2 rounded-lg space-y-1 mb-2">
+                                {expense.violations?.map(v => (
+                                    <div key={v.policyId} className="flex items-start gap-1.5 text-warning">
+                                        <ExclamationTriangleIcon className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                                        <p className="text-xs font-semibold">{v.message}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                         <div className="flex justify-between">
                             <span className="font-semibold">Tipo Comprobante:</span>
                             <span>{expense.tipoComprobante}</span>

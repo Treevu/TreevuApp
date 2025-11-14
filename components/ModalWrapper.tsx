@@ -63,7 +63,7 @@ const ModalWrapper: React.FC<ModalWrapperProps> = ({ onClose, children, title, t
 
     return (
         <div 
-            className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-end sm:items-center z-50 p-0 sm:p-4 animate-fade-in" 
+            className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-end sm:items-center z-50 p-4 pb-24 sm:pb-4 animate-fade-in" 
             onClick={onClose}
         >
             <div 
