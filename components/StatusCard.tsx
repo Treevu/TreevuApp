@@ -179,23 +179,13 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                {(Object.keys(badgeData) as BadgeType[]).map(key => {
-                                    const badge = badgeData[key];
-                                    const isUnlocked = badge.isUnlocked(user);
-                                    const Icon = badge.icon;
-                                    return (
-                                        <div key={key} className="tooltip-container">
-                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ${isUnlocked ? 'bg-black/20' : 'bg-black/10 opacity-50'}`}>
-                                                <Icon className={`w-4 h-4 ${textColorClass}`} />
-                                            </div>
-                                            <div className="tooltip-box !w-36 text-center -translate-y-2">
-                                                <p className="font-bold">{badge.title}</p>
-                                                {isUnlocked && <p className="text-xs mt-1">¡Desbloqueado!</p>}
-                                            </div>
-                                        </div>
-                                    )
-                                })}
+                            <div className="text-right">
+                                <p className={`font-bold text-xl ${textColorClass} ${embossClass} flex items-center justify-end gap-1`}>
+                                    {user.treevus.toLocaleString('es-PE')} <TreevuCoinIcon className="w-5 h-5" level={user.level}/>
+                                </p>
+                                <p className={`text-xs -mt-1 ${subTextColorClass} ${embossClass}`}>
+                                    Treevüs
+                                </p>
                             </div>
                         </div>
                     </div>

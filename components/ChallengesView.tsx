@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { MOCK_CHALLENGES, MOCK_EMPLOYEES, calculateKpisForSegment } from '../services/employerDataService';
-import { UsersIcon, GiftIcon, SparklesIcon, CheckBadgeIcon, RocketLaunchIcon } from './Icons';
+import { UsersIcon, GiftIcon, SparklesIcon, CheckBadgeIcon, FlagIcon } from './Icons';
 // FIX: Updated import from deprecated 'types.ts' to 'types/employer.ts'.
 import { type Challenge } from '../types/employer';
 
@@ -33,10 +32,10 @@ const ChallengeCard: React.FC<{ challenge: Challenge }> = ({ challenge }) => {
         <div className={`bg-surface p-4 rounded-2xl border transition-all duration-300 ${isCompleted ? 'border-primary shadow-lg shadow-primary/10' : 'border-active-surface/50'}`}>
             <div className="flex items-start gap-4">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isCompleted ? 'bg-primary/20' : 'bg-active-surface'}`}>
-                    {isCompleted ? <CheckBadgeIcon className="w-8 h-8 text-primary" /> : <RocketLaunchIcon className="w-7 h-7 text-primary" />}
+                    {isCompleted ? <CheckBadgeIcon className="w-8 h-8 text-primary" /> : <FlagIcon className="w-7 h-7 text-primary" />}
                 </div>
                 <div>
-                    <p className={`font-bold text-on-surface ${isCompleted ? 'text-primary' : ''}`}>Misión: {challenge.title}</p>
+                    <p className={`font-bold text-on-surface ${isCompleted ? 'text-primary' : ''}`}>{challenge.title}</p>
                     <p className="text-xs text-on-surface-secondary mt-1">{challenge.description}</p>
                 </div>
             </div>
@@ -57,7 +56,7 @@ const ChallengeCard: React.FC<{ challenge: Challenge }> = ({ challenge }) => {
             <div className="mt-3 text-xs flex items-center gap-1.5 text-yellow-300 bg-background p-2 rounded-lg">
                 <GiftIcon className="w-4 h-4 flex-shrink-0" />
                 <div>
-                    <span className="font-semibold">Botín de la Misión:</span>
+                    <span className="font-semibold">Botín del Desafío:</span>
                     <span className="ml-1">{challenge.reward}</span>
                 </div>
             </div>
@@ -70,11 +69,11 @@ const ChallengesView: React.FC = () => {
         <div className="space-y-4 animate-grow-and-fade-in">
              <div className="bg-surface rounded-2xl p-4">
                 <h2 className="text-xl font-bold text-on-surface mb-2 flex items-center">
-                    <RocketLaunchIcon className="w-6 h-6 mr-2 text-primary"/>
-                    Expediciones Galácticas
+                    <FlagIcon className="w-6 h-6 mr-2 text-primary"/>
+                    Iniciativas de la Comunidad
                 </h2>
                 <p className="text-sm text-on-surface-secondary">
-                    ¡Colabora con tu tripulación para completar misiones y obtener botín galáctico! Tu participación es clave para el éxito de la misión.
+                    Participa en los desafíos de toda la empresa, contribuye a las metas colectivas y gana recompensas especiales.
                 </p>
             </div>
             <div className="space-y-3">

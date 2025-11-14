@@ -1,8 +1,10 @@
 import React, { ErrorInfo, ReactNode } from 'react';
 import { ExclamationTriangleIcon } from './Icons';
 
-interface Props {
-  children?: ReactNode;
+// FIX: Added the 'children' property to the props interface. This allows the
+// component to be used as a wrapper and fixes the error in App.tsx.
+interface ErrorBoundaryProps {
+  children: ReactNode;
 }
 
 interface State {
@@ -10,14 +12,20 @@ interface State {
   error?: Error;
 }
 
-class ErrorBoundary extends React.Component<Props, State> {
-  public state: State = { hasError: false };
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, State> {
+  // FIX: Added a constructor to properly initialize component state. This resolves
+  // errors where `this.state` was being accessed before it was defined.
+  // Calling super(props) also ensures `this.props` is correctly set up.
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
-  public static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error:", error, errorInfo);
   }
 
@@ -26,7 +34,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     window.location.reload();
   }
 
-  public render(): React.ReactNode {
+  render(): React.ReactNode {
     if (this.state.hasError) {
       return (
         <div className="w-full h-full flex items-center justify-center p-4 bg-background text-on-surface">
@@ -46,8 +54,7 @@ class ErrorBoundary extends React.Component<Props, State> {
         </div>
       );
     }
-
-    // FIX: Directly return this.props.children to avoid destructuring error.
+    
     return this.props.children;
   }
 }

@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { CategoriaGasto } from '../types/common';
 import {
@@ -41,7 +43,7 @@ export const SimpleLineChart: React.FC<SimpleLineChartProps> = ({ data, comparis
   }
   const width = 300;
   const height = 150;
-  const padding = { top: 10, right: 10, bottom: 20, left: 10 };
+  const padding = { top: 20, right: 10, bottom: 20, left: 10 };
   
   const allValues = [...data.map(d => d.value), ...(comparisonData?.map(d => d.value) || [])];
   const yMin = Math.min(...allValues);
@@ -49,7 +51,7 @@ export const SimpleLineChart: React.FC<SimpleLineChartProps> = ({ data, comparis
   const yRange = yMax - yMin === 0 ? 1 : yMax - yMin;
   
   const min = Math.max(0, yMin - yRange * 0.1);
-  const max = yMax + yRange * 0.1;
+  const max = yMax + yRange * 0.2; // Increase top padding for tooltip
   const range = max - min;
 
   const getX = (index: number) => padding.left + (index / (data.length - 1)) * (width - padding.left - padding.right);
@@ -79,6 +81,32 @@ export const SimpleLineChart: React.FC<SimpleLineChartProps> = ({ data, comparis
           <text key={point.label} x={getX(index)} y={height - padding.bottom + 15} textAnchor="middle" className="text-[10px] font-semibold fill-current text-on-surface-secondary">
             {point.label}
           </text>
+        ))}
+
+        {/* Interactive Points & Tooltips */}
+        {data.map((point, index) => (
+            <g key={`point-${index}`} className="group" transform={`translate(${getX(index)}, ${getY(point.value)})`}>
+                {/* Tooltip text */}
+                <text
+                    x="0"
+                    y="-12"
+                    textAnchor="middle"
+                    className="text-xs font-bold fill-current text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ pointerEvents: 'none' }}
+                >
+                    {point.value.toLocaleString('es-PE', { maximumFractionDigits: 0 })}
+                </text>
+                {/* Visible point that scales */}
+                <circle
+                    r="3.5"
+                    fill="var(--primary)"
+                    stroke="var(--surface)"
+                    strokeWidth="2"
+                    className="transition-transform duration-200 group-hover:scale-125"
+                />
+                {/* Larger hover area */}
+                <circle r="10" fill="transparent" className="cursor-pointer" />
+            </g>
         ))}
       </svg>
       {comparisonData && (
@@ -111,27 +139,29 @@ export const StackedBarChart: React.FC<StackedBarChartProps> = ({ data }) => {
     const maxTotal = Math.max(...data.map(d => d.total), 0);
     
     return (
-        <div className="flex justify-between items-end h-48 space-x-2">
-            {data.map(day => (
-                <div key={day.label} className="flex-1 flex flex-col items-center group relative">
+        <div className="flex justify-between items-end h-48 space-x-2 bg-active-surface/30 rounded-lg p-2">
+            {data.map((day, index) => (
+                <div key={day.label} className="flex-1 flex flex-col items-center group relative h-full justify-end">
                     <div
-                        className="w-full bg-active-surface rounded-t-lg flex flex-col-reverse relative overflow-hidden"
-                        style={{ height: maxTotal > 0 ? `${(Number(day.total) / maxTotal) * 100}%` : '0%'}}
+                        className="w-full bg-active-surface rounded-t-sm flex flex-col-reverse relative overflow-hidden origin-bottom"
+                        style={{ 
+                            height: maxTotal > 0 ? `${(Number(day.total) / maxTotal) * 100}%` : '0%',
+                        }}
                     >
                         {Object.entries(day.categories).map(([cat, amount]) => (
                              <div
                                 key={cat}
                                 className="w-full"
                                 style={{
-                                    height: `${(Number(amount) / Number(day.total)) * 100}%`,
+                                    height: `${day.total > 0 ? (Number(amount) / Number(day.total)) * 100 : 0}%`,
                                     backgroundColor: categoryDetails[cat as CategoriaGasto]?.color || categoryDetails.Otros.color,
                                 }}
                                 title={`${cat}: S/ ${Number(amount).toFixed(2)}`}
                             />
                         ))}
                     </div>
-                     <span className="text-xs font-bold text-on-surface-secondary mt-2">{day.label}</span>
-                     <div className="absolute -top-8 w-auto p-2 text-xs text-white bg-gray-900/80 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                     <span className="text-xs font-bold text-on-surface-secondary mt-1">{day.label}</span>
+                     <div className="absolute -top-1 w-auto p-2 text-xs text-white bg-gray-900/80 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
                         S/ {Number(day.total).toFixed(2)}
                     </div>
                 </div>
@@ -159,15 +189,18 @@ export const SimpleBarChart: React.FC<SimpleBarChartProps> = ({ data, height = 1
     const maxValue = Math.max(...data.map(d => d.value), 0);
     
     return (
-        <div className="w-full" style={{ height }}>
-            <div className="flex justify-between items-end h-full gap-px px-1">
+        <div className="w-full bg-active-surface/30 rounded-lg p-2" style={{ height }}>
+            <div className="flex justify-between items-end h-full gap-px">
                 {data.map((point, index) => {
                     const barHeight = maxValue > 0 ? (point.value / maxValue) * 100 : 0;
                     return (
                         <div key={index} className="flex-1 flex flex-col items-center group relative h-full justify-end">
                             <div
-                                className="w-full bg-primary/50 rounded-t-sm group-hover:bg-primary transition-colors"
-                                style={{ height: `${barHeight}%` }}
+                                className="w-full bg-primary rounded-t-sm"
+                                style={{ 
+                                    height: `${barHeight}%`,
+                                    transformOrigin: 'bottom',
+                                }}
                             />
                             { (data.length < 15 || index % 2 === 0) &&
                               <span className="text-[8px] text-on-surface-secondary mt-1">{point.label}</span>

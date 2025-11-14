@@ -1,13 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { PaperAirplaneIcon, LightBulbIcon, XMarkIcon } from '../Icons';
-// FIX: Updated import from deprecated 'geminiService.ts'.
-import { getAIEmployerResponse } from '../../services/ai/employerService';
+import { getAIMerchantResponse } from '../../services/ai/merchantService';
 import Logo from '../Logo';
 import { parseJsonFromMarkdown } from '../../utils';
 
-interface EmployerAIAssistantProps {
+export interface MerchantAIAssistantProps {
     onClose: () => void;
-    data: any;
+    analytics: any;
 }
 
 type StructuredAIResponse = {
@@ -18,10 +17,9 @@ type StructuredAIResponse = {
         dataPoints: { label: string; value: string }[];
     },
     communicationDraft?: {
-        platform: 'email' | 'slack';
+        platform: string;
         subject?: string;
         body: string;
-        suggestedDeepLink?: 'desafios' | 'premios' | 'aprende';
     }
 };
 
@@ -31,10 +29,10 @@ type Message = {
 };
 
 const SUGGESTIONS = [
-    "Compara el índice de formalidad entre Ventas y Tecnología.",
-    "¿Cuál es el principal impulsor del gasto informal?",
-    "Predice cuál será el beneficio más canjeado el próximo trimestre.",
-    "Redacta un comunicado para fomentar el registro de gastos en restaurantes."
+    "Analiza el rendimiento de mis ofertas",
+    "¿Qué días tengo más canjes?",
+    "Sugiere una nueva oferta para el fin de semana",
+    "Redacta una promoción para un 2x1 en postres"
 ];
 
 const StructuredResponse: React.FC<{ data: StructuredAIResponse }> = ({ data }) => {
@@ -73,12 +71,8 @@ const StructuredResponse: React.FC<{ data: StructuredAIResponse }> = ({ data }) 
          const { platform, subject, body } = data.communicationDraft;
          return (
              <div className="space-y-3">
-                 <h3 className="text-lg font-bold text-on-surface">Borrador de Comunicado</h3>
+                 <h3 className="text-lg font-bold text-on-surface">{subject || 'Borrador de Oferta'}</h3>
                  <div className="p-3 bg-background/50 rounded-lg">
-                    <p className="text-xs font-semibold text-on-surface-secondary mb-1">
-                        Para: <span className="capitalize font-bold text-on-surface">{platform}</span>
-                        {subject && <span className="block">Asunto: <span className="font-bold text-on-surface">{subject}</span></span>}
-                    </p>
                     <div className="mt-2 pt-2 border-t border-active-surface/50 text-sm text-on-surface whitespace-pre-wrap">{body}</div>
                  </div>
              </div>
@@ -89,9 +83,9 @@ const StructuredResponse: React.FC<{ data: StructuredAIResponse }> = ({ data }) 
 };
 
 
-const EmployerAIAssistant: React.FC<EmployerAIAssistantProps> = ({ onClose, data }) => {
+const MerchantAIAssistant: React.FC<MerchantAIAssistantProps> = ({ onClose, analytics }) => {
     const [messages, setMessages] = useState<Message[]>([
-        { from: 'ai', content: "Hola, soy el Asistente Estratégico Treevü. Estoy listo para transformar los datos de tu equipo en insights accionables. ¿Qué te gustaría analizar hoy?" }
+        { from: 'ai', content: "¡Hola! Soy tu Asistente de Comercio. Estoy aquí para ayudarte a analizar tus datos y crear mejores ofertas. ¿Qué te gustaría saber?" }
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -99,7 +93,7 @@ const EmployerAIAssistant: React.FC<EmployerAIAssistantProps> = ({ onClose, data
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+    }, [messages, isLoading]);
 
     const handleSend = useCallback(async (messageText?: string) => {
         const userMessage = messageText || inputValue.trim();
@@ -109,7 +103,7 @@ const EmployerAIAssistant: React.FC<EmployerAIAssistantProps> = ({ onClose, data
         setInputValue('');
         setIsLoading(true);
 
-        const aiResponseJson = await getAIEmployerResponse(userMessage, data);
+        const aiResponseJson = await getAIMerchantResponse(userMessage, messages.slice(-4), { analytics });
         const aiResponseObject = aiResponseJson ? parseJsonFromMarkdown<StructuredAIResponse>(aiResponseJson) : null;
 
         setIsLoading(false);
@@ -118,7 +112,7 @@ const EmployerAIAssistant: React.FC<EmployerAIAssistantProps> = ({ onClose, data
         } else {
              setMessages(prev => [...prev, { from: 'ai', content: "Lo siento, no pude procesar tu solicitud. Intenta de nuevo." }]);
         }
-    }, [inputValue, isLoading, data]);
+    }, [inputValue, isLoading, analytics, messages]);
     
     return (
        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-end sm:items-center z-50 p-0 sm:p-4 animate-fade-in" onClick={onClose}>
@@ -127,14 +121,14 @@ const EmployerAIAssistant: React.FC<EmployerAIAssistantProps> = ({ onClose, data
                 onClick={(e) => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby="employer-ai-chat-title"
+                aria-labelledby="merchant-ai-chat-title"
             >
                 <header className="p-4 border-b border-active-surface/50 flex justify-between items-center flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <Logo className="w-8 h-8 text-primary" />
                         <div>
-                            <h2 id="employer-ai-chat-title" className="text-lg font-bold text-on-surface">Asistente Estratégico</h2>
-                            <p className="text-xs text-on-surface-secondary">Análisis y predicciones con IA</p>
+                            <h2 id="merchant-ai-chat-title" className="text-lg font-bold text-on-surface">Asistente de Comercio</h2>
+                            <p className="text-xs text-on-surface-secondary">Insights de marketing con IA</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="text-on-surface-secondary hover:text-on-surface">
@@ -176,7 +170,7 @@ const EmployerAIAssistant: React.FC<EmployerAIAssistantProps> = ({ onClose, data
 
                 <footer className="p-4 border-t border-active-surface/50 mt-auto flex-shrink-0">
                      <form onSubmit={e => { e.preventDefault(); handleSend(); }} className="flex items-center space-x-3">
-                        <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="Haz una pregunta sobre tus datos..." disabled={isLoading} className="flex-1 bg-background border-none rounded-xl py-2.5 px-4 focus:ring-2 focus:ring-primary focus:outline-none" />
+                        <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder="Ej: Sugiere una oferta para el lunes..." disabled={isLoading} className="flex-1 bg-background border-none rounded-xl py-2.5 px-4 focus:ring-2 focus:ring-primary focus:outline-none" />
                         <button type="submit" disabled={isLoading || !inputValue.trim()} className="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 bg-primary text-primary-dark disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Enviar mensaje">
                              {isLoading ? <div className="w-6 h-6 border-2 border-t-primary-dark border-background rounded-full animate-spin"></div> : <PaperAirplaneIcon className="w-6 h-6" />}
                         </button>
@@ -188,4 +182,4 @@ const EmployerAIAssistant: React.FC<EmployerAIAssistantProps> = ({ onClose, data
     );
 };
 
-export default EmployerAIAssistant;
+export default MerchantAIAssistant;

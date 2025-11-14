@@ -6,13 +6,17 @@ import { AccessPortal } from '../AccessPortal';
 import BusinessWelcome from '../employer/BusinessWelcome';
 import EmployerDashboard from '../employer/EmployerDashboard';
 import { type CurrentUserType } from '../../types/employer';
+import MerchantLogin from '../merchant/MerchantLogin';
+import MerchantPortal from '../merchant/MerchantPortal';
+import { MerchantUser } from '../../data/merchantData';
 
 const AuthScreen: React.FC = () => {
-    const [view, setView] = useState<'portal' | 'pilotNotice' | 'archetypes' | 'employerLogin'>('portal');
+    const [view, setView] = useState<'portal' | 'pilotNotice' | 'archetypes' | 'employerLogin' | 'merchantLogin'>('portal');
     const [employerUser, setEmployerUser] = useState<CurrentUserType | null>(null);
-    const { user } = useAuth(); // We still need the user from context to know when to stop showing this screen
+    const [merchantUser, setMerchantUser] = useState<MerchantUser | null>(null);
+    const { user } = useAuth();
 
-    const handleLoginSuccess = (user: CurrentUserType) => {
+    const handleEmployerLoginSuccess = (user: CurrentUserType) => {
         setEmployerUser(user);
     };
     
@@ -21,22 +25,35 @@ const AuthScreen: React.FC = () => {
         setView('portal');
     };
 
-    const handleSelectUserType = (type: 'person' | 'employer') => {
+    const handleMerchantLoginSuccess = (user: MerchantUser) => {
+        setMerchantUser(user);
+    };
+
+    const handleMerchantSignOut = () => {
+        setMerchantUser(null);
+        setView('portal');
+    }
+
+    const handleSelectUserType = (type: 'person' | 'employer' | 'merchant') => {
         if (type === 'person') {
             setView('pilotNotice');
-        } else {
+        } else if (type === 'employer') {
             setView('employerLogin');
+        } else {
+            setView('merchantLogin');
         }
     };
     
-    // If a normal user is logged in via archetypes, the AppRouter will take over.
-    // This component only handles the pre-login flow and the employer dashboard session.
     if (user) {
         return null; 
     }
     
     if (employerUser) {
         return <EmployerDashboard user={employerUser} onSignOut={handleEmployerSignOut} />;
+    }
+
+    if (merchantUser) {
+        return <MerchantPortal user={merchantUser} onSignOut={handleMerchantSignOut} />;
     }
 
     const renderContent = () => {
@@ -46,7 +63,9 @@ const AuthScreen: React.FC = () => {
             case 'archetypes':
                 return <ArchetypeSelection onBack={() => setView('portal')} />;
             case 'employerLogin':
-                return <BusinessWelcome onLoginSuccess={handleLoginSuccess} onBack={() => setView('portal')} />;
+                return <BusinessWelcome onLoginSuccess={handleEmployerLoginSuccess} onBack={() => setView('portal')} />;
+            case 'merchantLogin':
+                return <MerchantLogin onLoginSuccess={handleMerchantLoginSuccess} onBack={() => setView('portal')} />;
             case 'portal':
             default:
                 return <AccessPortal onSelectType={handleSelectUserType} />;

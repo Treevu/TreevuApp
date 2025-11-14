@@ -13,8 +13,10 @@ import BottomNavBar from './BottomNavBar';
 import { BanknotesIcon, HomeIcon, UserCircleIcon, StarIcon, PencilSquareIcon } from './Icons';
 import ClubView from './ClubView';
 import ProfileView from './ProfileView';
+import { levelData } from '../services/gamificationService';
 
 import { ActiveTab, CategoriaGasto } from '../types/common';
+import { useModal as useAchievementModal } from '../contexts/ModalContext'; // Renamed to avoid conflict
 
 type NavTabId = ActiveTab | 'registrar';
 
@@ -25,6 +27,7 @@ const AppContent: React.FC = () => {
     const { state: { budget } } = useAppContext();
     const { alert, setAlert } = useAlert();
     const { openModal, closeModal } = useModal();
+    const { openModal: openAchievementModal } = useAchievementModal();
     
     const [activeTab, setActiveTab] = useState<ActiveTab>('inicio');
     const [categoryFilter, setCategoryFilter] = useState<CategoriaGasto | null>(null);
@@ -112,6 +115,20 @@ const AppContent: React.FC = () => {
         }
     }, [openModal, isTourActive, tourStep, handleNextStep, tourSteps, registrarTabRef]);
 
+    // --- IMPLEMENTACIÓN: Logro Compartible (Level Up) ---
+    const prevLevelRef = useRef(user?.level);
+    useEffect(() => {
+        if (user && prevLevelRef.current !== undefined && user.level > prevLevelRef.current) {
+            openAchievementModal('achievementShare', {
+                title: `¡Nuevo Nivel Alcanzado!`,
+                subtitle: `Ahora eres un ${levelData[user.level].name}`,
+                userName: user.name,
+                userPicture: user.picture,
+            });
+        }
+        prevLevelRef.current = user?.level;
+    }, [user, openAchievementModal]);
+    // --- FIN IMPLEMENTACIÓN ---
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);

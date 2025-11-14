@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-    BanknotesIcon, BookOpenIcon, CheckBadgeIcon, RocketLaunchIcon, CheckIcon, LockClosedIcon, ShieldCheckIcon, BuildingBlocksIcon, StarIcon, TrophyIcon, GhostIcon
+    BanknotesIcon, BookOpenIcon, CheckBadgeIcon, RocketLaunchIcon, CheckIcon, LockClosedIcon, ShieldCheckIcon, BuildingBlocksIcon, StarIcon, TrophyIcon, GhostIcon, GiftIcon
 } from './Icons';
 import ModalWrapper from './ModalWrapper';
 import { useAuth } from '../contexts/AuthContext';
@@ -242,6 +242,17 @@ const LearnView: React.FC = () => {
             return acc;
         }, {} as Record<Expedition['branch'], Expedition[]>);
     }, []);
+    
+    const { completedExpeditionsCount, totalExpeditions, pathProgress } = useMemo(() => {
+        const total = expeditions.length;
+        const completed = expeditions.filter(exp => completedLessons.includes(exp.id)).length;
+        const progress = total > 0 ? (completed / total) * 100 : 0;
+        return { completedExpeditionsCount: completed, totalExpeditions: total, pathProgress: progress };
+    }, [completedLessons]);
+    
+    const readArticlesCount = useMemo(() => {
+        return articles.filter(art => completedLessons.includes(art.id)).length;
+    }, [completedLessons]);
 
     const isCintaBlancaComplete = useMemo(() => {
         return expeditionsByBranch['Tronco Fundamental']?.every(exp => completedLessons.includes(exp.id));
@@ -297,13 +308,17 @@ const LearnView: React.FC = () => {
                                         }
                                     }}
                                     disabled={!isUnlocked}
-                                    className={`w-full p-3 bg-surface rounded-2xl border text-left flex items-center gap-3 transition-all duration-300 ${isUnlocked ? 'hover:bg-active-surface cursor-pointer' : 'cursor-not-allowed'} ${isCompleted ? 'border-transparent opacity-60' : 'border-active-surface/80'}`}
+                                    className={`w-full p-3 bg-surface rounded-2xl border text-left flex items-start gap-3 transition-all duration-300 ${isUnlocked ? 'hover:bg-active-surface cursor-pointer' : 'cursor-not-allowed filter grayscale opacity-50'} ${isCompleted ? 'border-primary/50 opacity-100 filter-none' : 'border-active-surface/80'}`}
                                 >
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${isCompleted ? 'bg-background' : 'bg-active-surface'}`}>
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${isCompleted ? 'bg-primary/10' : 'bg-active-surface'}`}>
                                         {isCompleted ? <CheckIcon className="w-6 h-6 text-primary"/> : !isUnlocked ? <LockClosedIcon className="w-6 h-6 text-on-surface-secondary"/> : <Icon className="w-6 h-6 text-primary" />}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h3 className={`font-bold text-on-surface ${isCompleted ? 'line-through text-on-surface-secondary' : ''}`}>{expedition.title}</h3>
+                                        <h3 className={`font-bold text-on-surface`}>{expedition.title}</h3>
+                                        <div className="flex items-center gap-1 text-xs font-bold text-yellow-400 mt-1">
+                                            <GiftIcon className="w-3.5 h-3.5"/>
+                                            <span>+{expedition.mission.reward} treevüs</span>
+                                        </div>
                                     </div>
                                 </button>
                             </div>
@@ -320,19 +335,20 @@ const LearnView: React.FC = () => {
     ];
     
     const renderSenda = () => (
-        <div className="space-y-6">
-            <div className="text-center">
-                 <h2 className="text-xl font-bold text-on-surface">Senda del Guardián del Bosque</h2>
-                 <p className="text-sm text-on-surface-secondary mt-1">Completa expediciones, demuestra tu maestría y cosecha grandes recompensas.</p>
-            </div>
-            
+        <div className="space-y-8">
             <div className="space-y-4">
-                <h3 className="font-bold text-primary">CINTA BLANCA: INICIACIÓN</h3>
+                <div className="flex items-center gap-3 p-3 bg-active-surface/50 rounded-xl">
+                    <TrophyIcon className="w-6 h-6 text-primary"/>
+                    <h3 className="font-bold text-primary">CINTA BLANCA: INICIACIÓN</h3>
+                </div>
                 {renderBranch('Tronco Fundamental', true)}
             </div>
 
             <div className="space-y-4">
-                <h3 className={`font-bold transition-colors ${isCintaBlancaComplete ? 'text-primary' : 'text-on-surface-secondary'}`}>CINTA VERDE: FUNDAMENTOS</h3>
+                 <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${isCintaBlancaComplete ? 'bg-active-surface/50' : 'bg-background'}`}>
+                    <TrophyIcon className={`w-6 h-6 transition-colors ${isCintaBlancaComplete ? 'text-primary' : 'text-on-surface-secondary'}`}/>
+                    <h3 className={`font-bold transition-colors ${isCintaBlancaComplete ? 'text-primary' : 'text-on-surface-secondary'}`}>CINTA VERDE: FUNDAMENTOS</h3>
+                </div>
                 {!isCintaBlancaComplete && (
                     <div className="flex items-center gap-2 p-2 text-xs text-on-surface-secondary bg-background rounded-lg">
                         <LockClosedIcon className="w-4 h-4 flex-shrink-0" />
@@ -346,7 +362,10 @@ const LearnView: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-                <h3 className={`font-bold transition-colors ${isCintaVerdeComplete ? 'text-primary' : 'text-on-surface-secondary'}`}>CINTA MARRÓN: ESTRATEGIA</h3>
+                 <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${isCintaVerdeComplete ? 'bg-active-surface/50' : 'bg-background'}`}>
+                    <TrophyIcon className={`w-6 h-6 transition-colors ${isCintaVerdeComplete ? 'text-primary' : 'text-on-surface-secondary'}`}/>
+                    <h3 className={`font-bold transition-colors ${isCintaVerdeComplete ? 'text-primary' : 'text-on-surface-secondary'}`}>CINTA MARRÓN: ESTRATEGIA</h3>
+                </div>
                 {!isCintaVerdeComplete && (
                     <div className="flex items-center gap-2 p-2 text-xs text-on-surface-secondary bg-background rounded-lg">
                         <LockClosedIcon className="w-4 h-4 flex-shrink-0" />
@@ -359,7 +378,10 @@ const LearnView: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-                <h3 className={`font-bold transition-colors ${isCintaMarronComplete ? 'text-primary' : 'text-on-surface-secondary'}`}>CINTA NEGRA: MENTORÍA</h3>
+                 <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${isCintaMarronComplete ? 'bg-active-surface/50' : 'bg-background'}`}>
+                    <TrophyIcon className={`w-6 h-6 transition-colors ${isCintaMarronComplete ? 'text-primary' : 'text-on-surface-secondary'}`}/>
+                    <h3 className={`font-bold transition-colors ${isCintaMarronComplete ? 'text-primary' : 'text-on-surface-secondary'}`}>CINTA NEGRA: MENTORÍA</h3>
+                </div>
                 {!isCintaMarronComplete && (
                      <div className="flex items-center gap-2 p-2 text-xs text-on-surface-secondary bg-background rounded-lg">
                         <LockClosedIcon className="w-4 h-4 flex-shrink-0" />
@@ -394,9 +416,41 @@ const LearnView: React.FC = () => {
             ))}
         </div>
     );
+    
+    const LearnHeader = () => (
+        <div className="bg-surface p-4 rounded-2xl mb-6">
+            <div className="text-center mb-4">
+                <h2 className="text-xl font-bold text-on-surface">Senda del Guardián del Bosque</h2>
+                <p className="text-sm text-on-surface-secondary mt-1">Completa expediciones, demuestra tu maestría y cosecha grandes recompensas.</p>
+            </div>
+
+            <div>
+                <div className="flex justify-between items-center text-xs text-on-surface-secondary mb-1">
+                    <span>Progreso Total de la Senda</span>
+                    <span className="font-bold text-primary">{pathProgress.toFixed(0)}%</span>
+                </div>
+                <div className="h-2 w-full bg-active-surface rounded-full">
+                    <div className="h-2 rounded-full bg-primary" style={{ width: `${pathProgress}%` }}></div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-center mt-4">
+                <div className="bg-background p-2 rounded-lg">
+                    <p className="text-xs font-semibold text-on-surface-secondary flex items-center justify-center gap-1.5"><CheckBadgeIcon className="w-4 h-4"/> Expediciones</p>
+                    <p className="text-lg font-bold text-on-surface">{completedExpeditionsCount} / {totalExpeditions}</p>
+                </div>
+                <div className="bg-background p-2 rounded-lg">
+                    <p className="text-xs font-semibold text-on-surface-secondary flex items-center justify-center gap-1.5"><BookOpenIcon className="w-4 h-4"/> Pergaminos</p>
+                    <p className="text-lg font-bold text-on-surface">{readArticlesCount} / {articles.length}</p>
+                </div>
+            </div>
+        </div>
+    );
 
     return (
         <div className="animate-fade-in">
+            <LearnHeader />
+            
             <SubNavBar 
                 tabs={subTabs} 
                 activeTab={activeSubTab} 

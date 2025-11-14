@@ -1,18 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PrivacyDisclaimer from './PrivacyDisclaimer';
-import FinancialWellnessIndexChart from './FinancialWellnessIndexChart';
 import KpiCard from './KpiCard';
-// FIX: Updated import path to break circular dependency
 import { type CurrentUserType } from '../../types/employer';
-import KpiMatrixWidget from './KpiMatrixWidget';
-import RiskCorrelationChart from './RiskCorrelationChart';
 import EmployerExportButton from './EmployerExportButton';
-import { TOTAL_COMPANY_EMPLOYEES, DEPARTMENT_TOTALS } from '../../services/employerDataService';
 import FilterDrawer from './FilterDrawer';
 import { AdjustmentsHorizontalIcon, ArrowLeftIcon, BuildingBlocksIcon, SparklesIcon, GiftIcon } from '../Icons';
 import { useModal } from '../../contexts/ModalContext';
 import { Challenge } from '../../types/employer';
-import BenefitsImpactWidget from './BenefitsImpactWidget';
+import AreaComparisonChart from './AreaComparisonChart';
+import CategoryBreakdown from './CategoryBreakdown';
 
 interface EmployerDashboardViewProps {
     user: CurrentUserType;
@@ -36,7 +32,7 @@ interface EmployerDashboardViewProps {
         fwiRef: React.RefObject<HTMLDivElement>;
         kpisRef: React.RefObject<HTMLDivElement>;
         riskChartRef: React.RefObject<HTMLDivElement>;
-        areaComparisonRef: React.RefObject<HTMLDivElement>; // This ref will now point to the KpiMatrixWidget
+        areaComparisonRef: React.RefObject<HTMLDivElement>;
     };
     activeTab: 'resumen' | 'talento' | 'engagement' | 'perfil';
     onSignOut: () => void;
@@ -70,21 +66,9 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
         }
     }, [activeTab]);
 
-    const getRoiVariant = (roi: number) => {
-        if (roi >= 2) return 'success';
-        if (roi >= 1) return 'warning';
-        return 'danger';
-    };
-
     const getFlightRiskVariant = (risk: 'Bajo' | 'Medio' | 'Alto') => {
         if (risk === 'Bajo') return 'success';
         if (risk === 'Medio') return 'warning';
-        return 'danger';
-    };
-
-    const getRedemptionVariant = (rate: number) => {
-        if (rate >= 50) return 'success';
-        if (rate >= 25) return 'warning';
         return 'danger';
     };
     
@@ -102,11 +86,8 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
     
     const {
         flightRiskHistory,
-        roiHistory,
         fwiHistory,
-        companyWideFwiHistory,
-        redemptionRate,
-        redemptionRateHistory
+        activationRateHistory
     } = dashboardData;
 
 
@@ -188,54 +169,42 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
                     {/* KPIs Row */}
                      <div ref={refs.kpisRef} className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <KpiCard
-                            title="Riesgo de Fuga"
-                            value={dashboardData.flightRiskScore.toFixed(0)}
-                            subValue={dashboardData.talentFlightRisk}
-                            valueSuffix="%"
+                            title="FWI PROMEDIO"
+                            value={dashboardData.financialWellnessIndex.toFixed(0)}
+                            tooltipText="El Índice de Bienestar Financiero (FWI) es la métrica principal que resume la salud financiera del equipo."
+                            variant={dashboardData.financialWellnessIndex > 75 ? 'success' : dashboardData.financialWellnessIndex > 60 ? 'warning' : 'danger'}
+                            history={fwiHistory}
+                        />
+                        <KpiCard
+                            title="RIESGO DE FUGA"
+                            value={dashboardData.talentFlightRisk}
+                            subValue={`${dashboardData.flightRiskScore.toFixed(0)}%`}
                             tooltipText="Estimación del riesgo de pérdida de talento basada en indicadores de bienestar financiero."
                             variant={getFlightRiskVariant(dashboardData.talentFlightRisk)}
                             history={flightRiskHistory}
                         />
                         <KpiCard
-                            title="ROI del Programa"
-                            value={dashboardData.roiMultiplier.toFixed(1)}
-                            valueSuffix="x"
-                            tooltipText="Mide el retorno de la inversión basado en el valor de beneficios canjeados versus el costo del programa."
-                            variant={getRoiVariant(dashboardData.roiMultiplier)}
-                            history={roiHistory}
-                        />
-                        <KpiCard
-                            title="Tasa de Canje"
-                            value={redemptionRate.toFixed(0)}
+                            title="TASA DE ACTIVACIÓN"
+                            value={dashboardData.activationRate.toFixed(0)}
                             valueSuffix="%"
-                            tooltipText="Porcentaje de colaboradores que han utilizado sus treevüs para canjear al menos una recompensa."
-                            variant={getRedemptionVariant(redemptionRate)}
-                            history={redemptionRateHistory}
+                            tooltipText="Porcentaje de colaboradores del segmento que han iniciado sesión y registrado al menos una actividad."
+                            variant={dashboardData.activationRate > 80 ? 'success' : dashboardData.activationRate > 60 ? 'warning' : 'danger'}
+                            history={activationRateHistory}
                         />
                     </div>
+                    
+                    {/* Charts Row */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div ref={refs.fwiRef}>
-                             <FinancialWellnessIndexChart
-                                score={dashboardData.financialWellnessIndex}
-                                components={dashboardData.fwiComponents}
-                                history={fwiHistory}
-                                companyAverage={dashboardData.companyWideFwi}
-                                companyAverageHistory={companyWideFwiHistory}
+                        <div ref={refs.areaComparisonRef}>
+                            <AreaComparisonChart
+                                data={companyWideKpis.map(d => ({ label: d.department, value: d.fwi || 0 }))}
                             />
                         </div>
                         <div>
-                            <BenefitsImpactWidget data={dashboardData} />
+                            <CategoryBreakdown data={dashboardData.spendingByCategory} />
                         </div>
                     </div>
-                    <div ref={refs.riskChartRef}>
-                        <RiskCorrelationChart 
-                            data={companyWideKpis}
-                            currentSegmentName={filters.selectedDepartment === 'all' ? 'Toda la Empresa' : filters.selectedDepartment}
-                        />
-                    </div>
-                    <div ref={refs.areaComparisonRef}>
-                        <KpiMatrixWidget data={dashboardData.kpisByDepartment} />
-                    </div>
+                    
                     <PrivacyDisclaimer />
                 </div>
             )}

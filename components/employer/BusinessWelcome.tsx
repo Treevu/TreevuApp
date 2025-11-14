@@ -1,8 +1,10 @@
 import React from 'react';
 import { type CurrentUserType } from '../../types/employer';
-import { ArrowLeftIcon, UsersIcon } from '../Icons';
+import { ArrowLeftIcon, UsersIcon, DocumentArrowDownIcon } from '../Icons';
 import AuthLayout from '../auth/AuthLayout';
 import TreevuLogoText from '../TreevuLogoText';
+import { useModal } from '../../contexts/ModalContext';
+import { MOCK_EMPLOYEES, calculateKpisForSegment } from '../../services/employerDataService';
 
 interface BusinessWelcomeProps {
     onLoginSuccess: (user: CurrentUserType) => void;
@@ -16,10 +18,19 @@ const MOCK_USERS: { [key: string]: CurrentUserType } = {
 };
 
 const BusinessWelcome: React.FC<BusinessWelcomeProps> = ({ onLoginSuccess, onBack }) => {
+    const { openModal } = useModal();
 
     const handleLogin = (roleKey: keyof typeof MOCK_USERS) => {
         onLoginSuccess(MOCK_USERS[roleKey]);
     };
+
+    // --- IMPLEMENTACIÓN: Reporte B2B de Muestra ---
+    const handleDownloadSample = () => {
+        const mockDashboardData = calculateKpisForSegment(MOCK_EMPLOYEES);
+        const mockUser: CurrentUserType = { name: 'Gerente General (Muestra)', role: 'admin' };
+        openModal('strategicReport', { dashboardData: mockDashboardData, user: mockUser });
+    };
+    // --- FIN IMPLEMENTACIÓN ---
 
     const title = (
         <>
@@ -42,7 +53,7 @@ const BusinessWelcome: React.FC<BusinessWelcomeProps> = ({ onLoginSuccess, onBac
         <AuthLayout footer={backButton}>
             <div className="text-center">
                 <h1 className="text-4xl font-black text-on-surface treevu-text mb-2">{title}</h1>
-                <p className="text-on-surface-secondary">La plataforma para convertir los datos de tu equipo en estrategia.</p>
+                <p className="text-on-surface-secondary">La inteligencia que transforma el bienestar de tu equipo en tu mayor ventaja competitiva.</p>
             </div>
             
             <div className="mt-8 w-full space-y-4">
@@ -85,6 +96,20 @@ const BusinessWelcome: React.FC<BusinessWelcomeProps> = ({ onLoginSuccess, onBac
                         <h3 className="font-bold text-on-surface">Jefe de Ventas</h3>
                         <p className="text-xs text-on-surface-secondary">Visibilidad del área comercial.</p>
                     </div>
+                </button>
+
+                 <div className="relative flex py-2 items-center">
+                    <div className="flex-grow border-t border-active-surface"></div>
+                    <span className="flex-shrink mx-4 text-xs text-on-surface-secondary">O</span>
+                    <div className="flex-grow border-t border-active-surface"></div>
+                </div>
+
+                <button
+                    onClick={handleDownloadSample}
+                    className="w-full p-3 bg-active-surface rounded-xl text-center flex items-center justify-center gap-2 transform hover:scale-105 hover:bg-background transition-all duration-300"
+                >
+                    <DocumentArrowDownIcon className="w-5 h-5 text-primary"/>
+                    <span className="font-bold text-on-surface text-sm">Descargar Reporte de Muestra</span>
                 </button>
             </div>
         </AuthLayout>

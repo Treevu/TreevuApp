@@ -1,9 +1,11 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { LightBulbIcon, SparklesIcon, ArrowTopRightOnSquareIcon } from '../Icons';
 import Tooltip from '../Tooltip';
 import KpiCard from './KpiCard';
 import { EmployerEmployee } from '../../services/employerDataService';
 import { getAIGoalInsight } from '../../services/ai/employerService';
+import { CategoriaGasto } from '../../types/common';
 
 const GOAL_ICONS: { [key: string]: string } = {
     'Viaje': '✈️',
@@ -41,9 +43,10 @@ const AspirationsWidget: React.FC<AspirationsWidgetProps> = ({ data, segmentEmpl
         const goalAdoptionRate = (employeesWithGoals.length / subSegment.length) * 100;
         const allGoals = subSegment.flatMap(e => e.goals || []);
             
-        const totalTargetAmount = allGoals.reduce((sum, goal) => sum + (goal.targetAmount || 0), 0);
+        const totalTargetAmount = allGoals.reduce((sum, goal) => sum + Number(goal.targetAmount || 0), 0);
         const avgGoalAmount = allGoals.length > 0 ? totalTargetAmount / allGoals.length : 0;
-        const totalProgressSum = allGoals.reduce((sum, goal) => (goal.targetAmount > 0 ? sum + (goal.currentAmount / goal.targetAmount) : sum), 0);
+        
+        const totalProgressSum = allGoals.reduce((sum, goal) => (Number(goal.targetAmount) > 0 ? sum + (Number(goal.currentAmount) / Number(goal.targetAmount)) : sum), 0);
         const avgGoalProgress = allGoals.length > 0 ? (totalProgressSum / allGoals.length) * 100 : 0;
 
         return {
@@ -62,13 +65,15 @@ const AspirationsWidget: React.FC<AspirationsWidgetProps> = ({ data, segmentEmpl
         if (subSegment.length === 0) return [];
 
         const savingsMap = subSegment.flatMap(e => e.goals || []).reduce((acc, goal) => {
-            acc[goal.name] = (acc[goal.name] || 0) + goal.currentAmount;
+            // FIX: Ensure currentAmount is treated as a number in the arithmetic operation.
+            acc[goal.name] = (acc[goal.name] || 0) + Number(goal.currentAmount || 0);
             return acc;
         }, {} as Record<string, number>);
 
         return Object.entries(savingsMap)
             .map(([category, amount]) => ({ category, amount }))
-            .sort((a, b) => b.amount - a.amount);
+            // FIX: Ensure amount properties are treated as numbers for sorting.
+            .sort((a, b) => Number(b.amount) - Number(a.amount));
     }, [segmentEmployees, departmentFilter]);
     
     useEffect(() => {
@@ -98,7 +103,7 @@ const AspirationsWidget: React.FC<AspirationsWidgetProps> = ({ data, segmentEmpl
     }, [savingsByCategory, departmentFilter, filteredSegmentData.employeeCount]);
 
     const { goalAdoptionRate, avgGoalProgress, avgGoalAmount } = filteredSegmentData;
-    // FIX: Explicitly cast item.amount to a number to resolve the arithmetic operation error.
+    // FIX: Ensure item.amount is treated as a number in the arithmetic operation.
     const totalSavings = savingsByCategory.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
     return (
@@ -152,7 +157,7 @@ const AspirationsWidget: React.FC<AspirationsWidgetProps> = ({ data, segmentEmpl
                         {savingsByCategory.length > 0 ? (
                             <div className="space-y-3 flex-grow">
                                 {savingsByCategory.slice(0, 4).map(item => {
-                                    const percentage = totalSavings > 0 ? (item.amount / totalSavings) * 100 : 0;
+                                    const percentage = totalSavings > 0 ? (Number(item.amount) / totalSavings) * 100 : 0;
                                     return (
                                         <div key={item.category}>
                                             <div className="flex justify-between items-center text-sm mb-1">
@@ -160,7 +165,7 @@ const AspirationsWidget: React.FC<AspirationsWidgetProps> = ({ data, segmentEmpl
                                                     <span className="text-lg mr-2">{GOAL_ICONS[item.category] || '✨'}</span>
                                                     {item.category}
                                                 </span>
-                                                <span className="font-bold text-on-surface-secondary">S/ {item.amount.toLocaleString('es-PE', { maximumFractionDigits: 0 })}</span>
+                                                <span className="font-bold text-on-surface-secondary">S/ {Number(item.amount).toLocaleString('es-PE', { maximumFractionDigits: 0 })}</span>
                                             </div>
                                             <div className="h-2 w-full bg-active-surface rounded-full">
                                                 <div className="h-2 rounded-full bg-primary" style={{ width: `${percentage}%` }}></div>

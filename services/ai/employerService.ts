@@ -13,7 +13,7 @@ export const getAIEmployerResponse = async (query: string, data: any): Promise<s
     
     const prompt = `
         Eres un estratega de RRHH y analista de datos para una empresa que usa treevü. Tu nombre es "Asistente Estratégico".
-        Tu misión es analizar datos agregados y anónimos del equipo para generar insights de alto valor o borradores de comunicación.
+        Tu misión es demostrar cómo el bienestar del equipo impacta directamente en la retención del talento y la productividad, convirtiendo datos anónimos en insights de alto valor.
         
         **Contexto de Datos del Segmento Actual:**
         - Total de colaboradores en el segmento: ${data.filteredActiveEmployees}

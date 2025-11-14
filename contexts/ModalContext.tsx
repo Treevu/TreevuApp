@@ -19,57 +19,13 @@ import PrestigeModal from '../components/PrestigeModal';
 import ImpactSimulatorModal from '../components/employer/ImpactSimulatorModal';
 import PromoteLessonModal from '../components/employer/PromoteLessonModal';
 import StrategicReportModal from '../components/employer/StrategicReportModal';
+import OfferFormModal from '../components/merchant/OfferFormModal';
+import AchievementShareModal from '../components/AchievementShareModal';
+import MerchantAIAssistant from '../components/merchant/MerchantAIAssistant';
 
 import { Tribe, TribeMember } from '../types/tribe';
+import { ModalType, ModalPropsMap } from '../types/modal';
 
-// Define the types for all possible modals and their props
-type ModalType =
-    | 'addExpense'
-    | 'setBudget'
-    | 'setIncome'
-    | 'setGoal'
-    | 'addGoalContribution'
-    | 'aiAssistantChat'
-    | 'gamificationLevels'
-    | 'confirmDelete'
-    | 'treevusInfo'
-    | 'rewardConfirmation'
-    | 'merchantDetail'
-    | 'createChallenge'
-    | 'employerAIAssistant'
-    | 'notificationCenter'
-    | 'sendKudos'
-    | 'personalization'
-    | 'prestige'
-    | 'impactSimulator'
-    | 'promoteLesson'
-    | 'strategicReport';
-
-
-type ModalPropsMap = {
-    addExpense: React.ComponentProps<typeof AddExpenseModal> & { initialFile?: File };
-    setBudget: React.ComponentProps<typeof SetBudgetModal>;
-    setIncome: React.ComponentProps<typeof SetIncomeModal>;
-    setGoal: React.ComponentProps<typeof SetGoalModal>;
-    addGoalContribution: React.ComponentProps<typeof AddGoalContributionModal>;
-    aiAssistantChat: React.ComponentProps<typeof AIAssistantChat> & {
-        onAddReceiptManual?: () => void;
-    };
-    gamificationLevels: React.ComponentProps<typeof GamificationLevelsModal>;
-    confirmDelete: React.ComponentProps<typeof ConfirmDeleteModal>;
-    treevusInfo: React.ComponentProps<typeof TreevusInfoModal>;
-    rewardConfirmation: React.ComponentProps<typeof RewardConfirmationModal>;
-    merchantDetail: React.ComponentProps<typeof MerchantDetailModal>;
-    createChallenge: React.ComponentProps<typeof CreateChallengeModal>;
-    employerAIAssistant: React.ComponentProps<typeof EmployerAIAssistant>;
-    notificationCenter: React.ComponentProps<typeof NotificationCenter>;
-    sendKudos: { recipient: TribeMember | Tribe; onClose: () => void; };
-    personalization: React.ComponentProps<typeof PersonalizationModal>;
-    prestige: React.ComponentProps<typeof PrestigeModal>;
-    impactSimulator: React.ComponentProps<typeof ImpactSimulatorModal>;
-    promoteLesson: React.ComponentProps<typeof PromoteLessonModal>;
-    strategicReport: React.ComponentProps<typeof StrategicReportModal>;
-};
 
 // State and context definitions
 interface ModalState {
@@ -107,12 +63,19 @@ const MODAL_COMPONENTS: { [key in ModalType]: React.FC<any> } = {
     impactSimulator: ImpactSimulatorModal,
     promoteLesson: PromoteLessonModal,
     strategicReport: StrategicReportModal,
+    offerForm: OfferFormModal,
+    achievementShare: AchievementShareModal,
+    merchantAIAssistant: MerchantAIAssistant,
 };
 
 export const ModalProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
     const [modalState, setModalState] = useState<ModalState>({ type: null, props: {} });
 
-    const openModal = useCallback(<T extends ModalType>(type: T, props: Omit<ModalPropsMap[T], 'onClose'> = {} as any) => {
+    const openModal = useCallback(<T extends ModalType>(type: T | null, props: Omit<ModalPropsMap[T], 'onClose'> = {} as any) => {
+        if (type === null) {
+            closeModal();
+            return;
+        }
         setModalState({ type, props });
     }, []);
 

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { PlusIcon, TrashIcon, BuildingBlocksIcon, InformationCircleIcon, TrophyIcon } from './Icons';
 import { useModal } from '../contexts/ModalContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface GoalsWidgetProps {
     variant?: 'full' | 'compact';
@@ -10,6 +11,7 @@ interface GoalsWidgetProps {
 const GoalsWidget: React.FC<GoalsWidgetProps> = ({ variant = 'full' }) => {
     const { state: { goals }, deleteGoal } = useAppContext();
     const { openModal } = useModal();
+    const { user } = useAuth();
 
     const handleAddContribution = (goalId: string) => {
         openModal('addGoalContribution', { goalId });
@@ -33,6 +35,26 @@ const GoalsWidget: React.FC<GoalsWidgetProps> = ({ variant = 'full' }) => {
         // Fallback to creation date if progress is the same or both are completed
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
+
+    // --- IMPLEMENTACIÓN: Logro Compartible (Meta Cumplida) ---
+    const completedGoalsCount = useMemo(() => goals.filter(g => g.status === 'completed' || (g.targetAmount > 0 && g.currentAmount >= g.targetAmount)).length, [goals]);
+    const prevCompletedGoalsCountRef = useRef(completedGoalsCount);
+
+    useEffect(() => {
+        if (user && completedGoalsCount > prevCompletedGoalsCountRef.current) {
+            const newlyCompletedGoal = goals.find(g => (g.status === 'completed' || g.currentAmount >= g.targetAmount));
+            if (newlyCompletedGoal) {
+                 openModal('achievementShare', {
+                    title: '¡Proyecto Conquistado!',
+                    subtitle: `Has alcanzado la meta de "${newlyCompletedGoal.name}"`,
+                    userName: user.name,
+                    userPicture: user.picture,
+                });
+            }
+        }
+        prevCompletedGoalsCountRef.current = completedGoalsCount;
+    }, [completedGoalsCount, openModal, user, goals]);
+    // --- FIN IMPLEMENTACIÓN ---
 
     if (goals.length === 0) {
         if (variant === 'full') {

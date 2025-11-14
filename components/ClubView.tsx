@@ -1,34 +1,90 @@
 import React, { useState } from 'react';
 import TeamsView from './TeamsView';
 import RewardsView from './RewardsView';
-import ChallengesView from './ChallengesView';
-import { UsersIcon, GiftIcon, RocketLaunchIcon } from './Icons';
+import { UsersIcon, GiftIcon, RocketLaunchIcon, BuildingStorefrontIcon, TrophyIcon, FlagIcon } from './Icons';
 import SubNavBar from './SubNavBar';
 import MissionsView from './MissionsView';
+import OffersView from './OffersView';
+import SquadLeaderboard from './SquadLeaderboard';
+import ChallengesView from './ChallengesView';
 
-type ClubSubTab = 'teams' | 'missions' | 'rewards';
+type MainTab = 'squad' | 'marketplace' | 'community';
+type SquadTab = 'team' | 'ranking' | 'missions';
+type MarketplaceTab = 'rewards' | 'offers';
+type CommunityTab = 'challenges';
+
 
 const ClubView: React.FC = () => {
-    const [activeSubTab, setActiveSubTab] = useState<ClubSubTab>('teams');
+    const [activeMainTab, setActiveMainTab] = useState<MainTab>('squad');
+    const [activeSquadTab, setActiveSquadTab] = useState<SquadTab>('team');
+    const [activeMarketplaceTab, setActiveMarketplaceTab] = useState<MarketplaceTab>('rewards');
 
-    const subTabs: { id: ClubSubTab; label: string; Icon: React.FC<{ className?: string }> }[] = [
-        { id: 'teams', label: 'Escuadrones', Icon: UsersIcon },
-        { id: 'missions', label: 'Misiones', Icon: RocketLaunchIcon },
-        { id: 'rewards', label: 'Premios', Icon: GiftIcon },
+    const mainTabs: { id: MainTab; label: string; Icon: React.FC<{ className?: string }> }[] = [
+        { id: 'squad', label: 'Escuadrón', Icon: UsersIcon },
+        { id: 'marketplace', label: 'Mercado', Icon: BuildingStorefrontIcon },
+        { id: 'community', label: 'Comunidad', Icon: FlagIcon },
     ];
+
+    const squadSubTabs: { id: SquadTab; label: string; Icon: React.FC<{ className?: string }> }[] = [
+        { id: 'team', label: 'Miembros', Icon: UsersIcon },
+        { id: 'ranking', label: 'Ranking', Icon: TrophyIcon },
+        { id: 'missions', label: 'Misiones', Icon: RocketLaunchIcon },
+    ];
+
+    const marketplaceSubTabs: { id: MarketplaceTab; label: string; Icon: React.FC<{ className?: string }> }[] = [
+        { id: 'rewards', label: 'Premios', Icon: GiftIcon },
+        { id: 'offers', label: 'Ofertas', Icon: BuildingStorefrontIcon },
+    ];
+
+    const renderContent = () => {
+        switch (activeMainTab) {
+            case 'squad':
+                switch (activeSquadTab) {
+                    case 'team': return <TeamsView />;
+                    case 'ranking': return <SquadLeaderboard />;
+                    case 'missions': return <MissionsView />;
+                    default: return null;
+                }
+            case 'marketplace':
+                switch (activeMarketplaceTab) {
+                    case 'rewards': return <RewardsView />;
+                    case 'offers': return <OffersView />;
+                    default: return null;
+                }
+            case 'community':
+                return <ChallengesView />;
+            default:
+                return null;
+        }
+    };
 
     return (
         <div className="animate-fade-in">
             <SubNavBar
-                tabs={subTabs}
-                activeTab={activeSubTab}
-                onTabClick={(tab) => setActiveSubTab(tab)}
+                tabs={mainTabs}
+                activeTab={activeMainTab}
+                onTabClick={(tab) => setActiveMainTab(tab)}
             />
 
-            <div className="space-y-4">
-                {activeSubTab === 'teams' && <TeamsView />}
-                {activeSubTab === 'rewards' && <RewardsView />}
-                {activeSubTab === 'missions' && <MissionsView />}
+            <div className="mt-4">
+                 {activeMainTab === 'squad' && (
+                    <SubNavBar
+                        tabs={squadSubTabs}
+                        activeTab={activeSquadTab}
+                        onTabClick={(tab) => setActiveSquadTab(tab)}
+                    />
+                )}
+                {activeMainTab === 'marketplace' && (
+                    <SubNavBar
+                        tabs={marketplaceSubTabs}
+                        activeTab={activeMarketplaceTab}
+                        onTabClick={(tab) => setActiveMarketplaceTab(tab)}
+                    />
+                )}
+            </div>
+
+            <div className="mt-6">
+                {renderContent()}
             </div>
         </div>
     );
