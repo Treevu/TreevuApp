@@ -190,13 +190,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
         
         setUser(newUser);
-        trackEvent('session_start', { signup: true }, newUser);
+        trackEvent('session_start', { type: 'signup' }, newUser);
     }, []);
 
     const signIn = useCallback(async (email: string, pass: string) => {
         await new Promise(res => setTimeout(res, 1000));
         if (user) {
-             trackEvent('session_start', { login: true }, user);
+             trackEvent('session_start', { type: 'login' }, user);
              return; 
         }
         // This is a fallback if someone tries to log in without choosing an archetype
@@ -227,7 +227,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             hasCompletedOnboarding: true,
         };
         setUser(defaultUser);
-        trackEvent('session_start', { login: true }, defaultUser);
+        trackEvent('session_start', { type: 'login' }, defaultUser);
     }, [user]);
 
     const signOut = useCallback(() => {
@@ -271,6 +271,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         localStorage.setItem('treevu-budget', data.budget.toString());
         localStorage.setItem('treevu-annualIncome', data.annualIncome.toString());
         localStorage.setItem('treevu-notifications', JSON.stringify(data.notifications));
+
+        trackEvent('session_start', { type: 'archetype', archetype: archetypeKey }, data.user);
 
         // Set user state to immediately grant access, then reload to ensure all contexts are in sync
         setUser(data.user);

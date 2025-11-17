@@ -1,6 +1,6 @@
 import { type User } from '../types/user';
 
-export type EventName = 'stimulus_shown' | 'stimulus_responded' | 'session_start';
+export type EventName = 'stimulus_shown' | 'stimulus_responded' | 'session_start' | 'expense_created' | 'expense_deleted' | 'goal_created' | 'goal_contribution_added' | 'view_rendered';
 
 export interface EventProperties {
     [key: string]: any;
@@ -29,5 +29,16 @@ export const trackEvent = (eventName: EventName, properties: EventProperties, us
     };
 
     // Usamos console.log para el MVP, simulando un envío a un backend.
-    console.log(`[ANALYTICS]`, JSON.stringify(eventData, null, 2));
+    console.log(`[ANALYTICS]`, JSON.stringify(eventData));
+
+    // Enviar el evento al backend sin esperar una respuesta para no impactar la UX
+    fetch('/api/events', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eventData),
+    }).catch(error => {
+        console.error('[ANALYTICS] Failed to send event to backend:', error);
+    });
 };

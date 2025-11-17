@@ -1,5 +1,5 @@
 // La URL de nuestro backend que actúa como proxy seguro
-const API_BASE_URL = '/api/gemini';
+const API_BASE_URL = "https://mini-backend-kappa.vercel.app/api/gemini";
 const API_TIMEOUT_MS = 30000; // 30 segundos de timeout
 
 /**

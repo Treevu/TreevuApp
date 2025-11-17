@@ -46,7 +46,7 @@ const QrCodePlaceholder: React.FC = () => (
 
 const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) => {
     const { user } = useAuth();
-    const { state: { fwi_v2 } } = useAppContext();
+    const { state: { fwi_v2, engagementScore } } = useAppContext();
     const { openModal } = useModal();
     const [customization, setCustomization] = useState({ material: 'default', accent: 'primary' });
     const [isFlipped, setIsFlipped] = useState(false);
@@ -207,9 +207,10 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
                                         <PencilIcon className="w-4 h-4" />
                                         <span className="text-sm font-semibold">Personalizar Tarjeta</span>
                                     </button>
-                                    <p className={`text-xs mt-3 ${subTextColorClass}`}>
-                                        Un treevü es más que una moneda; es el símbolo de tu crecimiento. Cada uno que cosechas es un paso adelante en tu maestría financiera.
-                                    </p>
+                                     <div className={`mt-3 text-center p-2 rounded-lg bg-black/10 ${textColorClass}`}>
+                                        <p className={`text-xs font-semibold ${subTextColorClass}`}>PUNTAJE DE ENGAGEMENT</p>
+                                        <p className={`text-3xl font-bold ${textColorClass} ${embossClass}`}>{engagementScore}</p>
+                                    </div>
                                 </div>
                                 <div className="flex items-end justify-between">
                                     <div className="w-[70%] h-12 bg-white/80 flex items-center justify-start pl-2">

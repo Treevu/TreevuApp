@@ -25,6 +25,7 @@ interface AppContextType {
         goals: Goal[];
         tribes: Tribe[];
         missions: Mission[];
+        engagementScore: number;
     };
     addExpense: ReturnType<typeof useExpenses>['addExpense'];
     updateExpense: ReturnType<typeof useExpenses>['updateExpense'];
@@ -120,6 +121,21 @@ const AppDataCombiner: React.FC<{ children: ReactNode }> = ({ children }) => {
         return history;
     }, [expensesData]);
 
+    const engagementScore = useMemo(() => {
+        if (!user) return 0;
+        const weights = { session: 0.2, expense: 0.4, goal: 0.3, social: 0.1 };
+        
+        const timeSinceLastActivity = user.lastActivityDate ? (new Date().getTime() - new Date(user.lastActivityDate).getTime()) / (1000 * 3600 * 24) : 30;
+        const sessionScore = Math.max(0, 100 - timeSinceLastActivity * 5);
+        
+        const expenseScore = Math.min(100, (expensesData.expenses.length / 20) * 100);
+        const goalScore = goalsData.goals.length > 0 ? 100 : 0;
+        const socialScore = Math.min(100, ((user.kudosSent + user.kudosReceived) / 10) * 100);
+
+        const score = (sessionScore * weights.session) + (expenseScore * weights.expense) + (goalScore * weights.goal) + (socialScore * weights.social);
+        return Math.round(score);
+    }, [user, expensesData.expenses, goalsData.goals]);
+
 
     const value = useMemo(() => ({
         state: {
@@ -137,6 +153,7 @@ const AppDataCombiner: React.FC<{ children: ReactNode }> = ({ children }) => {
             goals: goalsData.goals,
             tribes: tribesData.tribes,
             missions: tribesData.missions,
+            engagementScore,
         },
         addExpense: expensesData.addExpense,
         updateExpense: expensesData.updateExpense,
@@ -151,7 +168,7 @@ const AppDataCombiner: React.FC<{ children: ReactNode }> = ({ children }) => {
         updateMissionProgress: tribesData.updateMissionProgress,
         recordUserActivity,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }), [expensesData, budgetData, goalsData, tribesData, fwiTrend, fwiHistory, recordUserActivity]);
+    }), [expensesData, budgetData, goalsData, tribesData, fwiTrend, fwiHistory, recordUserActivity, engagementScore]);
 
     return (
         <AppContext.Provider value={value as AppContextType}>

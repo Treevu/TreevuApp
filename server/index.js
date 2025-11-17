@@ -152,6 +152,23 @@ app.get('/api/sunat/validate-ruc/:ruc', async (req, res) => {
     }
 });
 
+// --- Event Telemetry Endpoint ---
+app.post('/api/events', (req, res) => {
+    const eventData = req.body;
+    
+    if (!eventData || !eventData.eventName) {
+        return res.status(400).json({ error: 'Invalid event data' });
+    }
+
+    // MVP: Log to console to validate end-to-end pipeline.
+    console.log(`[EVENT RECEIVED]: ${JSON.stringify(eventData)}`);
+    
+    // Future: Send to a message queue (e.g., Pub/Sub) or directly to a data warehouse (e.g., BigQuery).
+
+    res.status(202).json({ status: 'received' });
+});
+
+
 // --- Server Startup ---
 app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);

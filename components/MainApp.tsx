@@ -24,6 +24,7 @@ import { NotificationType } from '../types/notification';
 
 import { ActiveTab, CategoriaGasto } from '../types/common';
 import { useModal as useAchievementModal } from '../contexts/ModalContext'; // Renamed to avoid conflict
+import { trackEvent } from '../services/analyticsService';
 
 type NavTabId = ActiveTab;
 
@@ -112,7 +113,8 @@ const AppContent: React.FC = () => {
     
     const handleTabClick = useCallback((tab: NavTabId) => {
         setActiveTab(tab);
-    }, []);
+        trackEvent('view_rendered', { viewName: tab }, user);
+    }, [user]);
 
     // --- Badge Unlocking Logic ---
     useEffect(() => {

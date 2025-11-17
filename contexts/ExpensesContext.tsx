@@ -156,6 +156,12 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
         const updatedExpenses = [newExpense, ...expenses];
         setExpenses(updatedExpenses);
 
+        trackEvent('expense_created', { 
+            total: newExpense.total, 
+            esFormal: newExpense.esFormal, 
+            categoria: newExpense.categoria 
+        }, user);
+
         // --- Telemetry (Result): Track successful action from stimulus ---
         const activeStimulusRaw = sessionStorage.getItem('active_stimulus');
         if (activeStimulusRaw) {
@@ -268,8 +274,9 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
     }, []);
 
     const deleteExpense = useCallback((expenseId: string) => {
+        trackEvent('expense_deleted', { expenseId }, user);
         setExpenses(prev => prev.filter(expense => expense.id !== expenseId));
-    }, []);
+    }, [user]);
     
     const value = useMemo(() => ({
         expenses, totalExpenses, totalAhorroPerdido, formalityIndex, formalityIndexByCount,

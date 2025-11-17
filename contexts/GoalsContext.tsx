@@ -54,7 +54,11 @@ export const GoalsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             });
         }
         setGoals(prev => [...prev, newGoal]);
-    }, [goals.length, addTreevus, setAlert]);
+        trackEvent('goal_created', { 
+            targetAmount: newGoal.targetAmount, 
+            name: newGoal.name 
+        }, user);
+    }, [goals.length, addTreevus, setAlert, user]);
 
     const deleteGoal = useCallback((goalId: string) => {
         // Instead of deleting, we can mark as abandoned for historical data
@@ -62,6 +66,8 @@ export const GoalsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }, []);
 
     const updateGoalContribution = useCallback((goalId: string, amount: number) => {
+        trackEvent('goal_contribution_added', { goalId, amount }, user);
+        
         // --- Telemetry (Result): Track successful action from stimulus ---
         const activeStimulusRaw = sessionStorage.getItem('active_stimulus');
         if (activeStimulusRaw) {
