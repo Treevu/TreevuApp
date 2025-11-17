@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect, forwardRef } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useAppContext } from '@/contexts/AppContext';
 import { TreevuCoinIcon, FireIcon, PencilIcon, BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon, TrophyIcon, RocketLaunchIcon, HandThumbUpIcon } from '@/components/ui/Icons';
 import { levelData } from '@/services/gamificationService.ts';
@@ -43,28 +42,12 @@ const QrCodePlaceholder: React.FC = () => (
 
 
 const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) => {
-    const { user } = useAuth();
     const { state: { expenses } } = useAppContext();
     const { openModal } = useModal();
     const [customization, setCustomization] = useState({ material: 'default', accent: 'primary' });
     const [isFlipped, setIsFlipped] = useState(false);
     
-    const storageKey = `status-card-customization-${user?.id || 'default'}`;
 
-    useEffect(() => {
-        const saved = localStorage.getItem(storageKey);
-        if (saved) {
-            setCustomization(JSON.parse(saved));
-        }
-        const handleStorageChange = () => {
-            const updated = localStorage.getItem(storageKey);
-            if(updated) {
-                setCustomization(JSON.parse(updated));
-            }
-        };
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
-    }, [storageKey]);
     
 
     const handleFlip = () => {
@@ -72,25 +55,9 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
         setIsFlipped(!isFlipped);
     };
 
-    const isLightCard = useMemo(() => {
-        if (customization.material !== 'default') {
-            return ['marble', 'brushed-metal', 'pearl'].includes(customization.material);
-        }
-        if (user) {
-            return user.level === TreevuLevel.Plantón || user.level === TreevuLevel.Arbusto;
-        }
-        return false;
-    }, [customization.material, user]);
-
-    const embossClass = isLightCard ? 'text-emboss-light' : 'text-emboss-dark';
     
-    if (!user) {
-        return (
-            <div className="aspect-[1.586/1] w-full bg-surface rounded-3xl flex items-center justify-center animate-pulse">
-                <div className="w-1/2 h-8 bg-active-surface rounded-md"></div>
-            </div>
-        );
-    }
+
+
     
     const getCardMaterialClass = (level: TreevuLevel): string => {
         if (customization.material !== 'default') {
@@ -106,21 +73,10 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
         }
     };
     
-    const cardMaterialClass = getCardMaterialClass(user.level);
-    const specialEffectClass = user.level === TreevuLevel.Bosque && customization.material === 'default'
-        ? 'card-effect-pulse-border'
-        : '';
     
-    const cardClasses = `${cardMaterialClass} ${specialEffectClass}`;
-    
-    const currentLevelData = levelData[user.level];
     
     let textColorClass = 'text-white';
     let subTextColorClass = 'text-gray-300';
-    if (isLightCard) {
-        textColorClass = 'text-gray-800';
-        subTextColorClass = 'text-gray-600';
-    }
 
     return (
         <div className="status-card-container w-full max-w-sm mx-auto aspect-[1.586/1]">
@@ -132,31 +88,29 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
             >
                 <div className={`status-card-inner ${isFlipped ? 'is-flipped' : ''}`}>
                     {/* FRONT FACE */}
-                    <div className={`status-card-face status-card-front ${cardClasses} shadow-lg`}>
-                        <button
+                    <div className={`status-card-face status-card-front shadow-lg`}>
+                        <div
                             onClick={(e) => {
                                 e.stopPropagation();
-                                openModal('personalization', { storageKey });
                             }}
                             className={`absolute top-3 right-3 z-10 p-1.5 rounded-full transition-colors ${subTextColorClass} hover:bg-black/20`}
                             aria-label="Personalizar tarjeta"
                         >
                             <PencilIcon className="w-4 h-4" />
-                        </button>
+                        </div>
                         <div className="flex justify-between items-start">
-                             <h2 className={`status-card-logo text-2xl font-bold ${embossClass}`}>
-                                <TreevuLogoText middleColorClass={isLightCard ? 'text-gray-800' : 'text-white'} />
+                             <h2 className={`status-card-logo text-2xl font-bold `}>
+                                <TreevuLogoText middleColorClass={'text-white'} />
                             </h2>
                             <div className="status-card-chip"></div>
                         </div>
                         
                         <div>
-                            <p className={`font-sans text-xl md:text-2xl tracking-widest ${textColorClass} ${embossClass}`}>
-                                {generateMockTreevuId(user.id)}
+                            <p className={`font-sans text-xl md:text-2xl tracking-widest ${textColorClass}`}>
                             </p>
                             <div className={`flex items-center mt-2 ${subTextColorClass}`}>
                                 <span className="text-[8px] font-semibold leading-none mr-1.5 text-center">MIEMBRO<br/>DESDE</span>
-                                <span className={`font-mono text-base font-semibold ${textColorClass} ${embossClass}`}>
+                                <span className={`font-mono text-base font-semibold ${textColorClass}`}>
                                     ' {getMemberSinceYear()}
                                 </span>
                             </div>
@@ -164,24 +118,23 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
                         
                         <div className="flex justify-between items-end">
                             <div className="flex-1 min-w-0">
-                                <p className={`text-lg font-semibold truncate ${textColorClass} ${embossClass}`}>{user.name}</p>
+                                <p className={`text-lg font-semibold truncate ${textColorClass} `}></p>
                                 <div className="leading-tight">
-                                    <p className={`text-xs ${subTextColorClass} ${embossClass}`}>Nivel: {currentLevelData.name}</p>
+                                    <p className={`text-xs ${subTextColorClass}`}>Nivel: </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 {(Object.keys(badgeData) as BadgeType[]).map(key => {
                                     const badge = badgeData[key];
-                                    const isUnlocked = badge.isUnlocked(user);
                                     const Icon = badge.icon;
                                     return (
                                         <div key={key} className="tooltip-container">
-                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ${isUnlocked ? 'bg-black/20' : 'bg-black/10 opacity-50'}`}>
+                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 'bg-black/20'`}>
                                                 <Icon className={`w-4 h-4 ${textColorClass}`} />
                                             </div>
                                             <div className="tooltip-box !w-36 text-center -translate-y-2">
                                                 <p className="font-bold">{badge.title}</p>
-                                                {isUnlocked && <p className="text-xs mt-1">¡Desbloqueado!</p>}
+                                                <p className="text-xs mt-1">¡Desbloqueado!</p>
                                             </div>
                                         </div>
                                     )
@@ -190,7 +143,7 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
                         </div>
                     </div>
                      {/* BACK FACE */}
-                    <div className={`status-card-face status-card-back ${cardClasses} shadow-lg !p-0 !justify-start`}>
+                    <div className={`status-card-face status-card-back shadow-lg !p-0 !justify-start`}>
                         <div className="w-full h-full flex flex-col">
                             {/* Magnetic Strip */}
                             <div className="magnetic-strip mt-5"></div>
@@ -198,7 +151,7 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
                             <div className="p-4 flex-grow flex flex-col justify-between">
                                 <div>
                                     <h4 className={`font-bold ${textColorClass} mb-1 flex items-center gap-1.5`}>
-                                        ¿Qué es un <TreevuLogoText isTreevus={false} middleColorClass={isLightCard ? 'text-gray-800' : 'text-white'}/>?
+                                        ¿Qué es un <TreevuLogoText isTreevus={false} middleColorClass='text-gray-800'/>?
                                     </h4>
                                     <p className={`text-xs ${subTextColorClass}`}>
                                         Un treevü es más que una moneda; es el símbolo de tu crecimiento. Cada uno que cosechas es un paso adelante en tu maestría financiera, una prueba de que estás construyendo un futuro más fuerte. ¡Es el poder de tus hábitos en tus manos!

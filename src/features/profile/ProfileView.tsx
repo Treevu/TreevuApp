@@ -5,10 +5,8 @@ import {
     TrophyIcon,
     BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon, TreevuCoinIcon, ChevronDownIcon
 } from '@/components/ui/Icons';
-import { useAuth } from '@/contexts/AuthContext';
 import GamificationBar from '@/features/gamification/GamificationBar.tsx';
 import { useAppContext } from '@/contexts/AppContext';
-import { useAlert } from '@/contexts/AlertContext';
 import { useModal } from '@/contexts/ModalContext';
 import ThemeSwitcher from '@/features/profile/ThemeSwitcher.tsx';
 import { levelData } from '@/services/gamificationService.ts';
@@ -30,7 +28,15 @@ const badgeData: { [key in BadgeType]: { icon: string; title: string; descriptio
 };
 
 const MyTribeCard: React.FC = () => {
-    const { user } = useAuth();
+    // Usuario estático
+    const user = {
+        id: 'static-user-id',
+        name: 'Usuario Demo',
+        tribeId: 'tribe-1',
+        kudosReceived: 15,
+        kudosSent: 10,
+        level: 3 as TreevuLevel
+    };
     const { tribes } = useTribes();
 
     const myTribe = useMemo(() => tribes.find(t => t.id === user?.tribeId), [tribes, user]);
@@ -65,7 +71,21 @@ const MyTribeCard: React.FC = () => {
 }
 
 const AchievementsSection: React.FC = () => {
-    const { user, updateUser } = useAuth();
+    // Usuario estático
+    const user = {
+        id: 'static-user-id',
+        name: 'Usuario Demo',
+        level: 3 as TreevuLevel,
+        kudosSent: 10,
+        kudosReceived: 15,
+        streak: { count: 15, lastDate: '2024-12-14' },
+        featuredBadge: 'pioneer' as BadgeType
+    };
+    // Función mock para updateUser
+    const updateUser = (updates: any) => {
+        console.log('updateUser called with:', updates);
+    };
+    
     if (!user) return null;
     
     const unlockedBadges = Object.keys(badgeData).filter(key => badgeData[key as BadgeType].isUnlocked(user)) as BadgeType[];
@@ -108,9 +128,47 @@ const AchievementsSection: React.FC = () => {
 
 
 const ProfileContent: React.FC<{ setActiveTab: (tab: any) => void }> = ({ setActiveTab }) => {
-    const { user, signOut, updateUser } = useAuth();
+    // Usuario estático
+    const user = {
+        id: 'static-user-id',
+        name: 'Usuario Demo',
+        email: 'usuario@demo.com',
+        picture: '',
+        level: 3 as TreevuLevel,
+        progress: {
+            expensesCount: 25,
+            formalityIndex: 0.7
+        },
+        treevus: 2500,
+        isProfileComplete: true,
+        kudosSent: 10,
+        kudosReceived: 15,
+        documentId: '12345678',
+        registrationDate: '2024-01-15T00:00:00Z',
+        lastActivityDate: '2024-12-14T00:00:00Z',
+        rewardsClaimedCount: 3,
+        engagementScore: 85,
+        fwiTrend: 'improving' as const,
+        streak: {
+            count: 15,
+            lastDate: '2024-12-14'
+        },
+        redeemedRewards: []
+    };
+    // Función mock para signOut
+    const signOut = () => {
+        console.log('signOut called');
+    };
+    // Función mock para updateUser
+    const updateUser = (updates: any) => {
+        console.log('updateUser called with:', updates);
+    };
+    
     const { state: { expenses, budget, annualIncome } } = useAppContext();
-    const { setAlert } = useAlert();
+    // Función mock para setAlert
+    const setAlert = (alertData: any) => {
+        console.log('setAlert called with:', alertData);
+    };
     const { openModal } = useModal();
     
     const [isEditingDocId, setIsEditingDocId] = useState(false);

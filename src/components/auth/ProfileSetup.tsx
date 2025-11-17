@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useBudget } from '@/contexts/BudgetContext';
 import { CheckIcon, ExclamationTriangleIcon, InformationCircleIcon, ArrowLeftIcon, GiftIcon } from '@/components/ui/Icons';
 import AuthLayout from '@/components/auth/AuthLayout.tsx';
@@ -53,10 +52,8 @@ interface ProfileSetupProps {
 
 
 const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack }) => {
-    const { user, completeProfileSetup } = useAuth();
     const { updateBudget } = useBudget();
     
-    const [name, setName] = useState(user?.name || '');
     const [documentId, setDocumentId] = useState('');
     const [department, setDepartment] = useState('');
     const [tenure, setTenure] = useState('');
@@ -67,7 +64,6 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
-    const isNameValid = name.trim().length > 2;
     const isDocIdValid = documentId.length === 8;
     const areDemographicsValid = department && tenure && modality && ageRange;
 
@@ -76,29 +72,19 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack }) => {
         e.preventDefault();
         setError('');
 
-        if (!isNameValid || !isDocIdValid || !areDemographicsValid) {
+        if (!isDocIdValid || !areDemographicsValid) {
             setError('Por favor, completa todos los campos correctamente.');
             return;
         }
 
         setIsSubmitting(true);
         
-        // This single call now handles updating user details and setting the profile as complete.
-        completeProfileSetup({
-            name,
-            documentId,
-            department: department as Department,
-            tenure: tenure as Tenure,
-            modality: modality as Modality,
-            ageRange: ageRange as AgeRange,
-        });
-        
         // Set a default budget so the user can start using the app.
         // This can be changed later.
         updateBudget(0);
     };
 
-    const isContinueDisabled = !isNameValid || !isDocIdValid || !areDemographicsValid || isSubmitting;
+    const isContinueDisabled = !isDocIdValid || !areDemographicsValid || isSubmitting;
     
     const backToPortalButton = (
          <button
@@ -131,21 +117,6 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onBack }) => {
                                 <InformationCircleIcon className="w-4 h-4" />
                             </button>
                         </label>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Ej: Ada Lovelace"
-                                className={inputClasses}
-                                autoComplete="name"
-                            />
-                            {isNameValid && (
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none animate-grow-and-fade-in">
-                                    <CheckIcon className="w-6 h-6 text-primary" />
-                                </div>
-                            )}
-                        </div>
                         <InfoTooltip type="info" isVisible={activeTooltip === 'name'}>
                             Tu nombre nos ayuda a personalizar tu experiencia y a que te sientas en control de tu dinero desde el primer día.
                         </InfoTooltip>

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useTribes } from '@/contexts/TribesContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { NotificationType } from '@/types/notification';
@@ -17,7 +16,18 @@ const isTribe = (recipient: TribeMember | Tribe): recipient is Tribe => {
 }
 
 const SendKudosModal: React.FC<SendKudosModalProps> = ({ onClose, recipient }) => {
-    const { user, addTreevus } = useAuth();
+    // Usuario estático
+    const user = {
+        id: 'static-user-id',
+        name: 'Usuario Demo',
+        treevus: 2500,
+        level: 3 as const
+    };
+    // Función mock para addTreevus
+    const addTreevus = (amount: number) => {
+        console.log('addTreevus called with:', amount);
+    };
+    
     const { sendKudos } = useTribes();
     const { addNotification } = useNotifications();
     const [amount, setAmount] = useState(0);

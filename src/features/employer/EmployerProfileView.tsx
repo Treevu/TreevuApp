@@ -6,7 +6,6 @@ import { type CurrentUserType } from './EmployerDashboard';
 import EmployerStatusCard from './EmployerStatusCard';
 
 interface EmployerProfileViewProps {
-    user: CurrentUserType;
     dashboardData: any;
     refs: {
         assistantBtnRef: React.RefObject<HTMLButtonElement>;
@@ -79,7 +78,7 @@ const AchievementsWidget: React.FC<{ data: any }> = ({ data }) => {
 };
 
 
-const EmployerProfileView: React.FC<EmployerProfileViewProps> = ({ user, dashboardData, refs, onTourInteraction, isTourActiveStep }) => {
+const EmployerProfileView: React.FC<EmployerProfileViewProps> = ({ dashboardData, refs, onTourInteraction, isTourActiveStep }) => {
     const { openModal } = useModal();
 
     const handleAssistantClick = () => {

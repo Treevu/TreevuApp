@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { TreevuLevel } from '@/types/common';
 import { CheckIcon, BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon } from '@/components/ui/Icons';
 import { levelData } from '@/services/gamificationService.ts';
@@ -21,7 +20,10 @@ interface GamificationLevelsModalProps {
 }
 
 const GamificationLevelsModal: React.FC<GamificationLevelsModalProps> = ({ onClose }) => {
-    const { user } = useAuth();
+    // Usuario estático
+    const user = {
+        level: 3 as TreevuLevel
+    };
     const currentUserLevel = user?.level || TreevuLevel.Brote;
     const title = <>Tu Senda en <TreevuLogoText /></>;
 

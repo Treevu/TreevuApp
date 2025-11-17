@@ -256,8 +256,7 @@ export const getAIGoalCoaching = async (goal: Goal, expenses: Expense[]): Promis
       }
     };
 
-    const jsonText = await callAIApi(request);
-    return jsonText ? parseJsonFromMarkdown<{ plan: string; insight: string }>(jsonText) : null;
+    return null;
 };
 
 export const getAISavingOpportunity = async (expense: Expense, goals: Goal[]): Promise<AISavingOpportunity | null> => {

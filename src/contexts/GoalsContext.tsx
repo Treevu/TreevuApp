@@ -1,8 +1,8 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect, useMemo, useCallback } from 'react';
 import { generateUniqueId } from '@/utils';
 import { Goal } from '@/types/goal';
-import { useAuth } from './AuthContext';
-import { useAlert } from './AlertContext';
+// Remover imports problemáticos temporalmente
+// import { useAlert } from './AlertContext';
 import { trackEvent } from '@/services/analyticsService.ts';
 
 // --- DEMO DATA ---
@@ -51,9 +51,9 @@ const initialGoals: Goal[] = [
 
 interface GoalsContextType {
     goals: Goal[];
-    addGoal: (newGoal: Goal) => void;
+    addGoal: (newGoal: Goal, onSuccess?: () => void) => void;
     deleteGoal: (goalId: string) => void;
-    updateGoalContribution: (goalId: string, amount: number) => void;
+    updateGoalContribution: (goalId: string, amount: number, onSuccess?: () => void) => void;
 }
 
 const GoalsContext = createContext<GoalsContextType | undefined>(undefined);
@@ -61,8 +61,6 @@ const GoalsContext = createContext<GoalsContextType | undefined>(undefined);
 export const GoalsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [goals, setGoals] = useState<Goal[]>([]);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
-    const { user, addTreevus } = useAuth();
-    const { setAlert } = useAlert();
 
     useEffect(() => {
         try {
@@ -86,35 +84,38 @@ export const GoalsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         } catch (e) { console.error("Failed to save goals to localStorage", e); }
     }, [goals, isInitialLoad]);
     
-    const addGoal = useCallback((newGoal: Goal) => {
-        if (goals.length === 0) {
-            addTreevus(25);
-            setAlert({
-                message: '¡Primer tesoro marcado! Has ganado <strong>+25 treevüs</strong> 🌿',
-                type: 'success'
-            });
-        }
+    const addGoal = useCallback((newGoal: Goal, onSuccess?: () => void) => {
+        const isFirstGoal = goals.length === 0;
         setGoals(prev => [...prev, newGoal]);
-    }, [goals.length, addTreevus, setAlert]);
+        
+        // Ejecutar callback para lógica externa
+        if (isFirstGoal && onSuccess) {
+            onSuccess();
+        }
+    }, [goals.length]);
 
     const deleteGoal = useCallback((goalId: string) => {
-        // Instead of deleting, we can mark as abandoned for historical data
         setGoals(prev => prev.map(g => g.id === goalId ? { ...g, status: 'abandoned' } : g));
     }, []);
 
-    const updateGoalContribution = useCallback((goalId: string, amount: number) => {
+    const updateGoalContribution = useCallback((goalId: string, amount: number, onSuccess?: () => void) => {
         // --- Telemetry (Result): Track successful action from stimulus ---
         const activeStimulusRaw = sessionStorage.getItem('active_stimulus');
         if (activeStimulusRaw) {
-            const activeStimulus = JSON.parse(activeStimulusRaw);
-            if (activeStimulus.id === 'savings_challenge') {
-                trackEvent('stimulus_responded', { 
-                    stimulusId: activeStimulus.id,
-                    result: 'success',
-                    timeToConvert_ms: Date.now() - activeStimulus.shownAt,
-                    properties: { contributionAmount: amount }
-                }, user);
-                sessionStorage.removeItem('active_stimulus'); // Track only once
+            try {
+                const activeStimulus = JSON.parse(activeStimulusRaw);
+                if (activeStimulus.id === 'savings_challenge') {
+                    // Solo track si no hay problemas de dependencias
+                    trackEvent('stimulus_responded', { 
+                        stimulusId: activeStimulus.id,
+                        result: 'success',
+                        timeToConvert_ms: Date.now() - activeStimulus.shownAt,
+                        properties: { contributionAmount: amount }
+                    }, null); // Pasar null en lugar de user para evitar dependencias
+                    sessionStorage.removeItem('active_stimulus');
+                }
+            } catch (error) {
+                console.warn('Could not track stimulus event:', error);
             }
         }
         
@@ -131,7 +132,12 @@ export const GoalsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             }
             return g;
         }));
-    }, [user]);
+
+        // Ejecutar callback para lógica externa
+        if (onSuccess) {
+            onSuccess();
+        }
+    }, []);
 
     const value = useMemo(() => ({
         goals, addGoal, deleteGoal, updateGoalContribution,

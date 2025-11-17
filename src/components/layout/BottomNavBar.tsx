@@ -27,7 +27,7 @@ const BottomNavBar = <T extends string>({ tabs, activeTab, onTabClick }: BottomN
                 aria-selected={isActive && !isRegistrar}
                 aria-controls={`panel-${tab.id}`}
                 onClick={() => onTabClick(tab.id)}
-                className={`flex-1 flex flex-col items-center justify-center text-center py-2 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary rounded-t-sm ${
+                className={`flex-1 flex flex-col items-center justify-center text-center py-2 duration-200 outline-none rounded-t-sm ${
                     isActive && !isRegistrar ? 'text-primary' : 'text-on-surface-secondary hover:text-primary'
                 }`}
             >
@@ -49,7 +49,7 @@ const BottomNavBar = <T extends string>({ tabs, activeTab, onTabClick }: BottomN
         <nav
             role="tablist"
             aria-label="Navegación principal"
-            className="fixed bottom-0 left-0 right-0 z-20 max-w-3xl mx-auto bg-surface/80 backdrop-blur-lg border-t border-active-surface/50 flex justify-around items-end h-[72px]"
+            className="fixed bottom-0 left-0 right-0 z-20 mx-auto bg-surface/80 backdrop-blur-lg border-t border-active-surface/50 flex justify-around items-end h-[72px]"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
             {tabs.map(renderTab)}

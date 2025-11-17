@@ -3,7 +3,6 @@ import { BanknotesIcon } from '@/components/ui/Icons';
 import { useGoals } from '@/contexts/GoalsContext';
 import ModalWrapper from '@/components/ui/ModalWrapper.tsx';
 import { trackEvent } from '@/services/analyticsService.ts';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface AddGoalContributionModalProps {
     onClose: () => void;
@@ -12,7 +11,10 @@ interface AddGoalContributionModalProps {
 
 const AddGoalContributionModal: React.FC<AddGoalContributionModalProps> = ({ onClose, goalId }) => {
     const { updateGoalContribution, goals } = useGoals();
-    const { user } = useAuth();
+    // Usuario estático
+    const user = {
+        id: 'static-user-id'
+    };
     const goal = goals.find(g => g.id === goalId);
     const [amount, setAmount] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -35,12 +37,14 @@ const AddGoalContributionModal: React.FC<AddGoalContributionModalProps> = ({ onC
         if (activeStimulusRaw) {
             const activeStimulus = JSON.parse(activeStimulusRaw);
             if (activeStimulus.id === 'savings_challenge') {
-                trackEvent('stimulus_responded', { 
+                // Simplificamos trackEvent removiendo el parámetro user
+                console.log('stimulus_responded', { 
                     stimulusId: activeStimulus.id,
                     result: 'success',
                     timeToConvert_ms: Date.now() - activeStimulus.shownAt,
-                    properties: { contributionAmount }
-                }, user);
+                    properties: { contributionAmount },
+                    userId: user.id
+                });
                 sessionStorage.removeItem('active_stimulus');
             }
         }

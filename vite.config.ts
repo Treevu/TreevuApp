@@ -13,6 +13,9 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        watch:{
+          usePolling: true,
+        }
       },
       plugins: [react()],
       define: {
@@ -31,6 +34,10 @@ export default defineConfig(({ mode }) => {
           '@/utils': path.resolve(__dirname, 'src/utils'),
           '@/data': path.resolve(__dirname, 'src/data')
         }
+      },
+      preview: {
+        host: '0.0.0.0',
+        port: 3000
       }
     };
 });

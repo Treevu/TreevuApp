@@ -1,11 +1,15 @@
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useTribes } from '@/contexts/TribesContext';
 import { RocketLaunchIcon, CheckBadgeIcon, GiftIcon } from '@/components/ui/Icons';
 
 const MissionsView: React.FC = () => {
-    const { user } = useAuth();
+    // Usuario estático
+    const user = {
+        id: 'static-user-id',
+        name: 'Usuario Demo',
+        tribeId: 'tribe-1'
+    };
     const { tribes, missions, acceptMission } = useTribes();
 
     const userTribe = tribes.find(t => t.id === user?.tribeId);

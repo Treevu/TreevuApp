@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { GiftIcon, LockClosedIcon, ChevronDownIcon, TreevuCoinIcon, CheckBadgeIcon } from '@/components/ui/Icons';
+import { SparklesIcon, ShoppingBagIcon, TrophyIcon, TreevuCoinIcon, InformationCircleIcon, GiftIcon, LockClosedIcon, ChevronDownIcon, CheckBadgeIcon } from '@/components/ui/Icons';
 import { levelData } from '@/services/gamificationService.ts';
 import { TreevuLevel } from '@/types/common';
 import { Reward } from '@/types/user';
@@ -23,7 +22,11 @@ const globalRewards: Reward[] = [
 
 
 const RewardCard: React.FC<{ reward: Reward; onConfirmRedemption: (reward: Reward) => void }> = ({ reward, onConfirmRedemption }) => {
-    const { user } = useAuth();
+    // Usuario estático
+    const user = {
+        level: 3 as TreevuLevel,
+        treevus: 2500
+    };
     const [isExpanded, setIsExpanded] = useState(false);
     const [isRedeemed, setIsRedeemed] = useState(false);
 
@@ -161,7 +164,15 @@ const RewardCard: React.FC<{ reward: Reward; onConfirmRedemption: (reward: Rewar
 
 
 const RewardsView: React.FC = () => {
-    const { user, redeemTreevusForReward } = useAuth();
+    // Usuario estático
+    const user = {
+        level: 3 as TreevuLevel,
+        treevus: 2500
+    };
+    // Función mock
+    const redeemTreevusForReward = (reward: Reward) => {
+        console.log('redeemTreevusForReward called with:', reward);
+    };
     
     if (!user) return null;
 

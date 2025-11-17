@@ -17,7 +17,6 @@ interface FilterDrawerProps {
         setSelectedModality: (value: string) => void;
         setSelectedAgeRange: (value: string) => void;
     };
-    userRole: 'admin' | 'area_manager';
     userDepartment?: string;
 }
 
@@ -48,9 +47,9 @@ const FilterSelect: React.FC<{
     </div>
 );
 
-const FilterDrawer: React.FC<FilterDrawerProps> = ({ isOpen, onClose, filters, setFilters, userRole, userDepartment }) => {
+const FilterDrawer: React.FC<FilterDrawerProps> = ({ isOpen, onClose, filters, setFilters, userDepartment }) => {
     const [tempFilters, setTempFilters] = useState(filters);
-    const isDisabled = userRole === 'area_manager';
+    const isDisabled = true;
 
     useEffect(() => {
         if (isOpen) {
@@ -72,7 +71,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({ isOpen, onClose, filters, s
     
     const handleReset = () => {
         setTempFilters({
-            selectedDepartment: userRole === 'area_manager' ? userDepartment || 'all' : 'all',
+            selectedDepartment: 'all',
             selectedTenure: 'all',
             selectedModality: 'all',
             selectedAgeRange: 'all',

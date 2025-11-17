@@ -1,6 +1,5 @@
 import React from 'react';
 import { ArrowLeftIcon, RocketLaunchIcon, BinocularsIcon, TrophyIcon } from '@/components/ui/Icons';
-import { useAuth } from '@/contexts/AuthContext';
 import { ArchetypeKey } from '@/data/archetypes.ts';
 import AuthLayout from '@/components/auth/AuthLayout.tsx';
 interface ArchetypeSelectionProps {
@@ -29,10 +28,8 @@ const archetypes = [
 ];
 
 const ArchetypeSelection: React.FC<ArchetypeSelectionProps> = ({ onBack }) => {
-    const { signInAsArchetype } = useAuth();
 
     const handleSelect = (key: ArchetypeKey) => {
-        signInAsArchetype(key);
     };
 
     const title = <span>Elige tu <span className="text-primary">Expedición</span></span>;

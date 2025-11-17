@@ -1,5 +1,4 @@
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import ModalWrapper from '@/components/ui/ModalWrapper.tsx';
 import { TrophyIcon, ArrowPathIcon } from '@/components/ui/Icons';
 
@@ -8,7 +7,10 @@ interface PrestigeModalProps {
 }
 
 const PrestigeModal: React.FC<PrestigeModalProps> = ({ onClose }) => {
-    const { prestigeUp } = useAuth();
+    // Función mock para prestigeUp
+    const prestigeUp = () => {
+        console.log('prestigeUp called');
+    };
 
     const handleConfirm = () => {
         prestigeUp();

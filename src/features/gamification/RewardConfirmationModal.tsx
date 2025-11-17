@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { type Reward } from '@/types/user';
 import { TreevuCoinIcon, CheckBadgeIcon } from '@/components/ui/Icons';
 import ModalWrapper from '@/components/ui/ModalWrapper.tsx';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface RewardConfirmationModalProps {
     reward: Reward;
@@ -13,7 +12,10 @@ interface RewardConfirmationModalProps {
 }
 
 const RewardConfirmationModal: React.FC<RewardConfirmationModalProps> = ({ reward, userTreevus, onClose, onConfirm }) => {
-    const { user } = useAuth();
+    // Usuario estático
+    const user = {
+        level: 3 as const
+    };
     const [step, setStep] = useState<'confirm' | 'success'>('confirm');
     
     const handleConfirm = () => {

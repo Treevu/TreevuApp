@@ -3,13 +3,13 @@ import { trackEvent } from '@/services/analyticsService.ts';
 import { sendInformalExpenseNotification } from '../services/notificationService';
 import { triggerInAppNotificationChecks } from '../services/inAppNotificationService';
 import { generateUniqueId } from '@/utils';
-import { useAuth } from './AuthContext';
+// Remover imports problemáticos temporalmente
 import { calculateTreevusForAction, STREAK_BONUS_CONFIG } from '@/services/gamificationService.ts';
-import { useModal } from './ModalContext';
-import { useNotifications } from './NotificationContext';
-import { useGoals } from './GoalsContext';
-import { useAlert } from './AlertContext';
-import { useTribes } from './TribesContext';
+// import { useModal } from './ModalContext';
+// import { useNotifications } from './NotificationContext';
+// import { useGoals } from './GoalsContext';
+// import { useAlert } from './AlertContext';
+// import { useTribes } from './TribesContext';
 
 import { CategoriaGasto, TipoComprobante, FwiComponents } from '@/types/common';
 import { Expense, ExpenseData } from '@/types/expense';
@@ -72,9 +72,19 @@ interface ExpensesContextType {
     formalityIndexByCount: number;
     fwi_v2: number;
     fwi_v2_components: FwiComponents;
-    addExpense: (newExpenseData: ExpenseData & { imageUrl?: string }) => Expense;
+    addExpense: (newExpenseData: ExpenseData & { imageUrl?: string }, callbacks?: ExpenseCallbacks) => Expense;
     updateExpense: (expenseId: string, updatedData: Partial<ExpenseData>) => void;
     deleteExpense: (expenseId: string) => void;
+}
+
+// Interfaz para callbacks externos
+interface ExpenseCallbacks {
+    onTreevusEarned?: (amount: number, message: string, type: 'success' | 'info') => void;
+    onStreakUpdate?: (newStreak: { count: number; lastDate: string }) => void;
+    onProgressUpdate?: (progress: { expensesCount: number; formalityIndex: number }) => void;
+    onNotificationTrigger?: (expenses: Expense[]) => void;
+    onMissionProgress?: (metric: string, value: number) => void;
+    onModalOpen?: (modalId: string) => void;
 }
 
 const ExpensesContext = createContext<ExpensesContextType | undefined>(undefined);
@@ -87,13 +97,6 @@ const SURPRISE_BONUS_MAX = 100;
 export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
-    
-    const { user, updateUserProgress, addTreevus, updateUserStreak } = useAuth();
-    const { openModal } = useModal();
-    const { addNotification, lastNotificationTimes } = useNotifications();
-    const { goals } = useGoals();
-    const { setAlert } = useAlert();
-    const { updateMissionProgress } = useTribes();
 
     useEffect(() => {
         try {
@@ -162,16 +165,8 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
 
         return { fwi_v2: score * 100, fwi_v2_components: components };
     }, [expenses, formalityIndex]);
-
-    useEffect(() => {
-        if (isInitialLoad) return;
-        updateUserProgress({
-            expensesCount: expenses.length,
-            formalityIndex: fwi_v2,
-        });
-    }, [expenses.length, fwi_v2, isInitialLoad, updateUserProgress]);
     
-    const addExpense = useCallback((newExpenseData: ExpenseData & { imageUrl?: string }) => {
+    const addExpense = useCallback((newExpenseData: ExpenseData & { imageUrl?: string }, callbacks?: ExpenseCallbacks) => {
         const isFirstExpense = expenses.length === 0;
 
         const newExpense: Expense = {
@@ -184,18 +179,25 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
         // --- Telemetry (Result): Track successful action from stimulus ---
         const activeStimulusRaw = sessionStorage.getItem('active_stimulus');
         if (activeStimulusRaw) {
-            const activeStimulus = JSON.parse(activeStimulusRaw);
-            if (activeStimulus.id === 'bonus_formal_expense' && newExpense.esFormal) {
-                trackEvent('stimulus_responded', { 
-                    stimulusId: activeStimulus.id,
-                    result: 'success',
-                    timeToConvert_ms: Date.now() - activeStimulus.shownAt,
-                }, user);
-                sessionStorage.removeItem('active_stimulus'); // Track only once
+            try {
+                const activeStimulus = JSON.parse(activeStimulusRaw);
+                if (activeStimulus.id === 'bonus_formal_expense' && newExpense.esFormal) {
+                    trackEvent('stimulus_responded', { 
+                        stimulusId: activeStimulus.id,
+                        result: 'success',
+                        timeToConvert_ms: Date.now() - activeStimulus.shownAt,
+                    }, null); // Pasar null para evitar dependencias
+                    sessionStorage.removeItem('active_stimulus'); // Track only once
+                }
+            } catch (error) {
+                console.warn('Could not track stimulus event:', error);
             }
         }
 
-        triggerInAppNotificationChecks(updatedExpenses, goals, addNotification, lastNotificationTimes);
+        // Callback para notificaciones
+        if (callbacks?.onNotificationTrigger) {
+            callbacks.onNotificationTrigger(updatedExpenses);
+        }
 
         const treevusEarned = calculateTreevusForAction('add_expense', { expense: newExpense });
         let streakBonus = 0;
@@ -206,25 +208,44 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
             firstExpenseBonus = 75;
         }
 
-        if (newExpense.esFormal && user) {
-            if(user.tribeId) {
-                updateMissionProgress(user.tribeId, 'formalExpenseCount', 1);
+        if (newExpense.esFormal) {
+            // Callback para misiones de tribu
+            if (callbacks?.onMissionProgress) {
+                callbacks.onMissionProgress('formalExpenseCount', 1);
             }
-            const today = new Date();
-            const yesterday = new Date(today);
+            
+            // Lógica de streak (simplificada para evitar dependencias)
+            const today = new Date().toISOString().split('T')[0];
+            const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
-            const todayString = today.toISOString().split('T')[0];
             const yesterdayString = yesterday.toISOString().split('T')[0];
-            const lastStreakDate = user.streak?.lastDate || '';
-            let newStreakCount = user.streak?.count || 0;
+            
+            // Obtener streak actual del localStorage
+            const savedStreak = localStorage.getItem('current-streak');
+            let currentStreak = { count: 0, lastDate: '' };
+            if (savedStreak) {
+                try {
+                    currentStreak = JSON.parse(savedStreak);
+                } catch (e) {
+                    console.warn('Could not parse streak data');
+                }
+            }
 
-            if (lastStreakDate !== todayString) {
-                if (lastStreakDate === yesterdayString) {
+            let newStreakCount = currentStreak.count;
+            if (currentStreak.lastDate !== today) {
+                if (currentStreak.lastDate === yesterdayString) {
                     newStreakCount++;
                 } else {
                     newStreakCount = 1;
                 }
-                updateUserStreak({ count: newStreakCount, lastDate: todayString });
+                
+                const newStreakData = { count: newStreakCount, lastDate: today };
+                localStorage.setItem('current-streak', JSON.stringify(newStreakData));
+                
+                // Callback para actualizar streak en AuthProvider
+                if (callbacks?.onStreakUpdate) {
+                    callbacks.onStreakUpdate(newStreakData);
+                }
                 
                 if (newStreakCount >= STREAK_BONUS_CONFIG.MIN_STREAK_FOR_BONUS) {
                     streakBonus = Math.min(
@@ -241,28 +262,45 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
         
         const totalTreevus = treevusEarned + streakBonus + firstExpenseBonus + surpriseBonus;
-        if (totalTreevus > 0) addTreevus(totalTreevus);
 
-        const infoAction = { text: '¿Qué son?', onClick: () => openModal('treevusInfo') };
+        // Callback para actualizar progreso
+        if (callbacks?.onProgressUpdate) {
+            callbacks.onProgressUpdate({
+                expensesCount: updatedExpenses.length,
+                formalityIndex: fwi_v2,
+            });
+        }
+
+        // Determinar mensaje y tipo de alerta
+        let message = '';
+        let alertType: 'success' | 'info' = 'success';
 
         if (surpriseBonus > 0) {
-            setAlert({ message: `✨ ¡Cosecha Sorpresa! Ganaste un bono de <strong>+${totalTreevus} treevüs</strong>.`, type: 'success', action: infoAction });
+            message = `✨ ¡Cosecha Sorpresa! Ganaste un bono de +${totalTreevus} treevüs.`;
         } else if (isFirstExpense) {
-            setAlert({ message: `¡Tu primer brote! Ganaste <strong>+${totalTreevus} treevüs</strong> por tu primer registro.`, type: 'success', action: infoAction });
+            message = `¡Tu primer brote! Ganaste +${totalTreevus} treevüs por tu primer registro.`;
         } else if (streakBonus > 0) {
-            const streakCount = (user?.streak?.count || 0) + 1;
-            addNotification({ type: NotificationType.StreakBonus, title: `¡Racha de ${streakCount} días!`, message: `¡Felicidades! Ganaste ${totalTreevus} treevüs de bonificación por tu constancia.` });
-            setAlert({ message: `¡Racha de ${streakCount} días! Ganaste <strong>+${totalTreevus} treevüs</strong>.`, type: 'success', action: infoAction });
+            // message = `¡Racha de ${newStreakCount} días! Ganaste +${totalTreevus} treevüs.`;
         } else {
-             const message = `${newExpense.mensaje || '¡Gasto guardado!'} (<strong>+${totalTreevus} treevüs</strong> 🌿)`;
-             setAlert({ message, type: 'success', action: infoAction });
+            message = `${newExpense.mensaje || '¡Gasto guardado!'} (+${totalTreevus} treevüs 🌿)`;
+        }
+
+        // Callback para mostrar alerta y treevüs
+        if (callbacks?.onTreevusEarned) {
+            callbacks.onTreevusEarned(totalTreevus, message, alertType);
+        }
+
+        // Callback para abrir modal de info
+        if (callbacks?.onModalOpen) {
+            // Se puede usar desde el componente que necesite abrir el modal
         }
 
         if (!newExpense.esFormal && newExpense.ahorroPerdido > 0) {
             sendInformalExpenseNotification(newExpense);
         }
+
         return newExpense;
-    }, [expenses, user, goals, addTreevus, updateUserStreak, setAlert, addNotification, lastNotificationTimes, openModal, updateMissionProgress]);
+    }, [expenses, fwi_v2]);
 
     const updateExpense = useCallback((expenseId: string, updatedData: Partial<ExpenseData>) => {
         setExpenses(prev => prev.map(expense => expense.id === expenseId ? { ...expense, ...updatedData } : expense));

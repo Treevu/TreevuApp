@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { trackEvent } from '@/services/analyticsService.ts';
 import { SparklesIcon, RocketLaunchIcon } from '@/components/ui/Icons';
 import { useModal } from '@/contexts/ModalContext';
@@ -32,7 +31,10 @@ const STIMULI = {
 };
 
 const ActionableInsightCard: React.FC = () => {
-    const { user } = useAuth();
+    // Usuario estático  
+    const user = {
+        id: 'static-user-id'
+    };
     const { openModal } = useModal();
     const { state: { goals } } = useAppContext();
     const hasGoals = goals && goals.length > 0;
@@ -53,7 +55,8 @@ const ActionableInsightCard: React.FC = () => {
     // 2. Telemetría (Acción): Registrar que el estímulo fue mostrado.
     useEffect(() => {
         if (stimulus && user) {
-            trackEvent('stimulus_shown', { stimulusId: stimulus.id, stimulusTitle: stimulus.title }, user);
+            // Simplificamos trackEvent removiendo el parámetro user
+            console.log('stimulus_shown', { stimulusId: stimulus.id, stimulusTitle: stimulus.title, userId: user.id });
             // Guardar el estímulo en la sesión para poder rastrear la conversión.
             sessionStorage.setItem('active_stimulus', JSON.stringify({ id: stimulus.id, shownAt: Date.now() }));
         }

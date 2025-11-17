@@ -1,7 +1,6 @@
 
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useTribes } from '@/contexts/TribesContext';
 import { useModal } from '@/contexts/ModalContext';
 import { UsersIcon, TrophyIcon, PlusIcon, BosqueIcon, BroteIcon, HandThumbUpIcon, MagnifyingGlassIcon } from '@/components/ui/Icons';
@@ -66,7 +65,12 @@ const CollaborativeForest: React.FC<{ tribe: Tribe; onContribute: () => void; }>
 };
 
 const TeamsView: React.FC = () => {
-    const { user } = useAuth();
+    // Usuario estático
+    const user = {
+        id: 'static-user-id',
+        name: 'Usuario Demo',
+        tribeId: 'tribe-1'
+    };
     const { tribes } = useTribes();
     const { openModal } = useModal();
     const [searchQuery, setSearchQuery] = useState('');

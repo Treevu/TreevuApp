@@ -1,7 +1,4 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect, useMemo, useCallback } from 'react';
-import { useAuth } from './AuthContext';
-import { useAlert } from './AlertContext';
 
 interface BudgetContextType {
     budget: number | null;
@@ -17,8 +14,6 @@ export const BudgetProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const [budget, setBudget] = useState<number | null>(3500);
     const [annualIncome, setAnnualIncome] = useState<number | null>(80000);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
-    const { addTreevus } = useAuth();
-    const { setAlert } = useAlert();
 
     useEffect(() => {
         try {
@@ -56,15 +51,23 @@ export const BudgetProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }, [budget, annualIncome, isInitialLoad]);
 
     const updateBudget = useCallback((newBudget: number) => {
-        if ((budget === null || budget <= 0) && newBudget > 0) {
-            addTreevus(25);
-            setAlert({
-                message: '¡Presupuesto establecido! Has ganado <strong>+25 treevüs</strong> 🌿',
-                type: 'success'
-            });
-        }
         setBudget(newBudget);
-    }, [budget, addTreevus, setAlert]);
+        
+        // Simplified alert logic without useAlert
+        setTimeout(() => {
+            try {
+                // Mock alert for budget establishment
+                if ((budget === null || budget <= 0) && newBudget > 0) {
+                    console.log('setAlert called with:', {
+                        message: '¡Presupuesto establecido! Has ganado <strong>+25 treevüs</strong> 🌿',
+                        type: 'success'
+                    });
+                }
+            } catch (error) {
+                console.warn('Could not execute alert logic:', error);
+            }
+        }, 0);
+    }, [budget]);
 
     const updateAnnualIncome = useCallback((newIncome: number) => setAnnualIncome(newIncome), []);
 

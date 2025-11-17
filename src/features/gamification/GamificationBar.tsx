@@ -1,5 +1,4 @@
 import React, { forwardRef, useMemo } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { levelData } from '@/services/gamificationService.ts';
 import { useModal } from '@/contexts/ModalContext';
 import { TreevuLevel } from '@/types/common';
@@ -19,7 +18,15 @@ const levelIconComponents: Record<TreevuLevel, React.FC<{className?: string}>> =
 
 
 const GamificationBar = forwardRef<HTMLButtonElement, GamificationBarProps>(({ onOpen }, ref) => {
-    const { user } = useAuth();
+    // Usuario estático
+    const user = {
+        level: 3 as TreevuLevel,
+        progress: {
+            expensesCount: 25,
+            formalityIndex: 0.7
+        },
+        treevus: 2500
+    };
     const { openModal } = useModal();
 
     if (!user) return null;

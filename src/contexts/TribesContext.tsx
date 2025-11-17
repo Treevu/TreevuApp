@@ -1,5 +1,4 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect, useMemo, useCallback } from 'react';
-import { useAuth } from './AuthContext';
 import { Tribe, Mission, MissionMetric, TribeMember } from '@/types/tribe';
 
 
@@ -76,18 +75,19 @@ const generateMockTribes = (): Tribe[] => {
 interface TribesContextType {
     tribes: Tribe[];
     missions: Mission[];
-    sendKudos: (recipientId: string, amount: number, type: 'user' | 'tribe') => void;
+    sendKudos: (recipientId: string, amount: number, type: 'user' | 'tribe', onUserUpdate?: (kudosSent: number) => void) => void;
     acceptMission: (tribeId: string, missionId: string) => void;
     updateMissionProgress: (tribeId: string, metric: MissionMetric, value: number) => void;
+    syncUserData: (userId: string, userData: { name: string; tribeId?: string; kudosReceived: number }) => void;
 }
 
 const TribesContext = createContext<TribesContextType | undefined>(undefined);
 
 export const TribesProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { user, updateUser } = useAuth();
     const [tribes, setTribes] = useState<Tribe[]>([]);
     const [missions] = useState<Mission[]>(MOCK_MISSIONS);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
+    const [currentUser, setCurrentUser] = useState<any>(null);
 
     useEffect(() => {
         let loadedTribes: Tribe[];
@@ -98,41 +98,48 @@ export const TribesProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             } else {
                 loadedTribes = generateMockTribes();
             }
-        } catch (e) { console.error("Failed to load tribes from localStorage", e); 
+        } catch (e) { 
+            console.error("Failed to load tribes from localStorage", e); 
             loadedTribes = generateMockTribes();
-        }
-
-        // Dynamically inject the current user into their tribe for data consistency
-        if (user && user.tribeId) {
-            loadedTribes = loadedTribes.map(tribe => {
-                // First, remove the user from any tribe they might erroneously be in
-                tribe.members = tribe.members.filter(m => m.id !== user.id && m.name !== 'Tú');
-                
-                // Now, add or update the user in their correct tribe
-                if (tribe.id === user.tribeId) {
-                    const newMember: TribeMember = {
-                        id: user.id,
-                        name: 'Tú', // Keep UI consistent
-                        avatarInitial: user.name.split(' ').map(n => n[0]).join(''),
-                        kudosReceived: user.kudosReceived,
-                    };
-                    // Add the current user to the top of the list for easy access
-                    tribe.members.unshift(newMember);
-                }
-                return tribe;
-            });
         }
 
         setTribes(loadedTribes);
         setIsInitialLoad(false);
-    }, [user]);
-    
+    }, []);
+
     useEffect(() => {
         if (isInitialLoad) return;
         try {
             localStorage.setItem('treevu-tribes', JSON.stringify(tribes));
-        } catch(e) { console.error("Failed to save tribes to localStorage", e); }
+        } catch(e) { 
+            console.error("Failed to save tribes to localStorage", e); 
+        }
     }, [tribes, isInitialLoad]);
+
+    // Función para sincronizar datos del usuario desde AuthProvider
+    const syncUserData = useCallback((userId: string, userData: { name: string; tribeId?: string; kudosReceived: number }) => {
+        setCurrentUser({ id: userId, ...userData });
+        
+        // Actualizar las tribus con los datos del usuario
+        setTribes(prevTribes => {
+            return prevTribes.map(tribe => {
+                // Remover usuario de todas las tribus
+                tribe.members = tribe.members.filter(m => m.id !== userId && m.name !== 'Tú');
+                
+                // Agregar usuario a su tribu correcta
+                if (tribe.id === userData.tribeId) {
+                    const newMember: TribeMember = {
+                        id: userId,
+                        name: 'Tú',
+                        avatarInitial: userData.name.split(' ').map(n => n[0]).join(''),
+                        kudosReceived: userData.kudosReceived,
+                    };
+                    tribe.members.unshift(newMember);
+                }
+                return tribe;
+            });
+        });
+    }, []);
     
     const updateMissionProgress = useCallback((tribeId: string, metric: MissionMetric, value: number) => {
         setTribes(prevTribes => 
@@ -155,19 +162,22 @@ export const TribesProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }, [missions]);
 
 
-    const sendKudos = useCallback((recipientId: string, amount: number, type: 'user' | 'tribe') => {
-        if (!user) return;
+    const sendKudos = useCallback((recipientId: string, amount: number, type: 'user' | 'tribe', onUserUpdate?: (kudosSent: number) => void) => {
+        if (!currentUser) return;
         
-        // Sending kudos always increments the "sent" counter.
-        updateUser({ kudosSent: (user.kudosSent || 0) + 1 });
-        if(user.tribeId) {
-            updateMissionProgress(user.tribeId, 'kudosSentCount', 1);
+        // Notificar al AuthProvider sobre el cambio usando callback
+        if (onUserUpdate) {
+            const newKudosSent = (currentUser.kudosSent || 0) + 1;
+            onUserUpdate(newKudosSent);
+        }
+        
+        if (currentUser.tribeId) {
+            updateMissionProgress(currentUser.tribeId, 'kudosSentCount', 1);
         }
 
         setTribes(prevTribes => {
             return prevTribes.map(tribe => {
                 if (type === 'user') {
-                    // When giving to a user, 'amount' is always 1 (one recognition)
                     return {
                         ...tribe,
                         members: tribe.members.map(member => 
@@ -178,13 +188,12 @@ export const TribesProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                     };
                 }
                 if (type === 'tribe' && tribe.id === recipientId) {
-                    // When contributing to the forest, 'amount' is the number of Treevüs
                     return { ...tribe, collectiveKudos: tribe.collectiveKudos + amount };
                 }
                 return tribe;
             });
         });
-    }, [user, updateUser, updateMissionProgress]);
+    }, [currentUser, updateMissionProgress]);
     
     const acceptMission = useCallback((tribeId: string, missionId: string) => {
         setTribes(prevTribes =>
@@ -196,7 +205,14 @@ export const TribesProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         );
     }, []);
 
-    const value = useMemo(() => ({ tribes, missions, sendKudos, acceptMission, updateMissionProgress }), [tribes, missions, sendKudos, acceptMission, updateMissionProgress]);
+    const value = useMemo(() => ({ 
+        tribes, 
+        missions, 
+        sendKudos, 
+        acceptMission, 
+        updateMissionProgress, 
+        syncUserData 
+    }), [tribes, missions, sendKudos, acceptMission, updateMissionProgress, syncUserData]);
     
     return (
         <TribesContext.Provider value={value}>

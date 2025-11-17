@@ -7,7 +7,6 @@ import { Expense } from '@/types/expense';
 import { Goal } from '@/types/goal';
 import { Tribe, Mission } from '@/types/tribe';
 import { FwiComponents } from '@/types/common';
-import { useAuth } from './AuthContext';
 
 interface AppContextType {
     state: {
@@ -36,7 +35,6 @@ interface AppContextType {
     sendKudos: ReturnType<typeof useTribes>['sendKudos'];
     acceptMission: ReturnType<typeof useTribes>['acceptMission'];
     updateMissionProgress: ReturnType<typeof useTribes>['updateMissionProgress'];
-    recordUserActivity: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -48,7 +46,6 @@ const AppDataCombiner: React.FC<{ children: ReactNode }> = ({ children }) => {
     const budgetData = useBudget();
     const goalsData = useGoals();
     const tribesData = useTribes();
-    const { user, recordUserActivity, updateUser } = useAuth();
 
     // --- ML DERIVED METRICS ---
     const fwiTrend = useMemo(() => {
@@ -75,16 +72,10 @@ const AppDataCombiner: React.FC<{ children: ReactNode }> = ({ children }) => {
             if (fwiCurrent > fwiPrevious + 2) trend = 'improving';
             else if (fwiCurrent < fwiPrevious - 2) trend = 'declining';
         }
-        
-        // Update user object with the trend
-        if (user && user.fwiTrend !== trend) {
-             // Use a timeout to avoid being in the middle of a render cycle
-            setTimeout(() => updateUser({ fwiTrend: trend }), 0);
-        }
 
         return trend;
 
-    }, [expensesData, user, updateUser]);
+    }, [expensesData]);
 
 
     const value = useMemo(() => ({
@@ -107,9 +98,8 @@ const AppDataCombiner: React.FC<{ children: ReactNode }> = ({ children }) => {
         ...budgetData,
         ...goalsData,
         ...tribesData,
-        recordUserActivity
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }), [expensesData, budgetData, goalsData, tribesData, fwiTrend, recordUserActivity]);
+    }), [expensesData, budgetData, goalsData, tribesData, fwiTrend]);
 
     return (
         <AppContext.Provider value={value as AppContextType}>

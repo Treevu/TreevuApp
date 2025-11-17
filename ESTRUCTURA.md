@@ -158,7 +158,6 @@ export { NewButton } from './NewButton';
 
 ### Usar Contextos
 ```typescript
-import { useAuth } from '@/contexts/AuthContext';
 import { useModal } from '@/contexts/ModalContext';
 ```
 

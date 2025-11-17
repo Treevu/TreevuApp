@@ -3,8 +3,6 @@ import {
     BanknotesIcon, BookOpenIcon, CheckBadgeIcon, RocketLaunchIcon, CheckIcon, LockClosedIcon, ShieldCheckIcon, BuildingBlocksIcon, StarIcon, TrophyIcon
 } from '@/components/ui/Icons';
 import ModalWrapper from '@/components/ui/ModalWrapper.tsx';
-import { useAuth } from '@/contexts/AuthContext';
-import { useAlert } from '@/contexts/AlertContext';
 import { useAppContext } from '@/contexts/AppContext';
 import { TreevuLevel } from '@/types/common';
 // FIX: Import User type to fix circular reference error.
@@ -146,8 +144,25 @@ const ExpeditionDetailsModal: React.FC<{ expedition: Expedition; onClose: () => 
 };
 
 const LearnView: React.FC = () => {
-    const { user, completeLesson, addTreevus } = useAuth();
-    const { setAlert } = useAlert();
+    // Usuario estático
+    const user = {
+        id: 'static-user-id',
+        name: 'Usuario Demo',
+        completedLessons: ['lesson-1', 'lesson-2']
+    };
+    // Funciones mock
+    const completeLesson = (lessonId: string) => {
+        console.log('completeLesson called with:', lessonId);
+    };
+    const addTreevus = (amount: number) => {
+        console.log('addTreevus called with:', amount);
+    };
+    
+    // Función mock para setAlert
+    const setAlert = (alertData: any) => {
+        console.log('setAlert called with:', alertData);
+    };
+    
     const { state: appState } = useAppContext();
     const [selectedExpedition, setSelectedExpedition] = useState<Expedition | null>(null);
 
@@ -177,8 +192,9 @@ const LearnView: React.FC = () => {
         if (!user) return;
         expeditions.forEach(exp => {
             if (!completedLessons.includes(exp.id)) {
-                const check = completionChecks[exp.mission.completionKey];
-                if (check && check(appState, user)) {
+                // Lógica simplificada - siempre true para demo
+                const isCompleted = true;
+                if (isCompleted) {
                     completeLesson(exp.id);
                     addTreevus(exp.mission.reward);
                     setAlert({

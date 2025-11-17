@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper.tsx';
 import { CheckIcon, GiftIcon, TreevuCoinIcon } from '@/components/ui/Icons';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface PromoteLessonModalProps {
     onClose: () => void;
@@ -14,7 +13,10 @@ interface PromoteLessonModalProps {
 }
 
 const PromoteLessonModal: React.FC<PromoteLessonModalProps> = ({ onClose, onSave, lesson }) => {
-    const { user } = useAuth();
+    // Usuario estático
+    const user = {
+        level: 3 as const
+    };
     const [bonus, setBonus] = useState(50);
     const [error, setError] = useState('');
 

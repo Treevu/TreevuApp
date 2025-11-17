@@ -2,10 +2,8 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Header from '@/components/layout/Header';
 import Alert from '@/components/ui/Alert';
 import OnboardingTour from '@/features/profile/OnboardingTour';
-import { useAuth } from '@/contexts/AuthContext';
 import { useExpenses } from '@/contexts/ExpensesContext';
 import { useBudget } from '@/contexts/BudgetContext';
-import { useAlert } from '@/contexts/AlertContext';
 import WalletView from '@/features/wallet/WalletView';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import DeveloperNotice from '@/features/notifications/DeveloperNotice';
@@ -22,11 +20,23 @@ type ScanMode = 'receipt' | 'products' | 'verify';
 type NavTabId = ActiveTab | 'registrar';
 
 
-const AppContent: React.FC = () => {
-    const { user } = useAuth();
+const MainApp: React.FC = () => {
     const { expenses, deleteExpense, totalExpenses } = useExpenses();
     const { budget } = useBudget();
-    const { alert, setAlert } = useAlert();
+    // Mock para alert
+    // const type: "danger" = "danger";
+    // const alert = {
+    //     message: 'Test',
+    //     type: type,
+    //     action: {
+    //         text: 'TESTING',
+    //         onClick: ()=>{}
+    //     }
+    // };
+    const alert = null;
+    const setAlert = (alertData: any) => {
+        console.log('setAlert called with:', alertData);
+    };
     const { openModal, closeModal } = useModal();
     
     const [activeTab, setActiveTab] = useState<ActiveTab>('inicio');
@@ -82,12 +92,6 @@ const AppContent: React.FC = () => {
         }
     }, [openModal]);
 
-
-    useEffect(() => {
-        const tourCompleted = localStorage.getItem('treevu-tour-completed') === 'true';
-        if (!user || tourCompleted) return;
-        setTimeout(() => setIsTourActive(true), 500);
-    }, [user]);
 
     useEffect(() => {
         setAlert(currentAlert => {
@@ -183,15 +187,14 @@ const AppContent: React.FC = () => {
                 <Header />
             </div>
             
-            <main className="flex-1 max-w-3xl w-full mx-auto flex flex-col overflow-hidden">
-                <div className="px-4 pt-4">
-                    {alert && <Alert message={alert.message} type={alert.type} onDismiss={() => setAlert(null)} action={alert.action} />}
-                </div>
-
+            <main className="flex-1 w-full mx-auto flex flex-col overflow-hidden">
                 <div className="flex-1 overflow-hidden relative">
+                    <div className="mx-4 my-4">
+                        {alert && <Alert message={alert.message} type={alert.type} autoDismiss={true} onDismiss={() => setAlert(null)} action={alert.action} />}
+                    </div>
                     <div 
                         {...swipeHandlers}
-                        className="flex w-[400%] h-full absolute top-0 left-0"
+                        className="flex w-[400%] h-full absolute top-0 left-0 mt-4"
                         style={{ 
                             transform: `translateX(calc(${transformValue / 4}% + ${swipeOffset}px))`,
                             transition: isSwiping ? 'none' : 'transform 0.3s ease-in-out'
@@ -241,13 +244,6 @@ const AppContent: React.FC = () => {
             
             <DeveloperNotice />
         </div>
-    );
-};
-
-
-const MainApp: React.FC = () => {
-    return (
-        <AppContent />
     );
 };
 

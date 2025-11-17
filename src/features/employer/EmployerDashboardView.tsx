@@ -13,7 +13,6 @@ import { useModal } from '@/contexts/ModalContext';
 import { Challenge } from '@/types/employer';
 
 interface EmployerDashboardViewProps {
-    user: CurrentUserType;
     dashboardData: any;
     filters: {
         selectedDepartment: string;
@@ -36,7 +35,6 @@ interface EmployerDashboardViewProps {
         areaComparisonRef: React.RefObject<HTMLDivElement>; // This ref will now point to the KpiMatrixWidget
     };
     activeTab: 'resumen' | 'talento' | 'cultura' | 'perfil';
-    onSignOut: () => void;
     onOpenCreateChallengeModal: (suggestion?: Omit<Challenge, 'id'>) => void;
 }
 
@@ -48,13 +46,11 @@ const EmptyState: React.FC = () => (
 );
 
 const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
-    user,
     dashboardData,
     filters,
     setFilters,
     refs,
     activeTab,
-    onSignOut,
     onOpenCreateChallengeModal,
 }) => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -135,7 +131,7 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
                     <h1 className="text-3xl font-bold">Resumen Estratégico</h1>
                     <div className="flex items-center gap-4">
                         <button
-                            onClick={() => openModal('strategicReport', { dashboardData, user })}
+                            onClick={() => openModal('strategicReport', )}
                             disabled={dashboardData.isEmpty}
                             className="flex items-center text-sm font-bold text-primary bg-primary/20 px-3 py-2 rounded-lg hover:bg-primary/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Generar informe estratégico"
@@ -145,7 +141,6 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
                         </button>
                         <EmployerExportButton data={dashboardData} />
                         <button
-                            onClick={onSignOut}
                             className="flex items-center text-sm font-semibold text-danger hover:opacity-80 transition-opacity"
                             aria-label="Cerrar sesión"
                         >
@@ -155,14 +150,13 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
                     </div>
                 </div>
                 <p className="text-on-surface-secondary">
-                    Hola, <span className="font-bold text-primary">{user.name}</span>. Bienvenido al Centro de Mando. Aquí tienes el pulso de tu equipo en tiempo real.
+                    Hola, <span className="font-bold text-primary"></span>. Bienvenido al Centro de Mando. Aquí tienes el pulso de tu equipo en tiempo real.
                 </p>
             </header>
 
             <div ref={refs.filtersRef} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <button 
                     onClick={() => setIsDrawerOpen(true)}
-                    disabled={user.role === 'area_manager'}
                     className="w-full flex items-center justify-between p-3 bg-surface rounded-xl text-left hover:bg-active-surface transition-colors shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-surface"
                 >
                     <div className="flex items-center min-w-0">
@@ -194,9 +188,9 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
                     <span className="text-sm font-bold text-primary flex-shrink-0 ml-2">Probar</span>
                 </button>
 
-                {user.role === 'area_manager' && (
+                {(
                     <p className="text-xs text-on-surface-secondary text-center mt-2 px-2 md:col-span-2">
-                        Los filtros están deshabilitados para este rol. Visualizas los datos de tu área: <strong>{user.department}</strong>.
+                        Los filtros están deshabilitados para este rol. Visualizas los datos de tu área: <strong></strong>.
                     </p>
                 )}
             </div>
@@ -268,8 +262,7 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
                 onClose={() => setIsDrawerOpen(false)}
                 filters={filters}
                 setFilters={setFilters}
-                userRole={user.role}
-                userDepartment={user.role === 'area_manager' ? user.department : undefined}
+                userDepartment={undefined}
             />
         </div>
     );

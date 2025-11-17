@@ -1,7 +1,5 @@
 
 import React, { useRef, useCallback, useEffect, useReducer, useState, useMemo } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useAlert } from '@/contexts/AlertContext';
 // FIX: Updated imports from deprecated 'types.ts' to domain-specific type files.
 import { type Expense, type Product, type VerificationResult, type ExpenseData } from '@/types/expense';
 import { CategoriaGasto, TipoComprobante } from '@/types/common';
@@ -175,8 +173,14 @@ const VerificationDisplay = ({ result }: { result: VerificationResult }) => {
 export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initialAction, initialFile, scanMode, expenseToEdit }) => {
     const { state: appState, addExpense, updateExpense, updateGoalContribution } = useAppContext();
     const { expenses, goals } = appState;
-    const { addTreevus } = useAuth();
-    const { setAlert } = useAlert();
+    // Función mock para addTreevus
+    const addTreevus = (amount: number) => {
+        console.log(`addTreevus called with amount: ${amount}`);
+    };
+    // Función mock para setAlert
+    const setAlert = (alertData: any) => {
+        console.log('setAlert called with:', alertData);
+    };
     
     const getInitialState = useCallback((): ModalState => {
         if (expenseToEdit) {

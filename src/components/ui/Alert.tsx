@@ -4,6 +4,8 @@ import { ExclamationTriangleIcon, XMarkIcon, InformationCircleIcon, SparklesIcon
 interface AlertProps {
     message: string;
     type: 'info' | 'warning' | 'danger' | 'success';
+    autoDismiss: boolean,
+    dismissTimer?: number,
     onDismiss: () => void;
     action?: {
         text: string;
@@ -38,20 +40,21 @@ const alertStyles = {
     },
 };
 
-const Alert: React.FC<AlertProps> = ({ message, type, onDismiss, action }) => {
+const Alert: React.FC<AlertProps> = ({ message, type, onDismiss, action, autoDismiss, dismissTimer=5000 }) => {
     const styles = alertStyles[type];
     const Icon = type === 'success' ? SparklesIcon : type === 'info' ? InformationCircleIcon : ExclamationTriangleIcon;
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            onDismiss();
-        }, 5000); // Auto-dismiss after 5 seconds
-
-        return () => clearTimeout(timer);
+        if(autoDismiss){
+            const timer = setTimeout(() => {
+                onDismiss();
+            }, dismissTimer);
+            return () => clearTimeout(timer);
+        }
     }, [onDismiss]);
 
     return (
-        <div role="alert" className={`border-l-4 ${styles.border} bg-surface p-4 mb-4 rounded-md flex items-start animate-grow-and-fade-in shadow-lg ${styles.shadow}`}>
+        <div role="alert" className={`sticky border-l-4 ${styles.border} bg-surface p-4 rounded-md flex items-start animate-grow-and-fade-in shadow-lg ${styles.shadow} z-[1000]`}>
             <div className="flex-shrink-0">
                 <Icon className={`w-6 h-6 ${styles.icon}`} />
             </div>

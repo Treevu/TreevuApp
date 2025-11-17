@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
-import { useAuth } from '@/contexts/AuthContext';
 import FinancialWellnessWidget from './FinancialWellnessWidget';
 import CategoryAnalysis from '@/features/expenses/CategoryAnalysis.tsx';
 import MerchantAnalysis from '@/features/expenses/MerchantAnalysis.tsx';
@@ -16,7 +15,27 @@ type AnalysisSubTab = 'categories' | 'merchants';
 
 const AIInsightCard = () => {
     const { state: { expenses } } = useAppContext();
-    const { user } = useAuth();
+    // Usuario estático
+    const user = {
+        id: 'static-user-id',
+        name: 'Usuario Demo',
+        email: 'usuario@demo.com',
+        picture: '',
+        level: 3 as const,
+        progress: {
+            expensesCount: 25,
+            formalityIndex: 0.7
+        },
+        treevus: 2500,
+        isProfileComplete: true,
+        kudosSent: 10,
+        kudosReceived: 15,
+        registrationDate: '2024-01-15T00:00:00Z',
+        lastActivityDate: '2024-12-14T00:00:00Z',
+        rewardsClaimedCount: 3,
+        engagementScore: 85,
+        fwiTrend: 'improving' as const
+    };
     const [aiSummary, setAiSummary] = React.useState('');
     const [isLoadingSummary, setIsLoadingSummary] = React.useState(true);
 

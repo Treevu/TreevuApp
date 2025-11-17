@@ -1,5 +1,4 @@
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { TreevuCoinIcon } from '@/components/ui/Icons';
 import ModalWrapper from '@/components/ui/ModalWrapper.tsx';
 import TreevuLogoText from '@/components/ui/TreevuLogoText.tsx';
@@ -9,7 +8,10 @@ interface TreevusInfoModalProps {
 }
 
 const ThreevusInfoModal: React.FC<TreevusInfoModalProps> = ({ onClose }) => {
-    const { user } = useAuth();
+    // Usuario estático
+    const user = {
+        level: 3 as const
+    };
     if (!user) return null;
 
     const rewardActions = [

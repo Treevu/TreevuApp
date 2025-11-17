@@ -27,17 +27,13 @@ export type AreaManagerUser = {
 export type CurrentUserType = AdminUser | AreaManagerUser;
 
 interface EmployerDashboardProps {
-    user: CurrentUserType;
-    onSignOut: () => void;
 }
 
 type EmployerActiveTab = 'resumen' | 'talento' | 'cultura' | 'perfil';
 
-const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }) => {
+const EmployerDashboard: React.FC<EmployerDashboardProps> = ({  }) => {
     const [employees] = useState(() => generateMockEmployees(195));
-    const [selectedDepartment, setSelectedDepartment] = useState(
-        user.role === 'area_manager' ? user.department : 'all'
-    );
+    const [selectedDepartment, setSelectedDepartment] = useState('all');
     const [selectedTenure, setSelectedTenure] = useState('all');
     const [selectedModality, setSelectedModality] = useState('all');
     const [selectedAgeRange, setSelectedAgeRange] = useState('all');
@@ -195,13 +191,11 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }
                     }}
                 >
                     <EmployerDashboardView
-                        user={user}
                         dashboardData={dashboardData}
                         filters={{ selectedDepartment, selectedTenure, selectedModality, selectedAgeRange }}
                         setFilters={{ setSelectedDepartment, setSelectedTenure, setSelectedModality, setSelectedAgeRange }}
                         refs={{ dashboardContentRef, filtersRef, fwiRef, kpisRef, riskChartRef, areaComparisonRef }}
                         activeTab={activeTab}
-                        onSignOut={onSignOut}
                         onOpenCreateChallengeModal={openCreateChallengeModal}
                     />
                     <EmployerAnalysisView
@@ -217,7 +211,6 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }
                         refs={{ teamChallengesRef }}
                     />
                     <EmployerProfileView
-                        user={user}
                         dashboardData={dashboardData}
                         refs={{ assistantBtnRef }}
                         onTourInteraction={handleNextStep}

@@ -5,10 +5,10 @@ import Logo from '@/components/ui/Logo';
 import TreevuLogoText from '@/components/ui/TreevuLogoText.tsx';
 
 interface AccessPortalProps {
-    onSelectType: (type: 'person' | 'employer') => void;
+    // onSelectType: (type: 'person' | 'employer') => void;
 }
 
-export const AccessPortal: React.FC<AccessPortalProps> = ({ onSelectType }) => {
+const AccessPortal: React.FC<AccessPortalProps> = ({ }) => {
     return (
         <div className="min-h-screen bg-background flex flex-col items-center p-4 sm:p-6 text-on-surface">
             <main className="flex-grow flex flex-col items-center justify-center w-full">
@@ -49,13 +49,14 @@ export const AccessPortal: React.FC<AccessPortalProps> = ({ onSelectType }) => {
                                 <span>Gana <strong>beneficios exclusivos</strong> de tu empresa.</span>
                             </li>
                         </ul>
-
-                        <button
-                            onClick={() => onSelectType('person')}
-                            className="mt-8 w-full bg-primary text-primary-dark font-bold py-3 px-6 rounded-xl text-lg transition-all duration-300 group-hover:opacity-90"
-                        >
-                            Iniciar mi Aventura
-                        </button>
+                        <a href='/person'>
+                            <button
+                                // onClick={() => onSelectType('person')}
+                                className="mt-8 w-full bg-primary text-primary-dark font-bold py-3 px-6 rounded-xl text-lg transition-all duration-300 group-hover:opacity-90"
+                            >
+                                Iniciar mi Aventura
+                            </button>
+                        </a>
                     </div>
 
                     {/* Card for Employer */}
@@ -84,16 +85,20 @@ export const AccessPortal: React.FC<AccessPortalProps> = ({ onSelectType }) => {
                                 <span>Toma decisiones estratégicas con <strong>datos 100% anónimos.</strong></span>
                             </li>
                         </ul>
+                        <a href='/employer'>
+                            <button
+                                // onClick={() => onSelectType('employer')}
+                                className="mt-8 w-full bg-accent text-accent-dark font-bold py-3 px-6 rounded-xl text-lg transition-all duration-300 group-hover:opacity-90"
+                            >
+                            Acceder al Dashboard
+                            </button>
+                        </a>
 
-                        <button
-                            onClick={() => onSelectType('employer')}
-                            className="mt-8 w-full bg-accent text-accent-dark font-bold py-3 px-6 rounded-xl text-lg transition-all duration-300 group-hover:opacity-90"
-                        >
-                           Acceder al Dashboard
-                        </button>
                     </div>
                 </div>
             </main>
         </div>
     );
 };
+
+export default AccessPortal;

@@ -2,12 +2,10 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { PaperAirplaneIcon, XMarkIcon, ExclamationTriangleIcon, ArrowPathIcon } from '@/components/ui/Icons';
 import TreevuLogoText from '@/components/ui/TreevuLogoText.tsx';
 // FIX: Updated imports from deprecated 'geminiService.ts' to specific AI service files.
-import { getAIGreeting } from '@/services/ai/employeeService.ts';
 import { getGeneralChatResponse } from '@/services/ai/chatService.ts';
 import { useBudget } from '@/contexts/BudgetContext';
 import { useExpenses } from '@/contexts/ExpensesContext';
 import { useGoals } from '@/contexts/GoalsContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { levelData } from '@/services/gamificationService.ts';
 import { parseJsonFromMarkdown } from '@/utils';
 import { useModal } from '@/contexts/ModalContext';
@@ -167,7 +165,31 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ onClose, onAddReceipt
     const { budget } = useBudget();
     const { expenses, formalityIndex, totalExpenses } = useExpenses();
     const { goals } = useGoals();
-    const { user } = useAuth();
+    // Valores estáticos del usuario
+    const user = {
+        id: 'static-user-id',
+        name: 'Usuario Demo',
+        email: 'usuario@demo.com',
+        picture: '',
+        level: 3 as const,
+        progress: {
+            expensesCount: 25,
+            formalityIndex: 0.7
+        },
+        treevus: 2500,
+        isProfileComplete: true,
+        kudosSent: 10,
+        kudosReceived: 15,
+        registrationDate: '2024-01-15T00:00:00Z',
+        lastActivityDate: '2024-12-14T00:00:00Z',
+        rewardsClaimedCount: 3,
+        engagementScore: 85,
+        fwiTrend: 'improving' as const,
+        streak: {
+            count: 15,
+            lastDate: '2024-12-14'
+        }
+    };
     const { openModal } = useModal();
 
     const [messages, setMessages] = useState<Message[]>([]);
@@ -181,32 +203,16 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({ onClose, onAddReceipt
     const fileInputFromChatRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        const fetchGreeting = async () => {
-            if (!user) {
-                setIsInitialLoading(false);
-                return;
-            };
+        const initializeChat = () => {
             setIsInitialLoading(true);
-            try {
-                const greetingJson = await getAIGreeting(user);
-                const greetingObject = greetingJson ? parseJsonFromMarkdown<AIResponse>(greetingJson) : null;
-                if (greetingObject) {
-                    setMessages([{ from: 'ai', content: greetingObject, id: 'initial' }]);
-                } else {
-                    // Fallback to hardcoded message on parsing failure
-                    setMessages([{ from: 'ai', content: `¡Hola, ${user.name.split(' ')[0] || 'amigo'}! Soy treevü. ¿Cómo puedo ayudarte?`, id: 'initial-fallback' }]);
-                }
-            } catch (error) {
-                console.error("Failed to fetch AI greeting:", error);
-                // Fallback to hardcoded message on API error
-                setMessages([{ from: 'ai', content: `¡Hola, ${user.name.split(' ')[0] || 'amigo'}! Hubo un problema al conectar con mi IA, pero dime, ¿cómo te ayudo?`, id: 'initial-error' }]);
-            } finally {
-                setIsInitialLoading(false);
-            }
+            // Mensaje estático de bienvenida
+            const welcomeMessage = `¡Hola, ${user.name.split(' ')[0] || 'amigo'}! Soy treevü. ¿Cómo puedo ayudarte?`;
+            setMessages([{ from: 'ai', content: welcomeMessage, id: 'initial' }]);
+            setIsInitialLoading(false);
         };
 
-        fetchGreeting();
-    }, [user]);
+        initializeChat();
+    }, []);
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
