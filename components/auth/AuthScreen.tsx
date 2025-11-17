@@ -33,16 +33,6 @@ const AuthScreen: React.FC = () => {
         setMerchantUser(null);
         setView('portal');
     }
-
-    const handleSelectUserType = (type: 'person' | 'employer' | 'merchant') => {
-        if (type === 'person') {
-            setView('pilotNotice');
-        } else if (type === 'employer') {
-            setView('employerLogin');
-        } else {
-            setView('merchantLogin');
-        }
-    };
     
     if (user) {
         return null; 
@@ -68,12 +58,18 @@ const AuthScreen: React.FC = () => {
                 return <MerchantLogin onLoginSuccess={handleMerchantLoginSuccess} onBack={() => setView('portal')} />;
             case 'portal':
             default:
-                return <AccessPortal onSelectType={handleSelectUserType} />;
+                return (
+                    <AccessPortal
+                        onPeopleDemo={() => setView('pilotNotice')}
+                        onBusinessDemo={() => setView('employerLogin')}
+                        onMerchantsDemo={() => setView('merchantLogin')}
+                    />
+                );
         }
     };
 
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center">
+        <div className="dark w-full h-full flex flex-col items-center justify-center">
             {renderContent()}
         </div>
     );

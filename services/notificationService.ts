@@ -60,7 +60,7 @@ export const requestNotificationPermission = async (): Promise<void> => {
 export const sendInformalExpenseNotification = (expense: Expense): void => {
     const title = '🌿 ¡Oportunidad de Cosecha!';
     const options: NotificationOptions = {
-        body: `Registraste un gasto informal en ${expense.razonSocial}. La próxima vez, pide boleta electrónica, gana más treevüs y haz que tu dinero trabaje para ti.`,
+        body: `Registraste un hallazgo informal en ${expense.razonSocial}. La próxima vez, pide boleta electrónica, gana más treevüs y haz que tu dinero trabaje para ti.`,
     };
     showNotification(title, options, `treevu-expense-${expense.id}`);
 };
@@ -71,7 +71,7 @@ export const sendInformalExpenseNotification = (expense: Expense): void => {
 export const sendStreakWarningNotification = (streakCount: number): void => {
     const title = `🔥 ¡No pierdas tu racha de ${streakCount} días!`;
     const options: NotificationOptions = {
-        body: "Registra un gasto formal hoy para mantener tu racha y seguir ganando bonificaciones.",
+        body: "Registra un hallazgo formal hoy para mantener tu racha y seguir ganando bonificaciones.",
     };
     showNotification(title, options, 'streak-warning');
 };
@@ -82,7 +82,7 @@ export const sendStreakWarningNotification = (streakCount: number): void => {
 export const sendSpendingAnomalyNotification = (category: string, count: number): void => {
     const title = `📈 Ojo con tus gastos en "${category}"`;
     const options: NotificationOptions = {
-        body: `Hemos notado ${count} gastos seguidos en esta categoría. ¡Asegúrate de que se alinee con tu presupuesto!`,
+        body: `Hemos notado ${count} movimientos seguidos en esta categoría. ¡Asegúrate de que se alinee con tu presupuesto!`,
     };
     showNotification(title, options, `anomaly-${category}-${Date.now()}`);
 };
@@ -93,7 +93,7 @@ export const sendSpendingAnomalyNotification = (category: string, count: number)
 export const sendBudgetMilestoneNotification = (percentage: number): void => {
     const title = `🎯 ¡Hito Alcanzado: ${percentage}% de tu presupuesto!`;
     const options: NotificationOptions = {
-        body: `Vas por buen camino. Sigue monitoreando tus gastos para cerrar el mes con éxito.`,
+        body: `Vas por buen camino. Sigue monitoreando tus movimientos para cerrar el mes con éxito.`,
     };
     showNotification(title, options, `milestone-${percentage}`);
 };

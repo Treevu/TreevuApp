@@ -96,7 +96,7 @@ const OnboardingWizard: React.FC = () => {
                 </div>
                 <button
                     type="submit"
-                    className="w-full bg-primary text-primary-dark font-bold py-3 px-6 rounded-xl text-lg transition-all duration-300"
+                    className="w-full bg-gradient-to-r from-accent to-accent-secondary text-primary-dark font-bold py-3 px-6 rounded-xl text-lg transition-all duration-300 hover:shadow-lg hover:shadow-accent/20"
                 >
                     Siguiente
                 </button>
@@ -135,7 +135,7 @@ const OnboardingWizard: React.FC = () => {
                 </div>
                 <button
                     onClick={handleFinish}
-                    className="w-full bg-primary text-primary-dark font-bold py-3 px-6 rounded-xl text-lg transition-all duration-300 !mt-6"
+                    className="w-full bg-gradient-to-r from-accent to-accent-secondary text-primary-dark font-bold py-3 px-6 rounded-xl text-lg transition-all duration-300 !mt-6 hover:shadow-lg hover:shadow-accent/20"
                 >
                     <CheckIcon className="w-6 h-6 inline-block mr-2" />
                     Finalizar y Empezar
@@ -151,7 +151,7 @@ const OnboardingWizard: React.FC = () => {
                     <div className={`w-1/2 h-1.5 rounded-full transition-colors ${step >= 1 ? 'bg-primary' : 'bg-active-surface'}`}></div>
                     <div className={`w-1/2 h-1.5 rounded-full transition-colors ${step >= 2 ? 'bg-primary' : 'bg-active-surface'}`}></div>
                 </div>
-                <div className="bg-surface rounded-3xl shadow-2xl p-6 sm:p-8">
+                <div className="bg-surface/80 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-8 border border-white/10">
                     {step === 1 ? renderStep1() : renderStep2()}
                 </div>
              </main>

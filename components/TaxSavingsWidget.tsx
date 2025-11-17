@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useAppContext } from '../contexts/AppContext';
-import { BanknotesIcon, ChevronDownIcon, ChevronUpIcon } from './Icons';
+import { BanknotesIcon, ChevronDownIcon, ChevronUpIcon, PencilIcon } from './Icons';
 import { calculateEstimatedTaxReturn, getDeductibleTotals, DEDUCTIBLE_EXPENSE_LIMIT_SOLES } from '../services/taxService';
 import Tooltip from './Tooltip';
 import { SimpleLineChart } from './TrendAnalysis';
@@ -78,16 +78,16 @@ const TaxSavingsWidget: React.FC<TaxSavingsWidgetProps> = ({ annualIncome, onSet
     // --- Render Setup View ---
     if (!annualIncome) {
         return (
-            <div className="bg-surface rounded-2xl p-4 flex flex-col items-center text-center justify-center min-h-[200px] animate-grow-and-fade-in border border-dashed dark:border-dotted border-active-surface/80 shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
+            <div className="flex flex-col items-center text-center justify-center py-4">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
                     <BanknotesIcon className="w-7 h-7 text-primary" />
                 </div>
-                <h3 className="font-bold text-lg text-on-surface">Estima tu Ahorro Fiscal</h3>
                 <p className="text-sm text-on-surface-secondary mt-1 mb-3 max-w-xs">Indica tu ingreso para estimar el potencial de devolución de SUNAT.</p>
                 <button
                     onClick={onSetup}
-                    className="bg-primary text-primary-dark font-bold py-2 px-5 rounded-xl hover:opacity-90 transition-opacity text-sm"
+                    className="bg-gradient-to-r from-accent to-accent-secondary text-primary-dark font-bold py-2 px-5 rounded-xl hover:opacity-90 transition-opacity text-sm"
                 >
+                    <PencilIcon className="w-4 h-4 inline-block mr-1.5" />
                     Configurar Ingreso
                 </button>
             </div>
@@ -96,15 +96,7 @@ const TaxSavingsWidget: React.FC<TaxSavingsWidgetProps> = ({ annualIncome, onSet
     
     // --- Render Main View ---
     return (
-        <div className="bg-surface rounded-2xl p-4 animate-grow-and-fade-in shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-on-surface flex items-center">
-                    <BanknotesIcon className="w-6 h-6 mr-2 text-primary"/>
-                    Tu Ahorro Fiscal
-                </h2>
-                <Tooltip id="ahorro-fiscal-tooltip" text="Estimación de cuánto dinero podrías recibir como devolución de impuestos de SUNAT al final del año, gracias a tus gastos formales en categorías deducibles." />
-            </div>
-
+        <div className="animate-grow-and-fade-in">
             <div className="text-center bg-background rounded-xl p-3">
                 <span className="text-xs text-on-surface-secondary">Devolución estimada</span>
                 <p className="text-3xl font-extrabold text-primary tracking-tighter">
@@ -128,7 +120,7 @@ const TaxSavingsWidget: React.FC<TaxSavingsWidgetProps> = ({ annualIncome, onSet
             {potentialReturn > 0 && (
                 <div className="mt-3 bg-primary/10 rounded-lg p-2 text-center">
                     <p className="text-xs text-primary">
-                        <span className="font-bold">+ S/ {potentialReturn.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span> potenciales perdidos por gastos informales.
+                        <span className="font-bold">+ S/ {potentialReturn.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span> potenciales perdidos por hallazgos informales.
                     </p>
                 </div>
             )}

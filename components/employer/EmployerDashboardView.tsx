@@ -1,14 +1,24 @@
-import React, { useState, useEffect, useMemo } from 'react';
+
+
+
+
+import React, { useState, useEffect, useRef } from 'react';
 import PrivacyDisclaimer from './PrivacyDisclaimer';
 import KpiCard from './KpiCard';
 import { type CurrentUserType } from '../../types/employer';
 import EmployerExportButton from './EmployerExportButton';
 import FilterDrawer from './FilterDrawer';
-import { AdjustmentsHorizontalIcon, ArrowLeftIcon, BuildingBlocksIcon, SparklesIcon, GiftIcon } from '../Icons';
+import { AdjustmentsHorizontalIcon, ArrowLeftIcon, BuildingBlocksIcon, SparklesIcon, GiftIcon, CheckBadgeIcon, ChartPieIcon } from '../Icons';
 import { useModal } from '../../contexts/ModalContext';
 import { Challenge } from '../../types/employer';
 import AreaComparisonChart from './AreaComparisonChart';
 import CategoryBreakdown from './CategoryBreakdown';
+import AchievementBanner from './AchievementBanner';
+import DashboardSection from './DashboardSection';
+import UpgradePlanCTA from '../UpgradePlanCTA';
+import TreevuLogoText from '../TreevuLogoText';
+import Logo from '../Logo';
+import StrategicInsightsCarousel from './StrategicInsightsCarousel';
 
 interface EmployerDashboardViewProps {
     user: CurrentUserType;
@@ -36,7 +46,7 @@ interface EmployerDashboardViewProps {
     };
     activeTab: 'resumen' | 'talento' | 'engagement' | 'perfil';
     onSignOut: () => void;
-    onOpenCreateChallengeModal: (suggestion?: Omit<Challenge, 'id'>) => void;
+    openCreateChallengeModal: (suggestion?: Omit<Challenge, 'id'>) => void;
 }
 
 const EmptyState: React.FC = () => (
@@ -46,7 +56,7 @@ const EmptyState: React.FC = () => (
     </div>
 );
 
-const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
+export const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
     user,
     dashboardData,
     companyWideKpis,
@@ -55,16 +65,43 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
     refs,
     activeTab,
     onSignOut,
-    onOpenCreateChallengeModal,
+    openCreateChallengeModal,
 }) => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const { openModal } = useModal();
+    const [showAchievement, setShowAchievement] = useState(false);
+    const achievementId = 'logro_riesgo_bajo_visto';
+    const [isScrolled, setIsScrolled] = useState(false);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        const handleScroll = () => {
+            if (container) {
+                setIsScrolled(container.scrollTop > 10);
+            }
+        };
+        container?.addEventListener('scroll', handleScroll, { passive: true });
+        return () => container?.removeEventListener('scroll', handleScroll);
+    }, []);
 
     useEffect(() => {
         if (activeTab !== 'resumen') {
             setIsDrawerOpen(false);
         }
     }, [activeTab]);
+
+    useEffect(() => {
+        const hasSeenAchievement = localStorage.getItem(achievementId) === 'true';
+        if (!hasSeenAchievement && dashboardData.talentFlightRisk === 'Bajo') {
+            setShowAchievement(true);
+        }
+    }, [dashboardData.talentFlightRisk]);
+
+    const handleDismissAchievement = () => {
+        localStorage.setItem(achievementId, 'true');
+        setShowAchievement(false);
+    };
 
     const getFlightRiskVariant = (risk: 'Bajo' | 'Medio' | 'Alto') => {
         if (risk === 'Bajo') return 'success';
@@ -92,10 +129,20 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
 
 
     return (
-        <div className="w-1/4 h-full overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6 pb-28">
-            <header>
-                <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-bold">Resumen Estratégico</h1>
+        <div ref={scrollContainerRef} className="w-1/4 h-full overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6 pb-28">
+            <header className={`sticky top-0 z-10 header-base -mx-6 px-6 pt-6 pb-2 ${isScrolled ? 'header-scrolled' : ''}`}>
+                 <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <Logo className="w-10 h-10 text-primary" />
+                        <div>
+                            <h1 className="text-2xl font-bold leading-tight -mb-1">
+                                <TreevuLogoText />
+                            </h1>
+                            <p className="text-accent text-sm font-bold leading-none italic">
+                                for business
+                            </p>
+                        </div>
+                    </div>
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => openModal('strategicReport', { dashboardData, user })}
@@ -117,10 +164,21 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
                         </button>
                     </div>
                 </div>
+                <h2 className="text-3xl font-bold mt-4 treevu-text">Resumen Estratégico</h2>
                 <p className="text-on-surface-secondary">
-                    Hola, <span className="font-bold text-primary">{user.name}</span>. Bienvenido al Centro de Mando. Aquí tienes el pulso de tu equipo en tiempo real.
+                    Hola, <span className="font-bold text-primary">{user.name}</span>. Bienvenido al Centro de Mando.
                 </p>
             </header>
+
+            <StrategicInsightsCarousel />
+
+            {showAchievement && (
+                <AchievementBanner
+                    title="¡Hito Alcanzado: Riesgo de Fuga 'Bajo'!"
+                    subtitle="Tu equipo está en el top 30% del sector Tech. ¡Gran trabajo de gestión!"
+                    onDismiss={handleDismissAchievement}
+                />
+            )}
 
             <div ref={refs.filtersRef} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <button 
@@ -140,22 +198,35 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
                     <span className="text-sm font-bold text-primary flex-shrink-0 ml-2">Editar</span>
                 </button>
 
-                 <button
-                    onClick={() => openModal('impactSimulator', { dashboardData: dashboardData, onLaunch: onOpenCreateChallengeModal })}
-                    disabled={dashboardData.isEmpty}
-                    className="w-full flex items-center justify-between p-3 bg-surface rounded-xl text-left hover:bg-active-surface transition-colors shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-surface"
-                >
-                    <div className="flex items-center min-w-0">
-                        <SparklesIcon className="w-6 h-6 mr-3 text-primary flex-shrink-0"/>
-                        <div className="min-w-0">
-                            <span className="font-bold text-on-surface">Simulador de Impacto</span>
-                            <p className="text-xs text-on-surface-secondary truncate">
-                               Proyecta el ROI de tus iniciativas
-                            </p>
+                {user.plan === 'Enterprise' ? (
+                    <button
+                        onClick={() => openModal('impactSimulator', { dashboardData: dashboardData, onLaunch: openCreateChallengeModal })}
+                        disabled={dashboardData.isEmpty}
+                        className="w-full flex items-center justify-between p-3 bg-surface rounded-xl text-left hover:bg-active-surface transition-colors shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-surface"
+                    >
+                        <div className="flex items-center min-w-0">
+                            <SparklesIcon className="w-6 h-6 mr-3 text-primary flex-shrink-0"/>
+                            <div className="min-w-0">
+                                <span className="font-bold text-on-surface">Simulador de Impacto</span>
+                                <p className="text-xs text-on-surface-secondary truncate">
+                                Proyecta el ROI de tus iniciativas
+                                </p>
+                            </div>
                         </div>
+                        <span className="text-sm font-bold text-primary flex-shrink-0 ml-2">Probar</span>
+                    </button>
+                ) : (
+                     <div className="bg-surface rounded-2xl p-3 shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
+                        <UpgradePlanCTA
+                            Icon={SparklesIcon}
+                            title="Simulador de Impacto (IA)"
+                            description="Proyecta el ROI de tus iniciativas antes de lanzarlas."
+                            variant="transparent"
+                            origin="business"
+                        />
                     </div>
-                    <span className="text-sm font-bold text-primary flex-shrink-0 ml-2">Probar</span>
-                </button>
+                )}
+
 
                 {user.role === 'area_manager' && (
                     <p className="text-xs text-on-surface-secondary text-center mt-2 px-2 md:col-span-2">
@@ -166,44 +237,78 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
             
             {dashboardData.isEmpty ? <EmptyState /> : (
                 <div ref={refs.dashboardContentRef} className="space-y-6">
-                    {/* KPIs Row */}
-                     <div ref={refs.kpisRef} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <KpiCard
-                            title="FWI PROMEDIO"
-                            value={dashboardData.financialWellnessIndex.toFixed(0)}
-                            tooltipText="El Índice de Bienestar Financiero (FWI) es la métrica principal que resume la salud financiera del equipo."
-                            variant={dashboardData.financialWellnessIndex > 75 ? 'success' : dashboardData.financialWellnessIndex > 60 ? 'warning' : 'danger'}
-                            history={fwiHistory}
-                        />
-                        <KpiCard
-                            title="RIESGO DE FUGA"
-                            value={dashboardData.talentFlightRisk}
-                            subValue={`${dashboardData.flightRiskScore.toFixed(0)}%`}
-                            tooltipText="Estimación del riesgo de pérdida de talento basada en indicadores de bienestar financiero."
-                            variant={getFlightRiskVariant(dashboardData.talentFlightRisk)}
-                            history={flightRiskHistory}
-                        />
-                        <KpiCard
-                            title="TASA DE ACTIVACIÓN"
-                            value={dashboardData.activationRate.toFixed(0)}
-                            valueSuffix="%"
-                            tooltipText="Porcentaje de colaboradores del segmento que han iniciado sesión y registrado al menos una actividad."
-                            variant={dashboardData.activationRate > 80 ? 'success' : dashboardData.activationRate > 60 ? 'warning' : 'danger'}
-                            history={activationRateHistory}
-                        />
-                    </div>
-                    
-                    {/* Charts Row */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div ref={refs.areaComparisonRef}>
-                            <AreaComparisonChart
-                                data={companyWideKpis.map(d => ({ label: d.department, value: d.fwi || 0 }))}
+                    <DashboardSection
+                        ref={refs.kpisRef}
+                        title="KPIs Principales"
+                        Icon={CheckBadgeIcon}
+                        defaultOpen={true}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <KpiCard
+                                title="FWI PROMEDIO"
+                                value={dashboardData.financialWellnessIndex.toFixed(0)}
+                                tooltipText="El Índice de Bienestar Financiero (FWI) es la métrica principal. Se compone de: 1. Salud Financiera (% de gasto formal), 2. Balance Vida-Trabajo (gasto en ocio vs. esencial) y 3. Desarrollo Profesional (gasto en educación)."
+                                variant={dashboardData.financialWellnessIndex > 75 ? 'success' : dashboardData.financialWellnessIndex > 60 ? 'warning' : 'danger'}
+                                history={fwiHistory}
+                            />
+                            
+                            {user.plan === 'Launch' ? (
+                                <UpgradePlanCTA
+                                    Icon={SparklesIcon}
+                                    title="Riesgo de Fuga Predictivo"
+                                    description="Anticípate a la rotación con nuestro algoritmo predictivo."
+                                    origin="business"
+                                />
+                            ) : (
+                                <KpiCard
+                                    title="RIESGO DE FUGA"
+                                    value={dashboardData.talentFlightRisk}
+                                    subValue={`${dashboardData.flightRiskScore.toFixed(0)}%`}
+                                    tooltipText="Estimación del riesgo de pérdida de talento. Nuestro algoritmo considera el FWI, el porcentaje de gasto esencial, la antigüedad y otros factores comportamentales para predecir la probabilidad de rotación."
+                                    variant={getFlightRiskVariant(dashboardData.talentFlightRisk)}
+                                    history={flightRiskHistory}
+                                />
+                            )}
+                            
+                            <KpiCard
+                                title="TASA DE ACTIVACIÓN"
+                                value={dashboardData.activationRate.toFixed(0)}
+                                valueSuffix="%"
+                                tooltipText="Porcentaje de colaboradores del segmento que han iniciado sesión y registrado al menos una actividad."
+                                variant={dashboardData.activationRate > 80 ? 'success' : dashboardData.activationRate > 60 ? 'warning' : 'danger'}
+                                history={activationRateHistory}
                             />
                         </div>
-                        <div>
-                            <CategoryBreakdown data={dashboardData.spendingByCategory} />
+                    </DashboardSection>
+                    
+                    {user.plan === 'Launch' ? (
+                        <div className="bg-surface rounded-2xl p-5 shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
+                            <UpgradePlanCTA
+                                Icon={ChartPieIcon}
+                                title="Desbloquea Análisis Comparativo"
+                                description="Accede a un desglose detallado por área y categoría para identificar patrones y oportunidades de mejora."
+                                variant="transparent"
+                                origin="business"
+                            />
                         </div>
-                    </div>
+                    ) : (
+                        <DashboardSection
+                            title="Análisis Comparativo"
+                            Icon={ChartPieIcon}
+                            defaultOpen={false}
+                        >
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div ref={refs.areaComparisonRef}>
+                                    <AreaComparisonChart
+                                        data={companyWideKpis.map(d => ({ label: d.department, value: d.fwi || 0 }))}
+                                    />
+                                </div>
+                                <div>
+                                    <CategoryBreakdown data={dashboardData.spendingByCategory} />
+                                </div>
+                            </div>
+                        </DashboardSection>
+                    )}
                     
                     <PrivacyDisclaimer />
                 </div>
@@ -219,5 +324,3 @@ const EmployerDashboardView: React.FC<EmployerDashboardViewProps> = ({
         </div>
     );
 };
-
-export default EmployerDashboardView;

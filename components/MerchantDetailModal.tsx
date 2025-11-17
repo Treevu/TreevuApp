@@ -97,7 +97,7 @@ const MerchantDetailModal: React.FC<MerchantDetailModalProps> = ({ merchantName,
                             ))}
                         </ul>
                     ) : (
-                        <p className="text-center text-on-surface-secondary py-8">No se encontraron gastos para este comercio.</p>
+                        <p className="text-center text-on-surface-secondary py-8">No se encontraron hallazgos para este comercio.</p>
                     )}
                 </div>
                 <div className="mt-6 pt-5 border-t border-active-surface/50 flex justify-end">

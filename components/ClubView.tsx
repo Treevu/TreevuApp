@@ -1,91 +1,74 @@
 import React, { useState } from 'react';
+import { useModal } from '../contexts/ModalContext';
 import TeamsView from './TeamsView';
-import RewardsView from './RewardsView';
-import { UsersIcon, GiftIcon, RocketLaunchIcon, BuildingStorefrontIcon, TrophyIcon, FlagIcon } from './Icons';
-import SubNavBar from './SubNavBar';
 import MissionsView from './MissionsView';
-import OffersView from './OffersView';
+import { 
+    UsersIcon, GiftIcon, FlagIcon, BuildingOffice2Icon, PaperAirplaneIcon, TrophyIcon
+} from './Icons';
+import SubNavBar from './SubNavBar';
+import GamificationBar from './GamificationBar';
+import { useAuth } from '../contexts/AuthContext';
 import SquadLeaderboard from './SquadLeaderboard';
-import ChallengesView from './ChallengesView';
 
-type MainTab = 'squad' | 'marketplace' | 'community';
-type SquadTab = 'team' | 'ranking' | 'missions';
-type MarketplaceTab = 'rewards' | 'offers';
-type CommunityTab = 'challenges';
+type ClubSubTab = 'squad' | 'missions' | 'ranking';
+
+const CorporateFeatureLock: React.FC = () => {
+    const { openModal } = useModal();
+    
+    return (
+        <div className="bg-surface rounded-2xl p-6 text-center animate-grow-and-fade-in">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <BuildingOffice2Icon className="w-9 h-9 text-primary" />
+            </div>
+            <h2 className="text-xl font-bold text-on-surface">Squad: Tu Aventura Colectiva</h2>
+            <p className="text-sm text-on-surface-secondary mt-2 max-w-sm mx-auto">
+                El Squad es una funcionalidad exclusiva para empresas. Invita a tu organización a unirse a treevü para desbloquear misiones de equipo, rankings y un bosque colaborativo.
+            </p>
+            <button
+                onClick={() => openModal('leadCapture', { type: 'business' })}
+                className="mt-6 inline-flex items-center gap-2 bg-primary text-primary-dark font-bold py-2.5 px-6 rounded-xl hover:opacity-90 transition-opacity text-sm"
+            >
+                <PaperAirplaneIcon className="w-5 h-5" />
+                Sugerir mi Empresa a treevü
+            </button>
+        </div>
+    );
+};
 
 
 const ClubView: React.FC = () => {
-    const [activeMainTab, setActiveMainTab] = useState<MainTab>('squad');
-    const [activeSquadTab, setActiveSquadTab] = useState<SquadTab>('team');
-    const [activeMarketplaceTab, setActiveMarketplaceTab] = useState<MarketplaceTab>('rewards');
+    const [activeTab, setActiveTab] = useState<ClubSubTab>('squad');
+    const { openModal } = useModal();
+    const { user } = useAuth();
 
-    const mainTabs: { id: MainTab; label: string; Icon: React.FC<{ className?: string }> }[] = [
-        { id: 'squad', label: 'Escuadrón', Icon: UsersIcon },
-        { id: 'marketplace', label: 'Mercado', Icon: BuildingStorefrontIcon },
-        { id: 'community', label: 'Comunidad', Icon: FlagIcon },
+    const tabs = [
+        { id: 'squad' as const, label: 'Mi Squad', Icon: UsersIcon },
+        { id: 'missions' as const, label: 'Iniciativas', Icon: FlagIcon },
+        { id: 'ranking' as const, label: 'Ranking', Icon: TrophyIcon },
     ];
 
-    const squadSubTabs: { id: SquadTab; label: string; Icon: React.FC<{ className?: string }> }[] = [
-        { id: 'team', label: 'Miembros', Icon: UsersIcon },
-        { id: 'ranking', label: 'Ranking', Icon: TrophyIcon },
-        { id: 'missions', label: 'Misiones', Icon: RocketLaunchIcon },
-    ];
-
-    const marketplaceSubTabs: { id: MarketplaceTab; label: string; Icon: React.FC<{ className?: string }> }[] = [
-        { id: 'rewards', label: 'Premios', Icon: GiftIcon },
-        { id: 'offers', label: 'Ofertas', Icon: BuildingStorefrontIcon },
-    ];
-
-    const renderContent = () => {
-        switch (activeMainTab) {
-            case 'squad':
-                switch (activeSquadTab) {
-                    case 'team': return <TeamsView />;
-                    case 'ranking': return <SquadLeaderboard />;
-                    case 'missions': return <MissionsView />;
-                    default: return null;
-                }
-            case 'marketplace':
-                switch (activeMarketplaceTab) {
-                    case 'rewards': return <RewardsView />;
-                    case 'offers': return <OffersView />;
-                    default: return null;
-                }
-            case 'community':
-                return <ChallengesView />;
-            default:
-                return null;
-        }
-    };
-
+    if (!user?.companyId) {
+        return (
+            <div className="animate-fade-in space-y-4">
+                <GamificationBar onOpen={() => openModal('gamificationLevels')} />
+                <CorporateFeatureLock />
+            </div>
+        )
+    }
+    
     return (
-        <div className="animate-fade-in">
-            <SubNavBar
-                tabs={mainTabs}
-                activeTab={activeMainTab}
-                onTabClick={(tab) => setActiveMainTab(tab)}
-            />
-
-            <div className="mt-4">
-                 {activeMainTab === 'squad' && (
-                    <SubNavBar
-                        tabs={squadSubTabs}
-                        activeTab={activeSquadTab}
-                        onTabClick={(tab) => setActiveSquadTab(tab)}
-                    />
-                )}
-                {activeMainTab === 'marketplace' && (
-                    <SubNavBar
-                        tabs={marketplaceSubTabs}
-                        activeTab={activeMarketplaceTab}
-                        onTabClick={(tab) => setActiveMarketplaceTab(tab)}
-                    />
-                )}
-            </div>
-
-            <div className="mt-6">
-                {renderContent()}
-            </div>
+        <div className="animate-fade-in space-y-4">
+            <GamificationBar onOpen={() => openModal('gamificationLevels')} />
+            
+            <SubNavBar tabs={tabs} activeTab={activeTab} onTabClick={(t) => setActiveTab(t)} />
+            
+            {activeTab === 'squad' && (
+                <div className="space-y-4 animate-fade-in">
+                    <TeamsView />
+                </div>
+            )}
+            {activeTab === 'missions' && <MissionsView />}
+            {activeTab === 'ranking' && <SquadLeaderboard />}
         </div>
     );
 };

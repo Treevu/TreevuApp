@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { CheckIcon } from './Icons';
 import { useAppContext } from '../contexts/AppContext';
@@ -67,7 +65,7 @@ const SetBudgetModal: React.FC<SetBudgetModalProps> = ({ onClose }) => {
                         </button>
                     ))}
                 </div>
-                <div className="mt-8 pt-5 border-t border-active-surface/50 flex justify-end space-x-3">
+                <div className="mt-8 pt-5 border-t border-white/10 flex justify-end space-x-3">
                     <button
                         onClick={onClose}
                         className="px-4 py-2.5 text-sm font-bold text-on-surface bg-active-surface rounded-xl hover:bg-active-surface/70 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-primary"
@@ -76,7 +74,7 @@ const SetBudgetModal: React.FC<SetBudgetModalProps> = ({ onClose }) => {
                     </button>
                     <button
                         onClick={handleSave}
-                        className="px-6 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-primary"
+                        className="px-6 py-2.5 text-sm font-bold text-primary-dark bg-gradient-to-r from-accent to-accent-secondary rounded-xl flex items-center shadow-lg shadow-primary/30 transform hover:-translate-y-1 transition-all duration-300"
                     >
                         <CheckIcon className="w-5 h-5 mr-1.5"/>
                         Guardar

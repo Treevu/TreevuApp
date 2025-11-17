@@ -8,7 +8,7 @@ interface TreevusInfoModalProps {
     onClose: () => void;
 }
 
-const ThreevusInfoModal: React.FC<TreevusInfoModalProps> = ({ onClose }) => {
+const TreevusInfoModal: React.FC<TreevusInfoModalProps> = ({ onClose }) => {
     const { user } = useAuth();
     if (!user) return null;
 
@@ -59,4 +59,4 @@ const ThreevusInfoModal: React.FC<TreevusInfoModalProps> = ({ onClose }) => {
     );
 };
 
-export default ThreevusInfoModal;
+export default TreevusInfoModal;

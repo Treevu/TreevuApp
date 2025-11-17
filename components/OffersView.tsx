@@ -1,7 +1,8 @@
 
+
 import React from 'react';
-import { useOffers } from '../contexts/OffersContext';
-import { MOCK_MERCHANTS } from '../data/merchantData';
+import { useOffers } from '../../contexts/OffersContext';
+import { MOCK_MERCHANTS } from '../../data/merchantData';
 import OfferCard from './OfferCard';
 import { BuildingStorefrontIcon } from './Icons';
 
@@ -15,12 +16,12 @@ const OffersView: React.FC = () => {
 
     return (
         <div className="space-y-4 animate-grow-and-fade-in">
-            <div className="bg-surface rounded-2xl p-4">
-                <h2 className="text-xl font-bold text-on-surface mb-2 flex items-center">
-                    <BuildingStorefrontIcon className="w-6 h-6 mr-2 text-primary"/>
+            <div className="bg-gradient-to-br from-primary via-emerald-600 to-green-700 rounded-2xl p-5 text-white shadow-lg shadow-primary/30">
+                <h2 className="text-xl font-bold mb-2 flex items-center">
+                    <BuildingStorefrontIcon className="w-6 h-6 mr-2 text-white"/>
                     Ofertas Exclusivas para Ti
                 </h2>
-                <p className="text-sm text-on-surface-secondary">
+                <p className="text-sm opacity-80">
                     Descubre descuentos y promociones especiales de nuestros comercios aliados, solo para miembros de la comunidad treevü.
                 </p>
             </div>

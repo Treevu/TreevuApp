@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTribes } from '../contexts/TribesContext';
@@ -78,7 +79,7 @@ const SendKudosModal: React.FC<SendKudosModalProps> = ({ onClose, recipient }) =
                     </p>
                     <button
                         onClick={onClose}
-                        className="mt-6 w-full px-6 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90"
+                        className="mt-6 w-full px-6 py-2.5 text-sm font-bold text-primary-dark bg-gradient-to-r from-accent to-accent-secondary rounded-xl hover:opacity-90"
                     >
                         Cerrar
                     </button>
@@ -153,7 +154,7 @@ const SendKudosModal: React.FC<SendKudosModalProps> = ({ onClose, recipient }) =
                     <button
                         onClick={handleSend}
                         disabled={isTribe(recipient) && isAmountInvalid}
-                        className="w-full px-6 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center justify-center gap-2 transition-opacity disabled:opacity-50"
+                        className="w-full px-6 py-2.5 text-sm font-bold text-primary-dark bg-gradient-to-r from-accent to-accent-secondary rounded-xl hover:opacity-90 flex items-center justify-center gap-2 transition-opacity disabled:opacity-50"
                     >
                         <PaperAirplaneIcon className="w-5 h-5"/>
                         {isTribe(recipient) ? 'Aportar al Bosque' : 'Enviar Reconocimiento'}

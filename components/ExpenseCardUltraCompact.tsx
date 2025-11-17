@@ -5,6 +5,7 @@ import {
     TrashIcon,
     ChevronDownIcon,
     EyeIcon,
+    FlagIcon,
 } from './Icons';
 import { categoryDetails } from './TrendAnalysis';
 import { CategoriaGasto } from '../types/common';
@@ -51,6 +52,12 @@ const ExpenseCardUltraCompact: React.FC<ExpenseCardUltraCompactProps> = ({
                         </p>
                         <div className="flex items-center text-xs text-on-surface-secondary mt-0.5">
                             <span>{expense.categoria}</span>
+                            {expense.isMissionContribution && (
+                                <span className="flex items-center ml-2 text-primary font-semibold">
+                                    <FlagIcon className="w-3.5 h-3.5 mr-1" />
+                                    Aporte a Misión
+                                </span>
+                            )}
                             {isInformalAndLost && (
                                 <span className="flex items-center ml-2 text-warning font-semibold">
                                     <ExclamationTriangleIcon className="w-3.5 h-3.5 mr-1" />

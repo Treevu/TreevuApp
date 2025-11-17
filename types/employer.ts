@@ -39,15 +39,19 @@ export interface CompanyAlliance {
     }
 }
 
+export type Plan = 'Launch' | 'Growth' | 'Enterprise';
+
 export type AdminUser = {
     name: string;
     role: 'admin';
+    plan: Plan;
 };
 
 export type AreaManagerUser = {
     name: string;
     role: 'area_manager';
     department: Department;
+    plan: Plan;
 };
 
 export type CurrentUserType = AdminUser | AreaManagerUser;

@@ -45,7 +45,7 @@ const RewardConfirmationModal: React.FC<RewardConfirmationModalProps> = ({ rewar
                     </p>
                     <button
                         onClick={onClose}
-                        className="mt-6 w-full px-6 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90"
+                        className="mt-6 w-full px-6 py-2.5 text-sm font-bold text-primary-dark bg-gradient-to-r from-accent to-accent-secondary rounded-xl hover:opacity-90"
                     >
                         ¡Entendido!
                     </button>
@@ -88,7 +88,7 @@ const RewardConfirmationModal: React.FC<RewardConfirmationModalProps> = ({ rewar
                 </button>
                 <button
                     onClick={handleConfirm}
-                    className="px-6 py-2 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center"
+                    className="px-6 py-2 text-sm font-bold text-primary-dark bg-gradient-to-r from-accent to-accent-secondary rounded-xl hover:opacity-90 flex items-center"
                 >
                     Confirmar Canje
                 </button>

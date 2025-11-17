@@ -4,6 +4,7 @@ export enum NotificationType {
     GoalMilestone = 'GOAL_MILESTONE',
     Info = 'INFO',
     Kudos = 'KUDOS',
+    WeeklySummary = 'WEEKLY_SUMMARY',
 }
 
 export interface Notification {

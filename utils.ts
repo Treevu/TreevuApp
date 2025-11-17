@@ -130,6 +130,22 @@ export const getMemberSinceYear = (): string => {
 };
 
 /**
+ * Generates a mock, non-financial card number in AMEX style.
+ * @param {string} seed - A string to seed the generator.
+ * @returns {string} A formatted 4 6 5 card number string.
+ */
+export const generateAmexStyleCardNumber = (seed: string): string => {
+    let hash = getHashFromString('amex1' + seed);
+    const part1 = (3400 + (Math.abs(hash) % 400)).toString(); // Starts with 34xx or 37xx
+    hash = getHashFromString('amex2' + seed);
+    const part2 = (Math.abs(hash) % 900000 + 100000).toString();
+    hash = getHashFromString('amex3' + seed);
+    const part3 = (Math.abs(hash) % 90000 + 10000).toString();
+    return `${part1} ${part2} ${part3}`;
+};
+
+
+/**
  * Generates a mock, non-financial card number.
  * @param {string} seed - A string to seed the generator.
  * @returns {string} A formatted card number string.

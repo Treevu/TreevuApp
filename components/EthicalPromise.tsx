@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { ShieldCheckIcon, LockClosedIcon } from './Icons';
 import Logo from './Logo';
@@ -11,7 +9,7 @@ const EthicalPromise: React.FC = () => {
     return (
         <div className="min-h-screen bg-background flex flex-col items-center p-4 text-on-surface animate-fade-in">
             <main className="w-full max-w-md text-center flex-grow flex flex-col justify-center">
-                <div className="bg-surface rounded-3xl shadow-2xl p-6 sm:p-8">
+                <div className="bg-surface/80 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-8 border border-white/10">
                     <ShieldCheckIcon className="w-16 h-16 text-primary mx-auto mb-4" />
                     <h1 className="text-3xl font-bold text-on-surface leading-tight">
                         El Juramento del Guardián
@@ -29,7 +27,7 @@ const EthicalPromise: React.FC = () => {
                     </p>
                     <button
                         onClick={acceptEthicalPromise}
-                        className="w-full mt-6 bg-primary text-primary-dark font-bold py-3 px-6 rounded-xl text-lg transition-all duration-300 hover:shadow-lg hover:shadow-primary/20"
+                        className="w-full mt-6 bg-gradient-to-r from-accent to-accent-secondary text-primary-dark font-bold py-3 px-6 rounded-xl text-lg transition-all duration-300 hover:shadow-lg hover:shadow-accent/20"
                     >
                         Aceptar el Juramento
                     </button>

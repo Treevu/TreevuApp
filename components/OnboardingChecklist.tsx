@@ -36,7 +36,7 @@ const OnboardingChecklist: React.FC = () => {
     ];
 
     return (
-        <div className="bg-surface rounded-2xl p-4 sm:p-6 animate-grow-and-fade-in shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
+        <div className="bg-surface/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-6 animate-grow-and-fade-in shadow-xl">
             <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-on-surface">🏕️ Campamento Base del Explorador</h2>
                 <p className="text-sm text-on-surface-secondary mt-1">Completa tu misión de iniciación para empezar tu expedición. ¡Cada paso te da recompensas!</p>
@@ -48,7 +48,7 @@ const OnboardingChecklist: React.FC = () => {
                         key={task.id}
                         onClick={task.action}
                         disabled={task.isCompleted}
-                        className="w-full p-4 bg-background rounded-xl text-left flex items-center gap-4 transition-all duration-300 disabled:opacity-60 disabled:cursor-default hover:bg-active-surface animate-staggered-fade-in-slide-up"
+                        className="w-full p-4 bg-background rounded-xl text-left flex items-center gap-4 transition-all duration-300 disabled:opacity-60 disabled:cursor-default hover:shadow-lg hover:-translate-y-1 animate-staggered-fade-in-slide-up"
                         style={{ animationDelay: `${index * 100}ms` }}
                     >
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${task.isCompleted ? 'bg-primary/20' : 'bg-primary/10'}`}>

@@ -1,35 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { BuildingOffice2Icon, CheckIcon } from '../Icons';
 import Logo from '../Logo';
 import TreevuLogoText from '../TreevuLogoText';
+import { useModal } from '../../contexts/ModalContext';
 
 const LinkCompanyScreen: React.FC = () => {
     const { linkCompany, skipCompanyLink } = useAuth();
+    const { openModal } = useModal();
     const [code, setCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [showSuggestion, setShowSuggestion] = useState(false);
+    const isEmail = useMemo(() => code.includes('@') && code.split('@')[1]?.includes('.'), [code]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleLink = async (value: string) => {
+        setIsLoading(true);
+        setError('');
+        setSuccess('');
+        setShowSuggestion(false);
+
+        try {
+            const company = await linkCompany(value);
+            setSuccess(`¡Vinculación exitosa con ${company.name}!`);
+            // The context change will trigger navigation
+        } catch (err: any) {
+            setError(err.message || 'Ocurrió un error al vincular.');
+            setShowSuggestion(true); // Show suggestion button on error
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!code.trim()) {
             setError('Por favor, ingresa un código o email.');
             return;
         }
-        setIsLoading(true);
-        setError('');
-        setSuccess('');
-
-        try {
-            const company = await linkCompany(code);
-            setSuccess(`¡Vinculación exitosa con ${company.name}!`);
-            // The context will handle navigation away from this screen automatically
-        } catch (err: any) {
-            setError(err.message || 'Ocurrió un error al vincular.');
-        } finally {
-            setIsLoading(false);
-        }
+        handleLink(code);
     };
 
     return (
@@ -45,7 +55,7 @@ const LinkCompanyScreen: React.FC = () => {
                     </p>
                 </div>
                 
-                <div className="bg-surface rounded-3xl shadow-2xl p-6 sm:p-8">
+                <div className="bg-surface/80 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-8 border border-white/10">
                     <form onSubmit={handleSubmit} className="space-y-4">
                          <div className="relative">
                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -64,14 +74,26 @@ const LinkCompanyScreen: React.FC = () => {
                         {error && <p className="text-danger text-sm text-center">{error}</p>}
                         {success && <p className="text-primary font-bold text-sm text-center flex items-center justify-center gap-2"><CheckIcon className="w-5 h-5"/> {success}</p>}
 
+                        {showSuggestion && (
+                            <div className="text-center animate-fade-in">
+                                 <button
+                                    type="button"
+                                    onClick={() => openModal('leadCapture', { type: 'business' })}
+                                    className="text-sm font-bold text-primary hover:underline"
+                                >
+                                    ¿Tu empresa no está? Sugiérela aquí
+                                </button>
+                            </div>
+                        )}
+
                         <button
                             type="submit"
                             disabled={isLoading || !code.trim() || !!success}
-                            className="w-full bg-primary text-primary-dark font-bold py-3 px-6 rounded-xl text-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-wait hover:shadow-lg hover:shadow-primary/20 !mt-6"
+                            className="w-full bg-gradient-to-r from-accent to-accent-secondary text-primary-dark font-bold py-3 px-6 rounded-xl text-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-wait hover:shadow-lg hover:shadow-accent/20 !mt-6"
                         >
                              {isLoading ? (
                                 <div className="w-6 h-6 border-2 border-t-primary-dark border-background rounded-full animate-spin mx-auto"></div>
-                            ) : 'Vincular Ahora'}
+                            ) : 'Vincular Cuenta'}
                         </button>
                     </form>
 

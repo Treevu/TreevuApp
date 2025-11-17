@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useEffect } from 'react';
 import { ExpensesProvider, useExpenses } from './ExpensesContext';
 import { BudgetProvider, useBudget } from './BudgetContext';
 import { GoalsProvider, useGoals } from './GoalsContext';
@@ -77,15 +77,16 @@ const AppDataCombiner: React.FC<{ children: ReactNode }> = ({ children }) => {
             else if (fwiCurrent < fwiPrevious - 2) trend = 'declining';
         }
         
-        // Update user object with the trend
-        if (user && user.fwiTrend !== trend) {
-             // Use a timeout to avoid being in the middle of a render cycle
-            setTimeout(() => updateUser({ fwiTrend: trend }), 0);
-        }
-
         return trend;
 
-    }, [expensesData, user, updateUser]);
+    }, [expensesData]);
+
+    useEffect(() => {
+        if (user && user.fwiTrend !== fwiTrend) {
+            updateUser({ fwiTrend: fwiTrend });
+        }
+    }, [fwiTrend, user, updateUser]);
+
 
     const fwiHistory = useMemo(() => {
         const { expenses } = expensesData;

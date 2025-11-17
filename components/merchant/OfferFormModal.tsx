@@ -1,4 +1,7 @@
 
+
+
+
 import React, { useState, useEffect } from 'react';
 import { Offer } from '../../data/merchantData';
 import { CheckIcon } from '../Icons';
@@ -15,7 +18,7 @@ const inputClasses = "block w-full bg-background border border-active-surface ro
 const OfferFormModal: React.FC<OfferFormModalProps> = ({ onClose, onSave, offerToEdit }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [category, setCategory] = useState<'Café y Postres' | 'Libros y Cultura'>('Café y Postres');
+    const [category, setCategory] = useState<Offer['category']>('Café y Postres');
     const [discountDetails, setDiscountDetails] = useState('');
     const [conditions, setConditions] = useState('');
     const [error, setError] = useState('');
@@ -63,6 +66,10 @@ const OfferFormModal: React.FC<OfferFormModalProps> = ({ onClose, onSave, offerT
                         <select value={category} onChange={e => setCategory(e.target.value as any)} className={inputClasses}>
                             <option value="Café y Postres">Café y Postres</option>
                             <option value="Libros y Cultura">Libros y Cultura</option>
+                            <option value="Restaurantes">Restaurantes</option>
+                            <option value="Moda y Accesorios">Moda y Accesorios</option>
+                            <option value="Bienestar y Deporte">Bienestar y Deporte</option>
+                            <option value="Tecnología">Tecnología</option>
                         </select>
                     </div>
                 </div>

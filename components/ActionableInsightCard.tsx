@@ -11,7 +11,7 @@ const STIMULI = {
         id: 'savings_challenge',
         Icon: RocketLaunchIcon,
         title: 'Reto de Ahorro Rápido',
-        description: '¡Estás cerca de tu meta! Aporta un extra ahora y acelera tu conquista.',
+        description: '¡Acércate a tus metas! Aporta un extra ahora y acelera tu conquista.',
         cta: 'Aportar al Proyecto',
         action: (openModal: Function, goals: Goal[]) => {
             if (goals.length > 0) {
@@ -66,7 +66,7 @@ const ActionableInsightCard: React.FC = () => {
     const { Icon, title, description, cta, action } = stimulus;
 
     return (
-        <div className="bg-surface rounded-2xl p-4 border-2 border-dashed border-primary animate-grow-and-fade-in">
+        <div className="bg-surface/80 backdrop-blur-md rounded-2xl p-4 border-2 border-dashed border-primary shadow-xl dark:ring-1 dark:ring-white/10 animate-grow-and-fade-in">
             <div className="flex items-start gap-4">
                 <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Icon className="w-6 h-6 text-primary" />
@@ -78,7 +78,7 @@ const ActionableInsightCard: React.FC = () => {
             </div>
             <button
                 onClick={() => action(openModal, goals)}
-                className="w-full mt-4 bg-primary text-primary-dark font-bold py-2 px-4 rounded-xl hover:opacity-90 transition-opacity text-sm"
+                className="w-full mt-4 bg-gradient-to-br from-primary to-emerald-500 text-primary-dark font-bold py-2 px-4 rounded-xl hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
             >
                 {cta}
             </button>

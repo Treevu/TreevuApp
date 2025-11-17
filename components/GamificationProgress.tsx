@@ -26,7 +26,7 @@ const GamificationProgress: React.FC<GamificationProgressProps> = ({ user }) => 
                 const progressPercentage = Math.min((currentValue / targetValue) * 100, 100);
                 
                 let text = '';
-                if (key === 'expensesCount') text = `Registra ${targetValue} gastos (${currentValue}/${targetValue})`;
+                if (key === 'expensesCount') text = `Registra ${targetValue} hallazgos (${currentValue}/${targetValue})`;
                 if (key === 'formalityIndex') text = `Alcanza ${targetValue}% de formalidad (${currentValue.toFixed(0)}%/${targetValue}%)`;
 
                 return { key, text, isComplete, progressPercentage };

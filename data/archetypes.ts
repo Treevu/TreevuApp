@@ -139,7 +139,66 @@ const nomadGoals: Goal[] = [
     { id: 'ng1', name: 'Viaje a Japón', icon: '🏯', targetAmount: 15000, currentAmount: 8000, createdAt: getDateString(120), status: 'active' },
 ];
 
-export type ArchetypeKey = 'intrapreneur' | 'nomad';
+// --- 3. El Visionario Independiente ---
+const freelancerUser: User = {
+    id: 'user-freelancer',
+    name: 'Lucía Vidal',
+    email: 'lucia.vidal@example.com',
+    picture: `https://ui-avatars.com/api/?name=LV&background=10b981&color=ecfdf5&size=128&bold=true`,
+    level: TreevuLevel.Brote,
+    progress: { expensesCount: 8, formalityIndex: 25 },
+    treevus: 250,
+    isProfileComplete: true,
+    hasCorporateCard: false,
+    streak: { count: 0, lastDate: '' },
+    kudosSent: 0,
+    kudosReceived: 0,
+    featuredBadge: 'pioneer',
+    prestigeLevel: 0,
+    registrationDate: getDateString(20),
+    lastActivityDate: getDateString(2),
+    rewardsClaimedCount: 0,
+    engagementScore: 40,
+    fwiTrend: 'stable',
+    isCompanyLinkComplete: true, // They skipped the company link step
+    hasAcceptedEthicalPromise: true,
+    hasCompletedOnboarding: true,
+};
+
+const freelancerExpenses: Expense[] = Array.from({ length: 8 }, (_, i) => {
+    const daysAgo = Math.floor(i * 2) + 2;
+    const isFormal = i % 4 === 0; // ~25% formal
+    let razonSocial, ruc, categoria, total, tipoComprobante, intent;
+    if (isFormal) {
+        const vendors = [
+            { name: 'Starbucks', ruc: '20513451859', cat: CategoriaGasto.Alimentacion, t: 15 + Math.random() * 5, intent: 'desired' as const },
+            { name: 'Adobe Inc.', ruc: 'N/A', cat: CategoriaGasto.Servicios, t: 60, intent: 'essential' as const },
+        ];
+        const vendor = vendors[i % vendors.length];
+        razonSocial = vendor.name; ruc = vendor.ruc; categoria = vendor.cat; total = vendor.t; tipoComprobante = TipoComprobante.FacturaElectronica; intent = vendor.intent;
+    } else {
+        const vendors = [
+            { name: 'Menú del día', cat: CategoriaGasto.Alimentacion, t: 15 + Math.random() * 5, intent: 'essential' as const },
+            { name: 'Librería local', cat: CategoriaGasto.Consumos, t: 25 + Math.random() * 10, intent: 'essential' as const },
+            { name: 'Pasajes en bus', cat: CategoriaGasto.Transporte, t: 5 + Math.random() * 2, intent: 'essential' as const },
+        ];
+        const vendor = vendors[i % vendors.length];
+        razonSocial = vendor.name; ruc = 'N/A'; categoria = vendor.cat; total = vendor.t; tipoComprobante = TipoComprobante.SinComprobante; intent = vendor.intent;
+    }
+    total = parseFloat(total.toFixed(2));
+    const igv = isFormal ? total * (18 / 118) : 0;
+    const ahorroPerdido = !isFormal ? total * 0.18 : 0;
+    return {
+        id: `f${i + 1}`, razonSocial, ruc, fecha: getDateString(daysAgo), total, categoria, tipoComprobante, intent,
+        esFormal: isFormal, ahorroPerdido: parseFloat(ahorroPerdido.toFixed(2)), igv: parseFloat(igv.toFixed(2)),
+    };
+});
+
+const freelancerGoals: Goal[] = [
+    { id: 'fg1', name: 'Laptop Nueva', icon: '💻', targetAmount: 4500, currentAmount: 300, createdAt: getDateString(20), status: 'active' },
+];
+
+export type ArchetypeKey = 'intrapreneur' | 'nomad' | 'freelancer';
 
 export const archetypeData: {
     [key in ArchetypeKey]: {
@@ -171,4 +230,14 @@ export const archetypeData: {
             { id: 'nn1', type: NotificationType.StreakBonus, title: '¡Racha de 8 Días!', message: '¡Tu constancia te dio un bono de +15 treevüs! Sigue así.', timestamp: Date.now() - 20 * 60 * 60 * 1000, isRead: false },
         ],
     },
+    freelancer: {
+        user: freelancerUser,
+        expenses: freelancerExpenses,
+        goals: freelancerGoals,
+        budget: 2500,
+        annualIncome: 48000,
+        notifications: [
+            { id: 'fn1', type: NotificationType.Info, title: '¡Bienvenida a treevü!', message: 'Tu aventura financiera ha comenzado. Registra tu primer gasto para empezar a ganar treevüs.', timestamp: Date.now() - 5 * 60 * 1000, isRead: false },
+        ]
+    }
 };

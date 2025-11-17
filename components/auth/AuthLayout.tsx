@@ -7,7 +7,7 @@ interface AuthLayoutProps {
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children, footer }) => {
     return (
-        <div className="min-h-screen bg-background flex flex-col items-center p-4 text-on-surface animate-fade-in">
+        <div className="min-h-screen flex flex-col items-center p-4 text-on-surface animate-fade-in">
             <main className="w-full max-w-sm flex-grow flex flex-col justify-center">
                 <div className="bg-surface rounded-3xl shadow-2xl p-6 sm:p-8">
                     {children}

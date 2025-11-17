@@ -1,3 +1,7 @@
+
+
+
+
 import React from 'react';
 import { BuildingOffice2Icon, ArrowLeftIcon, SparklesIcon, TrophyIcon, ChartPieIcon, UsersIcon, LightBulbIcon, CheckBadgeIcon } from '../Icons';
 import ThemeSwitcher from '../ThemeSwitcher';
@@ -6,6 +10,9 @@ import { useModal } from '../../contexts/ModalContext';
 import { type CurrentUserType } from '../../types/employer';
 import EmployerStatusCard from './EmployerStatusCard';
 import KpiCard from './KpiCard';
+import Logo from '../Logo';
+import TreevuLogoText from '../TreevuLogoText';
+import UpgradePlanCTA from '../UpgradePlanCTA';
 
 interface EmployerProfileViewProps {
     user: CurrentUserType;
@@ -62,7 +69,18 @@ const EmployerProfileView: React.FC<EmployerProfileViewProps> = ({ user, dashboa
     return (
         <div className="w-1/4 h-full overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-6 pb-28">
             <header>
-                <h1 className="text-3xl font-bold">Perfil y Asistente IA</h1>
+                 <div className="flex items-center gap-3">
+                    <Logo className="w-10 h-10 text-primary" />
+                    <div>
+                        <h1 className="text-2xl font-bold leading-tight -mb-1">
+                            <TreevuLogoText />
+                        </h1>
+                        <p className="text-accent text-sm font-bold leading-none italic">
+                            for business
+                        </p>
+                    </div>
+                </div>
+                <h2 className="text-3xl font-bold mt-4 treevu-text">Perfil y Asistente IA</h2>
                 <p className="text-on-surface-secondary">
                     Administra tu perfil y accede a tu copiloto estratégico.
                 </p>
@@ -100,14 +118,26 @@ const EmployerProfileView: React.FC<EmployerProfileViewProps> = ({ user, dashboa
             )}
 
             <div className="space-y-3">
-                 <button
-                    ref={refs.assistantBtnRef}
-                    onClick={handleAssistantClick}
-                    className="w-full flex items-center justify-center px-4 py-3 text-sm font-bold text-primary bg-primary/20 rounded-xl hover:bg-primary/30"
-                >
-                    <SparklesIcon className="w-5 h-5 mr-2" />
-                    Asistente Estratégico IA
-                </button>
+                {user.plan === 'Launch' ? (
+                    <div className="bg-surface rounded-2xl p-4">
+                        <UpgradePlanCTA
+                            Icon={SparklesIcon}
+                            title="Asistente Estratégico IA"
+                            description="Actualiza para desbloquear análisis avanzados, redacción de comunicados y proyecciones con IA."
+                            variant="transparent"
+                            origin="business"
+                        />
+                    </div>
+                ) : (
+                    <button
+                        ref={refs.assistantBtnRef}
+                        onClick={handleAssistantClick}
+                        className="w-full flex items-center justify-center px-4 py-3 text-sm font-bold bg-primary text-primary-dark rounded-xl hover:opacity-90 transition-opacity"
+                    >
+                        <SparklesIcon className="w-5 h-5 mr-2" />
+                        Asistente Estratégico IA
+                    </button>
+                )}
             </div>
             
             <div className="w-full">

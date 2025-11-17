@@ -1,7 +1,10 @@
+
+
+
 import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import OnboardingTour from '../OnboardingTour';
 import BottomNavBar from '../BottomNavBar';
-import EmployerDashboardView from './EmployerDashboardView';
+import { EmployerDashboardView } from './EmployerDashboardView';
 import EmployerTalentView from './EmployerTalentView';
 import EmployerStrategyView from './EmployerStrategyView';
 import EmployerProfileView from './EmployerProfileView';
@@ -29,11 +32,45 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }
     const [selectedTenure, setSelectedTenure] = useState('all');
     const [selectedModality, setSelectedModality] = useState('all');
     const [selectedAgeRange, setSelectedAgeRange] = useState('all');
-    const [challenges, setChallenges] = useState<Challenge[]>(MOCK_CHALLENGES);
+    const [challenges, setChallenges] = useState<Challenge[]>([]);
     const { openModal, closeModal } = useModal();
     const [activeTab, setActiveTab] = useState<EmployerActiveTab>('resumen');
 
     const tabs: EmployerActiveTab[] = ['resumen', 'talento', 'engagement', 'perfil'];
+
+    useEffect(() => {
+        document.documentElement.classList.add('theme-business');
+        // Cleanup function to remove the class when the component unmounts
+        return () => {
+            document.documentElement.classList.remove('theme-business');
+        };
+    }, []);
+    
+    // Load challenges from localStorage on initial render
+    useEffect(() => {
+        try {
+            const savedChallenges = localStorage.getItem('treevu-company-challenges');
+            if (savedChallenges) {
+                setChallenges(JSON.parse(savedChallenges));
+            } else {
+                setChallenges(MOCK_CHALLENGES); // Fallback to mocks if nothing is saved
+            }
+        } catch (e) {
+            console.error("Failed to load challenges from localStorage", e);
+            setChallenges(MOCK_CHALLENGES);
+        }
+    }, []);
+
+    // Persist challenges to localStorage whenever they change
+    useEffect(() => {
+        try {
+            localStorage.setItem('treevu-company-challenges', JSON.stringify(challenges));
+             // Dispatch a storage event so the B2C app can react instantly
+            window.dispatchEvent(new Event('storage'));
+        } catch(e) {
+            console.error("Failed to save challenges to localStorage", e);
+        }
+    }, [challenges]);
     
     const handleTabClick = useCallback((tab: EmployerActiveTab) => {
         setActiveTab(tab);
@@ -176,7 +213,7 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }
     const transformValue = -activeIndex * 100;
 
     return (
-        <div className="flex flex-col h-screen bg-background">
+        <div className="flex flex-col h-screen">
             <main className="flex-1 max-w-7xl w-full mx-auto flex flex-col overflow-hidden">
                  <div 
                     {...swipeHandlers}
@@ -195,15 +232,18 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ user, onSignOut }
                         refs={{ dashboardContentRef, filtersRef, fwiRef, kpisRef, riskChartRef, areaComparisonRef }}
                         activeTab={activeTab}
                         onSignOut={onSignOut}
-                        onOpenCreateChallengeModal={openCreateChallengeModal}
+                        // FIX: Changed 'onOpenCreateChallengeModal' to the correct prop name 'openCreateChallengeModal'.
+                        openCreateChallengeModal={openCreateChallengeModal}
                     />
                     <EmployerTalentView
+                        user={user}
                         dashboardData={dashboardData}
                         segmentEmployees={filteredEmployees}
                         onOpenPromoteLessonModal={openPromoteLessonModal}
                         refs={{ benefitsImpactRef, aspirationsRef, wellnessHeatmapRef }}
                     />
                     <EmployerStrategyView
+                        user={user}
                         dashboardData={dashboardData}
                         companyWideData={companyWideData}
                         challenges={challenges}

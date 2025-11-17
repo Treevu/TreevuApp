@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { TreevuLevel } from '../types/common';
-import { CheckIcon, BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon } from './Icons';
+import { CheckIcon, BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon, GiftIcon } from './Icons';
 import { levelData } from '../services/gamificationService';
 import ModalWrapper from './ModalWrapper';
 import TreevuLogoText from './TreevuLogoText';
@@ -29,7 +29,7 @@ const GamificationLevelsModal: React.FC<GamificationLevelsModalProps> = ({ onClo
         <ModalWrapper title={title} onClose={onClose}>
             <div className="-mt-5">
                 <p className="text-sm text-center text-on-surface-secondary">
-                    A medida que registras gastos y mejoras tu formalidad, avanzas en tu senda y desbloqueas nuevos niveles.
+                    A medida que registras hallazgos y mejoras tu formalidad, avanzas en tu senda y desbloqueas nuevos niveles.
                 </p>
                 <div className="mt-4 space-y-4">
                     {allLevelsData.map((levelInfo) => {
@@ -62,6 +62,23 @@ const GamificationLevelsModal: React.FC<GamificationLevelsModalProps> = ({ onClo
                                             </div>
                                         ))}
                                     </div>
+
+                                    {/* NEW BENEFITS SECTION */}
+                                    {levelInfo.benefits && levelInfo.benefits.length > 0 && (
+                                        <div className="mt-3 pt-2 border-t border-dashed border-active-surface">
+                                             <h4 className="text-xs font-bold text-on-surface mb-1">Beneficios Desbloqueados:</h4>
+                                             <div className="space-y-1">
+                                                {levelInfo.benefits.map((benefit, index) => (
+                                                    <div key={index} className={`flex items-center text-xs ${isCompleted || isCurrent ? 'text-on-surface' : 'text-on-surface-secondary'}`}>
+                                                        <GiftIcon className={`w-3.5 h-3.5 mr-2 flex-shrink-0 ${isCompleted || isCurrent ? 'text-primary' : 'text-on-surface-secondary'}`} />
+                                                        <span className={isCompleted || isCurrent ? 'font-semibold' : ''}>{benefit}</span>
+                                                    </div>
+                                                ))}
+                                             </div>
+                                        </div>
+                                    )}
+                                    {/* END NEW SECTION */}
+
                                 </div>
                             </div>
                         );

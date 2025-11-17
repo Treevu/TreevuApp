@@ -76,7 +76,7 @@ const CategoryAnalysis: React.FC<CategoryAnalysisProps> = ({ expenses }) => {
                     <ChartPieIcon className="w-6 h-6 mr-2 text-primary"/>
                     Top Categorías
                 </h2>
-                <Tooltip id="top-categorias-tooltip" text="Un análisis de las 5 categorías donde más gastas. Haz clic en una para ver el detalle de los últimos 30 días." />
+                <Tooltip id="top-categorias-tooltip" text="Un análisis de las 5 categorías donde registras más movimientos. Haz clic en una para ver el detalle de los últimos 30 días." />
             </div>
 
             {sortedCategories.length > 0 ? (
@@ -90,7 +90,7 @@ const CategoryAnalysis: React.FC<CategoryAnalysisProps> = ({ expenses }) => {
                                     <div className="flex-1 min-w-0">
                                         <p className="font-semibold text-on-surface text-base">{category}</p>
                                         <p className="text-xs text-on-surface-secondary">
-                                            {count} {count === 1 ? 'transacción' : 'transacciones'}
+                                            {count} {count === 1 ? 'movimiento' : 'movimientos'}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-4">
@@ -105,7 +105,7 @@ const CategoryAnalysis: React.FC<CategoryAnalysisProps> = ({ expenses }) => {
                                     style={{ maxHeight: isExpanded ? '200px' : '0px' }}
                                 >
                                     <div className="px-3 pb-3">
-                                        <h4 className="text-xs font-bold text-on-surface-secondary mb-2 pt-2 border-t border-active-surface/50">Gasto en los últimos 30 días</h4>
+                                        <h4 className="text-xs font-bold text-on-surface-secondary mb-2 pt-2 border-t border-active-surface/50">Movimientos en los últimos 30 días</h4>
                                         <SimpleBarChart data={historyData} />
                                     </div>
                                 </div>

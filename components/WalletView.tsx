@@ -108,13 +108,6 @@ const WalletView: React.FC<WalletViewProps> = ({
                         categoryFilter={categoryFilter}
                         onClearFilter={onClearFilter}
                     />
-                    <button
-                        onClick={() => openModal('addExpense')}
-                        className="fixed bottom-24 right-6 w-16 h-16 bg-primary text-primary-dark rounded-full shadow-lg flex items-center justify-center transform hover:scale-110 transition-transform duration-200 ease-in-out z-30"
-                        aria-label="Añadir nuevo registro"
-                    >
-                        <PlusIcon className="w-8 h-8" />
-                    </button>
                 </div>
             )}
         </div>

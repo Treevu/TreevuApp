@@ -13,16 +13,19 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { user } = useAuth(); // Get user from AuthContext
-    const [theme, setTheme] = useState<Theme>(() => {
-        // 1. Check localStorage for a saved theme
-        const savedTheme = localStorage.getItem('treevu-theme') as Theme | null;
-        if (savedTheme) {
-            return savedTheme;
-        }
-        // 2. If no saved theme, default to 'dark'
-        return 'dark';
-    });
+    
+    // Default to 'system' and let useEffect handle the hydration from localStorage.
+    const [theme, setTheme] = useState<Theme>('system');
 
+    // Effect for hydrating theme from localStorage on initial load.
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('treevu-theme');
+        if (savedTheme === 'light' || savedTheme === 'dark') {
+            setTheme(savedTheme);
+        }
+    }, []);
+
+    // Effect for applying theme class and saving preference.
     useEffect(() => {
         const root = window.document.documentElement;
         const isDark =
@@ -31,16 +34,15 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
         root.classList.toggle('dark', isDark);
 
-        // Save the user's preference to localStorage, but only if it's not 'system'
+        // Save the user's preference to localStorage, or remove it for 'system'.
         if (theme === 'light' || theme === 'dark') {
             localStorage.setItem('treevu-theme', theme);
         } else {
             localStorage.removeItem('treevu-theme');
         }
-
     }, [theme]);
     
-    // NEW Effect for company branding
+    // Effect for company branding
     useEffect(() => {
         const rootStyle = document.documentElement.style;
         const branding = user?.branding;

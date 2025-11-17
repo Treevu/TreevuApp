@@ -29,7 +29,7 @@ interface ExpensesContextType {
     formalityIndexByCount: number;
     fwi_v2: number;
     fwi_v2_components: FwiComponents;
-    addExpense: (newExpenseData: ExpenseData & { imageUrl?: string }) => Expense;
+    addExpense: (newExpenseData: ExpenseData & { imageUrl?: string }) => { expense: Expense; treevusEarned: number; };
     updateExpense: (expenseId: string, updatedData: Partial<ExpenseData>) => void;
     deleteExpense: (expenseId: string) => void;
 }
@@ -50,7 +50,7 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
     const { addNotification, lastNotificationTimes } = useNotifications();
     const { goals } = useGoals();
     const { setAlert } = useAlert();
-    const { updateMissionProgress } = useTribes();
+    const { tribes, missions, updateMissionProgress } = useTribes();
 
     useEffect(() => {
         try {
@@ -135,10 +135,23 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
             violations = checkExpenseAgainstPolicies(newExpenseData as Expense);
         }
 
+        let isMissionContribution = false;
+        if (newExpenseData.esFormal && user && user.tribeId) {
+            const tribe = tribes.find(t => t.id === user.tribeId);
+            if (tribe && tribe.activeMissionId) {
+                const mission = missions.find(m => m.id === tribe.activeMissionId);
+                if (mission && mission.metric === 'formalExpenseCount') {
+                    isMissionContribution = true;
+                    updateMissionProgress(user.tribeId, 'formalExpenseCount', 1);
+                }
+            }
+        }
+
         const newExpense: Expense = {
             id: generateUniqueId(),
             ...newExpenseData,
             violations,
+            isMissionContribution,
         };
         const updatedExpenses = [newExpense, ...expenses];
         setExpenses(updatedExpenses);
@@ -169,9 +182,6 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
 
         if (newExpense.esFormal && user) {
-            if(user.tribeId) {
-                updateMissionProgress(user.tribeId, 'formalExpenseCount', 1);
-            }
             const today = new Date();
             const yesterday = new Date(today);
             yesterday.setDate(yesterday.getDate() - 1);
@@ -205,6 +215,26 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
         const totalTreevus = treevusEarned + streakBonus + firstExpenseBonus + surpriseBonus;
         if (totalTreevus > 0) addTreevus(totalTreevus);
 
+        // --- Bosque Colectivo Simulation Logic ---
+        if (user && totalTreevus > 0) {
+            try {
+                const collectiveKey = 'treevu_collective_total';
+                const personalKey = `treevu_personal_contribution_${user.id}`;
+                
+                const currentCollective = Number(localStorage.getItem(collectiveKey) || 1234567);
+                const currentPersonal = Number(localStorage.getItem(personalKey) || 0);
+
+                localStorage.setItem(collectiveKey, String(currentCollective + (totalTreevus * 50)));
+                localStorage.setItem(personalKey, String(currentPersonal + totalTreevus));
+                
+                // Dispatch event to sync other tabs
+                window.dispatchEvent(new Event('storage'));
+            } catch (e) {
+                console.error("Failed to update collective forest data:", e);
+            }
+        }
+        // --- End of Bosque Colectivo Logic ---
+
         const infoAction = { text: '¿Qué son?', onClick: () => openModal('treevusInfo') };
 
         if (violations.length > 0) {
@@ -212,6 +242,8 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
                 message: `<strong>Alerta de Política:</strong> ${violations[0].message}`,
                 type: 'warning',
             });
+        } else if (isMissionContribution) {
+            setAlert({ message: `¡Aporte a la misión! <strong>+1 para la Iniciativa.</strong> (+${totalTreevus} treevüs)`, type: 'success', action: infoAction });
         } else if (surpriseBonus > 0) {
             setAlert({ message: `✨ ¡Cosecha Sorpresa! Ganaste un bono de <strong>+${totalTreevus} treevüs</strong>.`, type: 'success', action: infoAction });
         } else if (isFirstExpense) {
@@ -221,15 +253,15 @@ export const ExpensesProvider: React.FC<{ children: ReactNode }> = ({ children }
             addNotification({ type: NotificationType.StreakBonus, title: `¡Racha de ${streakCount} días!`, message: `¡Felicidades! Ganaste ${totalTreevus} treevüs de bonificación por tu constancia.` });
             setAlert({ message: `¡Racha de ${streakCount} días! Ganaste <strong>+${totalTreevus} treevüs</strong>.`, type: 'success', action: infoAction });
         } else {
-             const message = `${newExpense.mensaje || '¡Gasto guardado!'} (<strong>+${totalTreevus} treevüs</strong> 🌿)`;
+             const message = `${newExpense.mensaje || '¡Hallazgo guardado!'} (<strong>+${totalTreevus} treevüs</strong> 🌿)`;
              setAlert({ message, type: 'success', action: infoAction });
         }
 
         if (!newExpense.esFormal && newExpense.ahorroPerdido > 0) {
             sendInformalExpenseNotification(newExpense);
         }
-        return newExpense;
-    }, [expenses, user, goals, addTreevus, updateUserStreak, setAlert, addNotification, lastNotificationTimes, openModal, updateMissionProgress]);
+        return { expense: newExpense, treevusEarned: totalTreevus };
+    }, [expenses, user, goals, tribes, missions, addTreevus, updateUserStreak, setAlert, addNotification, lastNotificationTimes, openModal, updateMissionProgress]);
 
     const updateExpense = useCallback((expenseId: string, updatedData: Partial<ExpenseData>) => {
         setExpenses(prev => prev.map(expense => expense.id === expenseId ? { ...expense, ...updatedData } : expense));

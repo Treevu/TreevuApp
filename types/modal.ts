@@ -1,10 +1,10 @@
-// FIX: Add missing React import to use React.ComponentProps
 import React from 'react';
 import { AISplitSuggestion, AISavingOpportunity } from './ai';
 import { CategoriaGasto } from './common';
 import { Expense, ExpenseData, Product, VerificationResult } from './expense';
 import { AchievementShareModalProps } from '../components/AchievementShareModal';
 import { MerchantAIAssistantProps } from '../components/merchant/MerchantAIAssistant';
+import { ProofOfImpactModalProps } from '../components/ProofOfImpactModal';
 
 export type ModalStep = 
     | 'initializing'
@@ -20,7 +20,8 @@ export type ModalStep =
     | 'review_products'
     | 'suggest_split'
     | 'saving_opportunity'
-    | 'divert_expense';
+    | 'divert_expense'
+    | 'save_success';
 
 export interface RucValidationResult {
     isValid: boolean;
@@ -88,7 +89,11 @@ export type ModalType =
     | 'strategicReport'
     | 'offerForm'
     | 'achievementShare'
-    | 'merchantAIAssistant';
+    | 'merchantAIAssistant'
+    | 'proofOfImpact'
+    | 'saasPlanMatrix'
+    | 'companySelection'
+    | 'leadCapture';
 
 
 export type ModalPropsMap = {
@@ -117,4 +122,8 @@ export type ModalPropsMap = {
     offerForm: React.ComponentProps<typeof import('../components/merchant/OfferFormModal').default>;
     achievementShare: AchievementShareModalProps;
     merchantAIAssistant: MerchantAIAssistantProps;
+    proofOfImpact: ProofOfImpactModalProps;
+    saasPlanMatrix: React.ComponentProps<typeof import('../components/SaasPlanMatrixModal').default> & { origin?: 'people' | 'business' | 'merchant' };
+    companySelection: React.ComponentProps<typeof import('../components/CompanySelectionModal').default>;
+    leadCapture: { type: 'people' | 'business' | 'merchants' };
 };

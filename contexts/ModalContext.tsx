@@ -22,6 +22,10 @@ import StrategicReportModal from '../components/employer/StrategicReportModal';
 import OfferFormModal from '../components/merchant/OfferFormModal';
 import AchievementShareModal from '../components/AchievementShareModal';
 import MerchantAIAssistant from '../components/merchant/MerchantAIAssistant';
+import ProofOfImpactModal from '../components/ProofOfImpactModal';
+import SaasPlanMatrixModal from '../components/SaasPlanMatrixModal';
+import CompanySelectionModal from '../components/CompanySelectionModal';
+import LeadCaptureModal from '../components/LeadCaptureModal';
 
 import { Tribe, TribeMember } from '../types/tribe';
 import { ModalType, ModalPropsMap } from '../types/modal';
@@ -66,10 +70,18 @@ const MODAL_COMPONENTS: { [key in ModalType]: React.FC<any> } = {
     offerForm: OfferFormModal,
     achievementShare: AchievementShareModal,
     merchantAIAssistant: MerchantAIAssistant,
+    proofOfImpact: ProofOfImpactModal,
+    saasPlanMatrix: SaasPlanMatrixModal,
+    companySelection: CompanySelectionModal,
+    leadCapture: LeadCaptureModal,
 };
 
 export const ModalProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => {
     const [modalState, setModalState] = useState<ModalState>({ type: null, props: {} });
+
+    const closeModal = useCallback(() => {
+        setModalState({ type: null, props: {} });
+    }, []);
 
     const openModal = useCallback(<T extends ModalType>(type: T | null, props: Omit<ModalPropsMap[T], 'onClose'> = {} as any) => {
         if (type === null) {
@@ -77,11 +89,7 @@ export const ModalProvider: React.FC<PropsWithChildren<{}>> = ({ children }) => 
             return;
         }
         setModalState({ type, props });
-    }, []);
-
-    const closeModal = useCallback(() => {
-        setModalState({ type: null, props: {} });
-    }, []);
+    }, [closeModal]);
 
     const value = useMemo(() => ({ openModal, closeModal, modalState }), [openModal, closeModal, modalState]);
 
@@ -109,7 +117,11 @@ export const ModalRenderer: React.FC = () => {
     }
 
     const ModalComponent = MODAL_COMPONENTS[type];
-    const allProps = { ...props, onClose: closeModal };
 
-    return <ModalComponent {...allProps} />;
+    if (!ModalComponent) {
+        console.warn(`Modal type "${type}" not found in MODAL_COMPONENTS.`);
+        return null;
+    }
+
+    return <ModalComponent {...props} onClose={closeModal} />;
 };

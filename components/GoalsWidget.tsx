@@ -42,7 +42,7 @@ const GoalsWidget: React.FC<GoalsWidgetProps> = ({ variant = 'full' }) => {
 
     useEffect(() => {
         if (user && completedGoalsCount > prevCompletedGoalsCountRef.current) {
-            const newlyCompletedGoal = goals.find(g => (g.status === 'completed' || g.currentAmount >= g.targetAmount));
+            const newlyCompletedGoal = goals.find(g => (g.status === 'completed' || g.currentAmount >= g.targetAmount) && g.id === sortedGoals[0].id);
             if (newlyCompletedGoal) {
                  openModal('achievementShare', {
                     title: '¡Proyecto Conquistado!',
@@ -53,73 +53,29 @@ const GoalsWidget: React.FC<GoalsWidgetProps> = ({ variant = 'full' }) => {
             }
         }
         prevCompletedGoalsCountRef.current = completedGoalsCount;
-    }, [completedGoalsCount, openModal, user, goals]);
+    }, [completedGoalsCount, openModal, user, goals, sortedGoals]);
     // --- FIN IMPLEMENTACIÓN ---
 
     if (goals.length === 0) {
-        if (variant === 'full') {
-            return (
-                <div className="bg-surface rounded-2xl p-4 flex flex-col items-center text-center justify-center animate-grow-and-fade-in border border-dashed dark:border-dotted border-active-surface/80 shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
-                        <BuildingBlocksIcon className="w-7 h-7 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg text-on-surface">Marca tu Primer Tesoro</h3>
-                    <p className="text-sm text-on-surface-secondary mt-1 mb-3 max-w-xs">Dale un propósito a tu ahorro. Cada proyecto es un tesoro esperando ser descubierto en tu mapa.</p>
-                    <button
-                        onClick={() => openModal('setGoal')}
-                        className="bg-primary text-primary-dark font-bold py-2 px-5 rounded-xl hover:opacity-90 transition-opacity text-sm flex items-center"
-                    >
-                        <PlusIcon className="w-5 h-5 mr-1.5" />
-                        Crear Proyecto
-                    </button>
-                </div>
-            );
-        }
-        // Compact empty state
         return (
-             <div className="bg-surface rounded-2xl p-4 animate-grow-and-fade-in" style={{ animationDelay: '100ms' }}>
-                <h2 className="text-lg font-bold text-on-surface mb-2 flex items-center">
-                    <BuildingBlocksIcon className="w-6 h-6 mr-2 text-primary" />
-                    Avance de Proyectos
-                </h2>
-                <div className="text-center py-4">
-                    <p className="text-sm text-on-surface-secondary">
-                        Aún no tienes proyectos de ahorro. Ve a 'Inicio' para crear tu primero.
-                    </p>
+            <div className="flex flex-col items-center text-center justify-center animate-grow-and-fade-in py-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                    <BuildingBlocksIcon className="w-7 h-7 text-primary" />
                 </div>
+                <p className="text-sm text-on-surface-secondary mt-1 mb-3 max-w-xs">Dale un propósito a tu ahorro. Cada proyecto es un tesoro esperando ser descubierto en tu mapa.</p>
+                <button
+                    onClick={() => openModal('setGoal')}
+                    className="bg-gradient-to-r from-accent to-accent-secondary text-primary-dark font-bold py-2 px-5 rounded-xl text-sm flex items-center shadow-lg shadow-primary/30 transform hover:-translate-y-1 transition-all duration-300"
+                >
+                    <PlusIcon className="w-5 h-5 mr-1.5" />
+                    Crear Proyecto
+                </button>
             </div>
         );
     }
 
     return (
-        <div className="bg-surface rounded-2xl p-4 animate-grow-and-fade-in shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
-            <div className="flex justify-between items-center mb-3">
-                 <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-on-surface flex items-center">
-                        <BuildingBlocksIcon className="w-6 h-6 mr-2 text-primary"/>
-                        {variant === 'full' ? 'Mis Proyectos de Conquista' : 'Avance de Proyectos'}
-                    </h2>
-                    {variant === 'full' && (
-                        <div className="tooltip-container">
-                            <button className="text-on-surface-secondary hover:text-on-surface" aria-label="Más información sobre los proyectos de ahorro">
-                                <InformationCircleIcon className="w-5 h-5" />
-                            </button>
-                            <div className="tooltip-box" role="tooltip">
-                                Define tus grandes metas como 'Proyectos de Conquista'. Registra lo que 'inviertes' en ellos para ver cómo te acercas a tu tesoro. (No mueve dinero real).
-                            </div>
-                        </div>
-                    )}
-                </div>
-                {variant === 'full' && (
-                    <button
-                        onClick={() => openModal('setGoal')}
-                        className="text-primary hover:opacity-80 flex items-center text-sm font-semibold transition-opacity"
-                    >
-                        <PlusIcon className="w-4 h-4 mr-1" />
-                        Nuevo
-                    </button>
-                )}
-            </div>
+        <div className="animate-grow-and-fade-in">
             <div className="space-y-4">
                 {sortedGoals.map(goal => {
                     const isCompleted = goal.currentAmount >= goal.targetAmount;
@@ -159,7 +115,7 @@ const GoalsWidget: React.FC<GoalsWidgetProps> = ({ variant = 'full' }) => {
                                 isCompleted ? (
                                     <div className="mt-3 text-center p-2 bg-primary/10 rounded-lg animate-fade-in">
                                         <p className="font-bold text-primary flex items-center justify-center gap-2">
-                                            <TrophyIcon className="w-5 h-5" title="Trofeo" /> ¡Misión Cumplida!
+                                            <TrophyIcon className="w-5 h-5" /> ¡Misión Cumplida!
                                         </p>
                                         <p className="text-xs text-on-surface-secondary mt-1">¡Felicidades! Usa esta motivación para tus otros proyectos.</p>
                                     </div>
@@ -169,7 +125,7 @@ const GoalsWidget: React.FC<GoalsWidgetProps> = ({ variant = 'full' }) => {
                                             onClick={() => handleAddContribution(goal.id)}
                                             className="px-3 py-1 text-xs font-bold text-primary bg-primary/20 rounded-full hover:bg-primary/30"
                                         >
-                                            + Añadir Fondos
+                                            + Añadir Aporte
                                         </button>
                                     </div>
                                 )

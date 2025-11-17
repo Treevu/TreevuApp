@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { ArrowLeftIcon, RocketLaunchIcon, BinocularsIcon } from './Icons';
+import { ArrowLeftIcon, RocketLaunchIcon, BinocularsIcon, LightBulbIcon } from './Icons';
 import { useAuth } from '../contexts/AuthContext';
 import { ArchetypeKey } from '../data/archetypes';
 import AuthLayout from './auth/AuthLayout';
@@ -13,13 +14,25 @@ const archetypes = [
         key: 'intrapreneur' as ArchetypeKey,
         icon: RocketLaunchIcon,
         title: 'Intraemprendedor Ambicioso',
-        description: 'Perfil de un profesional joven y social, con un mix de gastos formales e informales. Ideal para ver cómo treevü ayuda a organizar un estilo de vida dinámico.',
+        description: 'Perfil corporativo dinámico, con un mix de gastos formales e informales. Ideal para ver cómo treevü se alinea a los beneficios de empresa.',
+        plan: 'Explorer',
+        planColor: 'bg-primary/20 text-primary',
     },
     {
         key: 'nomad' as ArchetypeKey,
         icon: BinocularsIcon,
         title: 'Nómada Digital',
-        description: 'Un perfil tecnológico remoto con altos gastos en suscripciones, delivery y viajes. Perfecto para explorar la gestión de gastos recurrentes y no tradicionales.',
+        description: 'Un perfil tecnológico remoto con altos gastos en suscripciones y servicios. Perfecto para explorar la gestión de gastos recurrentes.',
+        plan: 'Explorer',
+        planColor: 'bg-primary/20 text-primary',
+    },
+    {
+        key: 'freelancer' as ArchetypeKey,
+        icon: LightBulbIcon,
+        title: 'Visionario Independiente',
+        description: 'Un perfil de profesional independiente o freelancer. Ideal para experimentar la versión gratuita y personal de treevü desde cero.',
+        plan: 'Starter',
+        planColor: 'bg-accent/20 text-accent',
     },
 ];
 
@@ -54,16 +67,19 @@ const ArchetypeSelection: React.FC<ArchetypeSelectionProps> = ({ onBack }) => {
                     <button
                         key={archetype.key}
                         onClick={() => handleSelect(archetype.key)}
-                        className="w-full p-4 bg-surface rounded-xl border border-active-surface/50 text-left flex items-start gap-4 transform hover:scale-105 hover:bg-active-surface transition-all duration-300 animate-staggered-fade-in-slide-up"
+                        className="w-full p-6 bg-surface/50 backdrop-blur-sm rounded-2xl border border-active-surface/50 text-left flex items-start gap-4 transition-all duration-300 hover:shadow-lg hover:border-primary/50 hover:scale-[1.02] animate-staggered-fade-in-slide-up"
                         style={{ animationDelay: `${index * 100}ms` }}
 
                     >
                         <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
                             <archetype.icon className="w-6 h-6 text-primary"/>
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-on-surface">{archetype.title}</h3>
-                            <p className="text-xs text-on-surface-secondary">{archetype.description}</p>
+                             <span className={`text-xs font-bold mt-1 inline-block px-2 py-0.5 rounded-full ${archetype.planColor}`}>
+                                Plan: {archetype.plan}
+                            </span>
+                            <p className="text-xs text-on-surface-secondary mt-2">{archetype.description}</p>
                         </div>
                     </button>
                 ))}

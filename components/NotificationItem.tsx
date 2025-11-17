@@ -1,7 +1,7 @@
 import React from 'react';
 // FIX: Updated imports from deprecated 'types.ts' to 'types/notification.ts'.
 import { type Notification, NotificationType } from '../types/notification';
-import { SparklesIcon, ExclamationTriangleIcon, CheckBadgeIcon, FireIcon, TrophyIcon } from './Icons';
+import { SparklesIcon, ExclamationTriangleIcon, CheckBadgeIcon, FireIcon, TrophyIcon, BookOpenIcon } from './Icons';
 import { useNotifications } from '../contexts/NotificationContext';
 
 interface NotificationItemProps {
@@ -18,6 +18,8 @@ const getIconForType = (type: NotificationType) => {
             return <FireIcon className="w-5 h-5 text-danger" />;
         case NotificationType.Kudos:
             return <TrophyIcon className="w-5 h-5 text-yellow-400" />;
+        case NotificationType.WeeklySummary:
+            return <BookOpenIcon className="w-5 h-5 text-indigo-400" />;
         default:
             return <SparklesIcon className="w-5 h-5 text-accent" />;
     }

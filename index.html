@@ -37,6 +37,7 @@
               'danger': 'var(--danger)',
               'accent': 'var(--accent)',
               'accent-dark': 'var(--accent-dark)',
+              'accent-secondary': 'var(--accent-secondary)',
               'warning': 'var(--warning)',
             },
             borderRadius: {
@@ -44,7 +45,11 @@
               '3xl': '1.5rem',
             },
             boxShadow: {
-                'card': '0 8px 24px -8px rgba(0,0,0,0.08), 0 1px 4px -1px rgba(0,0,0,0.05)',
+                'lg': '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)',
+                'xl': '0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                '2xl': '0 25px 50px -12px rgba(0,0,0,0.25)',
+                'inner': 'inset 0 2px 4px 0 rgba(0,0,0,0.05)',
+                'card': '0 12px 28px -5px rgba(var(--primary-rgb), 0.12), 0 8px 10px -6px rgba(0,0,0,0.05)',
             },
             animation: {
                 'value-flash': 'value-flash 0.5s ease-in-out',
@@ -53,6 +58,7 @@
                 'fade-in': 'fade-in 0.3s ease-out forwards',
                 'staggered-fade-in-slide-up': 'staggered-fade-in-slide-up 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both',
                 'grow-bar-up': 'grow-bar-up 0.5s ease-out forwards',
+                'spin-cube': 'spin-cube 12s linear infinite',
             },
             keyframes: {
                 'value-flash': {
@@ -91,6 +97,18 @@
                 'grow-bar-up': {
                     'from': { transform: 'scaleY(0)' },
                     'to': { transform: 'scaleY(1)' }
+                },
+                'spin-cube': {
+                    'from': { transform: 'rotateX(20deg) rotateY(0deg)' },
+                    'to': { transform: 'rotateX(20deg) rotateY(360deg)' },
+                },
+                'fwi-shimmer': {
+                    'from': { transform: 'translateX(-75%) rotate(25deg)' },
+                    'to': { transform: 'translateX(75%) rotate(25deg)' }
+                },
+                'progress-fill': {
+                    'from': { width: '0%' },
+                    'to': { width: '100%' }
                 }
             }
           }
@@ -113,46 +131,113 @@
 <style>
     /* Definición de variables de color para los temas */
     :root {
-      /* Tema Claro (Light Mode) - Paleta "Selva Vibrante" */
-      --primary: #22C55E;               /* Verde Vibrante */
+      /* Tema Claro (Light Mode) - Paleta "Amanecer Tropical" */
+      --primary: #22C55E;               /* Verde Vibrante (Green 500) */
       --primary-dark: #FFFFFF;            /* Texto blanco sobre primario */
-      --primary-light: #4ADE80;           /* Verde más claro */
-      --background: #F8FAFC;             /* Gris extra claro (Slate 50) */
+      --primary-light: #4ADE80;           /* Verde más claro (Green 400) */
+      --background: #F1F5F9;             /* Gris extra claro (Slate 100) */
       --surface: #FFFFFF;                /* Blanco puro para tarjetas */
-      --active-surface: #F1F5F9;         /* Gris claro para hovers (Slate 100) */
+      --active-surface: #F8FAFC;         /* Gris casi blanco para hovers (Slate 50) */
       --on-surface: #0F172A;             /* Gris muy oscuro para texto (Slate 900) */
       --on-surface-secondary: #64748B;   /* Gris medio para texto secundario (Slate 500) */
       --danger: #EF4444;                 /* Rojo (Red 500) */
-      --accent: #F59E0B;                 /* Ámbar (Amber 500) */
+      --accent: #16a34a;                 /* Verde Oscuro (Green 600) */
       --accent-dark: #FFFFFF;             /* Texto oscuro para el acento */
+      --accent-secondary: #22C55E;       /* Verde Vibrante (Green 500) */
       --warning: #F59E0B;               /* Ámbar (Amber 500) */
       --primary-rgb: 34, 197, 94;
+      --surface-rgb: 255, 255, 255;
+      --accent-rgb: 22, 163, 74;
+      --accent-secondary-rgb: 34, 197, 94;
+      --background-rgb: 241, 245, 249;
     }
 
     .dark {
-      /* Tema Oscuro (Dark Mode) - Paleta "Aurora Cósmica" */
+      /* Tema Oscuro (Dark Mode) - Paleta "Jungla de Neón" */
       --primary: #4ADE80;               /* Verde Neón (Green 400) */
       --primary-dark: #052e16;            /* Texto oscuro sobre primario (Green 950) */
       --primary-light: #86EFAC;           /* Verde más claro (Green 300) */
-      --background: #020617;             /* Negro-Azulado (Slate 950) */
-      --surface: #1E293B;                /* Gris oscuro para tarjetas (Slate 800) */
+      --background: #0F172A;             /* Azul-Gris Oscuro (Slate 900) */
+      --surface: #1E293B;                /* Gris más oscuro para tarjetas (Slate 800) */
       --active-surface: #334155;         /* Gris intermedio para hovers (Slate 700) */
       --on-surface: #F1F5F9;             /* Gris claro para texto (Slate 100) */
       --on-surface-secondary: #94A3B8;   /* Gris medio-claro (Slate 400) */
       --danger: #F87171;                 /* Rojo claro (Red 400) */
-      --accent: #FBBF24;                 /* Ámbar brillante (Amber 400) */
-      --accent-dark: #422006;             /* Texto oscuro para el acento */
+      --accent: #22C55E;                 /* Verde Vibrante (Green 500) */
+      --accent-dark: #052e16;             /* Texto oscuro para el acento (Green 950) */
+      --accent-secondary: #4ADE80;       /* Verde Neón (Green 400) */
       --warning: #FBBF24;               /* Ámbar (Amber 400) */
       --primary-rgb: 74, 222, 128;
+      --surface-rgb: 30, 41, 59;
+      --accent-rgb: 34, 197, 94;
+      --accent-secondary-rgb: 74, 222, 128;
+      --background-rgb: 15, 23, 42;
     }
+
+    /* === TEMA BUSINESS (NARANJA) === */
+    .theme-business {
+        /* Light Mode */
+        --primary: #F59E0B;               /* Amber 500 */
+        --primary-dark: #FFFFFF;
+        --primary-light: #FBBF24;           /* Amber 400 */
+        --accent: #D97706;                 /* Amber 600 */
+        --accent-dark: #FFFFFF;
+        --accent-secondary: #F59E0B;       /* Amber 500 */
+        --warning: #EF4444;               /* Red 500 */
+        --primary-rgb: 245, 158, 11;
+        --accent-rgb: 217, 119, 6;
+        --accent-secondary-rgb: 245, 158, 11;
+    }
+
+    .dark.theme-business {
+        /* Dark Mode */
+        --primary: #FBBF24;               /* Amber 400 */
+        --primary-dark: #451a03;            /* Amber 950 */
+        --primary-light: #FCD34D;           /* Amber 300 */
+        --accent: #F59E0B;                 /* Amber 500 */
+        --accent-dark: #451a03;
+        --accent-secondary: #FBBF24;       /* Amber 400 */
+        --warning: #F87171;               /* Red 400 */
+        --primary-rgb: 251, 191, 36;
+        --accent-rgb: 245, 158, 11;
+        --accent-secondary-rgb: 251, 191, 36;
+    }
+
+    /* === TEMA MERCHANT (AZUL) === */
+    .theme-merchant {
+        /* Light Mode */
+        --primary: #3B82F6;               /* Blue 500 */
+        --primary-dark: #FFFFFF;
+        --primary-light: #60A5FA;           /* Blue 400 */
+        --accent: #2563EB;                 /* Blue 600 */
+        --accent-dark: #FFFFFF;
+        --accent-secondary: #3B82F6;       /* Blue 500 */
+        --warning: #F59E0B;               /* Amber 500 */
+        --primary-rgb: 59, 130, 246;
+        --accent-rgb: 37, 99, 235;
+        --accent-secondary-rgb: 59, 130, 246;
+    }
+
+    .dark.theme-merchant {
+        /* Dark Mode */
+        --primary: #60A5FA;               /* Blue 400 */
+        --primary-dark: #1e3a8a;            /* Blue 950 */
+        --primary-light: #93C5FD;           /* Blue 300 */
+        --accent: #3B82F6;                 /* Blue 500 */
+        --accent-dark: #1e3a8a;
+        --accent-secondary: #60A5FA;       /* Blue 400 */
+        --warning: #FBBF24;               /* Amber 400 */
+        --primary-rgb: 96, 165, 250;
+        --accent-rgb: 59, 130, 246;
+        --accent-secondary-rgb: 96, 165, 250;
+    }
+
 
     html, body, #root {
         height: 100%;
         width: 100%;
         overflow-x: hidden; /* Prevent horizontal scroll */
-        background-color: var(--background);
         color: var(--on-surface);
-        transition: background-color 0.3s ease, color 0.3s ease;
     }
     body {
         font-family: 'Poppins', sans-serif;
@@ -161,7 +246,38 @@
         padding-bottom: env(safe-area-inset-bottom);
         padding-left: env(safe-area-inset-left);
         -webkit-tap-highlight-color: transparent; /* Disable tap highlight */
+        background-color: #0F172A; /* Always use dark background for the network effect */
     }
+    
+    .global-background-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        opacity: 0.4;
+    }
+    .global-vignette {
+       display: none; /* Removed to simplify background and ensure network is visible */
+    }
+
+    /* === HEADER SCROLL EFFECT === */
+    .header-base {
+        background-color: rgba(var(--background-rgb), 0.7);
+        backdrop-filter: blur(12px);
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .header-scrolled {
+        background-color: rgba(var(--surface-rgb), 0.8);
+    }
+    .light .header-scrolled {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.07);
+    }
+    .dark .header-scrolled {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+    }
+
 
     /* Custom Scrollbar for Webkit */
     .custom-scrollbar::-webkit-scrollbar {
@@ -181,7 +297,7 @@
     /* Tour Styles */
     .tour-spotlight {
         position: fixed;
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
         z-index: 9998;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         pointer-events: none;
@@ -261,8 +377,9 @@
     }
     
     .informal-expense {
-        border-left: 4px solid var(--warning);
-        background-image: linear-gradient(to right, rgba(245, 158, 11, 0.05), transparent);
+        border-left-width: 4px;
+        border-left-color: var(--warning);
+        background-image: linear-gradient(to right, rgba(245, 158, 11, 0.1), transparent);
     }
     
     .treevu-text {
@@ -270,8 +387,8 @@
     }
     
     .progress-bar-bg-textured {
-        background-image: linear-gradient(45deg, rgba(0,0,0,0.03) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.03) 50%, rgba(0,0,0,0.03) 75%, transparent 75%, transparent);
-        background-size: 20px 20px;
+        background-color: var(--active-surface);
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
     }
 
     .progress-bar-neon {
@@ -290,13 +407,16 @@
         position: fixed;
         inset: 0;
         background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 100;
     }
     .security-modal-content {
-        background-color: var(--surface);
+        background-color: rgba(var(--surface-rgb), 0.8);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         padding: 2rem;
         border-radius: 1.5rem;
         display: flex;
@@ -325,199 +445,223 @@
         bottom: 0;
         margin: auto;
         border: 3px solid;
-        border-color: transparent transparent #EA4335 #EA4335;
+        border-color: transparent transparent #FBBC05 #FBBC05;
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        box-sizing: border-box;
         animation: rotationBack 0.5s linear infinite;
         transform-origin: center center;
     }
     .google-spinner::before {
         width: 32px;
         height: 32px;
-        border-color: #FBBC05 #FBBC05 transparent transparent;
+        border-color: #EA4335 #EA4335 transparent transparent;
         animation: rotation 1.5s linear infinite;
     }
-    
+        
     @keyframes rotation {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(360deg);
-      }
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     } 
     @keyframes rotationBack {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(-360deg);
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(-360deg); }
+    }
+
+    .status-card-container {
+        perspective: 1000px;
+    }
+    .status-card-inner {
+        display: grid;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+    }
+    .status-card-inner.is-flipped {
+        transform: rotateY(180deg);
+    }
+    .status-card-face {
+        grid-area: 1 / 1;
+        backface-visibility: hidden;
+        border-radius: 1.5rem;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden; /* For FWI effect containment */
+    }
+    .status-card-back {
+        transform: rotateY(180deg);
+    }
+    .status-card-chip {
+        width: 40px;
+        height: 30px;
+        background: linear-gradient(135deg, #d4af37, #ffd700, #d4af37);
+        border-radius: 4px;
+        position: relative;
+        overflow: hidden;
+    }
+    .status-card-chip::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        height: 60%;
+        border: 1px solid rgba(255,255,255,0.5);
+        border-radius: 2px;
+    }
+    .magnetic-strip {
+        width: 100%;
+        height: 40px;
+        background-color: #333;
+    }
+
+    /* FWI Status Card Effects */
+    .fwi-overlay {
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        transition: all 0.5s ease-in-out;
+        z-index: 1; /* On top of logo (z-auto), behind content (z-10) */
+    }
+    .fwi-low {
+        box-shadow: inset 0 0 60px 20px rgba(0,0,0,0.35);
+        backdrop-filter: saturate(0.7) brightness(0.9);
+    }
+    .fwi-high {
+        filter: saturate(1.1);
+        animation: fwi-shimmer 4s infinite linear;
+        background-image: linear-gradient(
+            115deg,
+            transparent 40%,
+            rgba(255, 255, 255, 0.15) 50%,
+            transparent 60%
+        );
+        background-size: 200% 200%;
+        background-position: -100% 0;
+    }
+    @keyframes fwi-shimmer {
+      to {
+        background-position: 100% 0;
       }
     }
 
-    /* Tooltip styles */
-    .tooltip-container {
-        position: relative;
-        display: inline-block;
+
+    /* Card Materials */
+    .card-material-wood {
+        background-image: linear-gradient(135deg, #855a3a 0%, #61412b 100%);
     }
+    .card-material-marble {
+        background-color: #e5e7eb;
+        background-image: linear-gradient(135deg, #ffffff 0%, #e5e7eb 100%);
+    }
+    .card-material-brushed-metal {
+        background-image: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 10%, rgba(0,0,0,0.05) 90%, rgba(0,0,0,0.1) 100%),
+        linear-gradient(90deg, #c1c5cd, #e5e7eb, #c1c5cd);
+    }
+    .card-material-carbon-fiber {
+        background-color: #374151;
+        background-image: linear-gradient(45deg, rgba(0,0,0,0.2) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2) 75%, transparent 75%, transparent),
+        linear-gradient(-45deg, rgba(0,0,0,0.2) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2) 75%, transparent 75%, transparent);
+        background-size: 8px 8px;
+    }
+    .card-material-holographic {
+        background: linear-gradient(135deg, #f72585, #b5179e, #7209b7, #560bad, #480ca8, #3a0ca3, #3f37c9, #4361ee, #4895ef, #4cc9f0);
+    }
+    .card-material-matte-black {
+        background: linear-gradient(145deg, #1f2937, #111827);
+    }
+    .card-material-pearl {
+        background: radial-gradient(ellipse at center, #f5f5f5 0%,#d5d8dc 100%);
+    }
+
+    .text-emboss-dark { text-shadow: 1px 1px 1px rgba(0,0,0,0.4), -1px -1px 1px rgba(255,255,255,0.1); }
+    .text-emboss-light { text-shadow: 1px 1px 1px rgba(255,255,255,0.8), -1px -1px 1px rgba(0,0,0,0.1); }
+
+    .card-effect-pulse-border {
+        animation: pulse-border 2.5s infinite;
+    }
+    @keyframes pulse-border {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(var(--primary-rgb), 0); }
+    }
+    
+    .tooltip-container { position: relative; }
     .tooltip-box {
-        position: absolute;
-        bottom: 125%;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: var(--surface);
-        color: var(--on-surface-secondary);
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        width: 200px;
-        text-align: center;
-        visibility: hidden;
-        opacity: 0;
-        transition: opacity 0.2s ease, visibility 0.2s ease;
-        z-index: 10;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        border: 1px solid var(--active-surface);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--surface);
+      color: var(--on-surface);
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.2s, visibility 0.2s;
+      z-index: 10;
     }
     .tooltip-visible {
-        visibility: visible;
-        opacity: 1;
+      visibility: visible;
+      opacity: 1;
     }
 
-    /* Custom Range Input Styles */
-    input[type="range"] {
-        -webkit-appearance: none;
-        appearance: none;
-        background: transparent;
-        cursor: pointer;
+    /* 3D Cube Logo Styles */
+    .cube-scene {
+        perspective: 400px;
+    }
+    .cube {
         width: 100%;
-        padding: 0;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        animation: spin-cube 12s linear infinite;
     }
-    input[type="range"]:focus {
-        outline: none;
+    .cube__face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: var(--surface);
+        border: 1px solid var(--active-surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    input[type="range"]::-webkit-slider-runnable-track {
-        background: var(--active-surface);
-        height: 0.5rem;
-        border-radius: 0.5rem;
-    }
-    input[type="range"]::-moz-range-track {
-        background: var(--active-surface);
-        height: 0.5rem;
-        border-radius: 0.5rem;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        margin-top: -4px;
-        background-color: var(--primary);
-        height: 1.25rem;
-        width: 1.25rem;
-        border-radius: 9999px;
-        border: 3px solid var(--surface);
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    input[type="range"]::-moz-range-thumb {
-        background-color: var(--primary);
-        height: 1.25rem;
-        width: 1.25rem;
-        border-radius: 9999px;
-        border: 3px solid var(--surface);
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    input[type="range"]:active::-webkit-slider-thumb {
-        transform: scale(1.1);
-    }
-    input[type="range"]:active::-moz-range-thumb {
-        transform: scale(1.1);
-    }
-    input[type="range"]:focus-visible::-webkit-slider-thumb {
-        box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--primary);
-    }
-    input[type="range"]:focus-visible::-moz-range-thumb {
-        box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--primary);
-    }
-    
-    /* Card Flip & Material Styles */
-    .status-card-container { perspective: 1000px; }
-    .status-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); transform-style: preserve-3d; }
-    .status-card-inner.is-flipped { transform: rotateY(180deg); }
-    .status-card-face { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; padding: 1.25rem; overflow: hidden; }
-    .status-card-back { transform: rotateY(180deg); }
-    .magnetic-strip { height: 20%; width: 100%; background-color: #333; }
-    
-    @media (prefers-reduced-motion: reduce) {
-      .status-card-inner {
-        transition: none;
-      }
-      .status-card-inner.is-flipped .status-card-front {
-        transform: rotateY(180deg);
-      }
-      .status-card-inner .status-card-back {
-        transform: rotateY(0);
-      }
-    }
+    /* TranslateZ value should be half of the width/height (w-9 h-9 -> 36px, so 18px) */
+    .cube__face--front  { transform: rotateY(  0deg) translateZ(18px); }
+    .cube__face--right  { transform: rotateY( 90deg) translateZ(18px); }
+    .cube__face--back   { transform: rotateY(180deg) translateZ(18px); }
+    .cube__face--left  { transform: rotateY(-90deg) translateZ(18px); }
+    .cube__face--top    { transform: rotateX( 90deg) translateZ(18px); }
+    .cube__face--bottom { transform: rotateX(-90deg) translateZ(18px); }
 
-    .status-card-chip { width: 48px; height: 38px; background: linear-gradient(135deg, #d4af37, #b48811); border-radius: 4px; position: relative; overflow: hidden; }
-    .status-card-chip::before { content: ''; position: absolute; top: 50%; left: 50%; width: 80%; height: 60%; border: 1px solid #e0c268; border-radius: 2px; transform: translate(-50%, -50%); }
-    .status-card-chip::after { content: ''; position: absolute; top: 0; left: 45%; width: 1px; height: 100%; background-color: #e0c268; }
-    
-    /* Card Material Presets */
-    .card-material-default { background: linear-gradient(135deg, var(--surface) 0%, var(--active-surface) 100%); border: 1px solid var(--active-surface); }
-    .card-material-carbon-fiber { background-color: #2a2a2a; background-image: linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.05) 75%, transparent 75%, transparent); background-size: 20px 20px; border: 1px solid #444; }
-    .card-material-brushed-metal { background-color: #c0c0c0; background-image: linear-gradient(to right, #d3d3d3, #a9a9a9, #d3d3d3); }
-    .card-material-holographic { background-image: linear-gradient(115deg, #4fcf70, #fad648, #a767e5, #12bcfe, #44ce7b); background-size: 500% 500%; animation: holographic-bg 15s ease infinite; }
-    @keyframes holographic-bg { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-    .card-material-matte-black { background-color: #1c1c1e; border: 1px solid #3a3a3c; }
-    .card-material-wood { background-color: #855E42; background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><g fill="%23654321" fill-opacity="0.4"><path d="M0 0h40v40H0zM40 40h40v40H40z"/></g></svg>'); }
-    .card-material-marble { background-color: #fdfdfd; background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><g fill-rule="evenodd"><g fill="%23dedede" fill-opacity="0.4"><path d="M0 50A50 50 0 0 1 50 0h50v50a50 50 0 0 1-50 50H0V50zm100 0V0h-50a50 50 0 0 1 50 50z"/></g></g></svg>'); }
-    .card-material-pearl { background: #f0f0f0; background: radial-gradient(circle, #ffffff 0%, #e8e8e8 100%); }
-    .text-emboss-dark { text-shadow: 1px 1px 1px rgba(0,0,0,0.4), 0 0 0 rgba(255,255,255,0); }
-    .text-emboss-light { text-shadow: 1px 1px 2px rgba(255,255,255,0.7), -1px -1px 2px rgba(0,0,0,0.2); }
-
-    @media print {
-        body {
-            background-color: white !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-
-        body * {
-            visibility: hidden;
-        }
-
-        #strategic-report-content-wrapper, #strategic-report-content-wrapper * {
-            visibility: visible;
-        }
-        
-        #strategic-report-content-wrapper {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: auto;
-            overflow: visible !important;
-            padding: 1.5rem !important;
-        }
-
-        .text-primary { color: #22C55E !important; }
-        .bg-primary { background-color: #22C55E !important; }
-        .text-on-surface { color: #0F172A !important; }
-        .text-on-surface-secondary { color: #64748B !important; }
-        .bg-background { background-color: #F8FAFC !important; }
-        .border-primary\/50 { border-color: rgba(34, 197, 94, 0.5) !important; }
-        .break-inside-avoid { page-break-inside: avoid; }
+    /* Modern card hover effect */
+    .shadow-card {
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .dark .shadow-card {
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.15), 0 2px 4px -2px rgba(0,0,0,0.15);
+    }
+    .shadow-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px -3px rgba(var(--primary-rgb), 0.1), 0 4px 6px -4px rgba(var(--primary-rgb), 0.1);
+    }
+    .dark .shadow-card:hover {
+        box-shadow: 0 10px 15px -3px rgba(var(--primary-rgb), 0.2), 0 4px 6px -4px rgba(var(--primary-rgb), 0.2);
     }
 </style>
 <link rel="stylesheet" href="/index.css">
 </head>
 <body>
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script src="/index.tsx" type="module"></script>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>

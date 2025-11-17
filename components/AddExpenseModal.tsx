@@ -1,9 +1,15 @@
+
+
+
+
+
+
 import React, { useRef, useCallback, useEffect, useReducer, useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAlert } from '../contexts/AlertContext';
 import { type Expense, type Product, type VerificationResult, type ExpenseData } from '../types/expense';
 import { CategoriaGasto, TipoComprobante } from '../types/common';
-import { type ModalState, type ModalAction } from '../types/modal';
+import { type ModalState as ModalStateImport, type ModalAction as ModalActionImport } from '../types/modal';
 import { type AISavingOpportunity } from '../types/ai';
 import { 
     getAISavingOpportunity,
@@ -25,7 +31,7 @@ import { generateUniqueId, compressImage, fileToDataUrl } from '../utils';
 import { 
     CheckIcon, XMarkIcon, DocumentArrowUpIcon, 
     PencilIcon, PlusIcon, TrashIcon, ExclamationTriangleIcon, 
-    ArrowPathIcon, SparklesIcon, ShieldCheckIcon, CubeIcon, ReceiptPercentIcon, BanknotesIcon, PencilSquareIcon, GhostIcon 
+    ArrowPathIcon, SparklesIcon, ShieldCheckIcon, CubeIcon, ReceiptPercentIcon, BanknotesIcon, PencilSquareIcon, GhostIcon, CameraIcon, CheckBadgeIcon, TreevuCoinIcon
 } from './Icons';
 import LoadingView from './LoadingView';
 import { useAppContext } from '../contexts/AppContext';
@@ -33,7 +39,7 @@ import ModalWrapper from './ModalWrapper';
 
 interface AddExpenseModalProps {
     onClose: () => void;
-    initialAction?: 'file' | 'manual' | null;
+    initialAction?: 'file' | 'manual' | 'camera' | 'divert' | null;
     initialFile?: File;
     scanMode?: 'receipt' | 'products' | 'verify' | null;
     expenseToEdit?: Expense | null;
@@ -54,6 +60,11 @@ const BLANK_EXPENSE: ExpenseData = {
     intent: 'unclassified',
 };
 
+// Use imported types and add earnedTreevus
+type ModalState = ModalStateImport & { earnedTreevus: number };
+type ModalAction = ModalActionImport | { type: 'SET_EARNED_TREEVUS'; payload: number };
+
+
 const initialState: ModalState = {
     step: 'capture',
     image: null,
@@ -68,6 +79,7 @@ const initialState: ModalState = {
     suggestedCategory: null,
     isVerifyingRuc: false,
     rucValidationResult: null,
+    earnedTreevus: 0,
 };
 
 function modalReducer(state: ModalState, action: ModalAction): ModalState {
@@ -126,6 +138,8 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
             return { ...state, rucValidationResult: action.payload };
         case 'RESET_RUC_VALIDATION':
              return { ...state, isVerifyingRuc: false, rucValidationResult: null };
+        case 'SET_EARNED_TREEVUS':
+             return { ...state, earnedTreevus: action.payload };
         case 'RESET':
             return { ...initialState, step: 'capture' };
         default:
@@ -186,8 +200,11 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                 image: expenseToEdit.imageUrl ? { url: expenseToEdit.imageUrl, base64: '', mimeType: '' } : null,
             };
         }
-        if (initialFile || initialAction === 'file') {
+        if (initialFile || initialAction === 'file' || initialAction === 'camera') {
             return { ...initialState, step: 'capture' }; // Start at capture to trigger useEffect
+        }
+        if (initialAction === 'divert') {
+            return { ...initialState, step: 'divert_expense' };
         }
         if (initialAction === 'manual' || initialExpenseData) {
             return { ...initialState, expenseData: { ...BLANK_EXPENSE, ...initialExpenseData }, step: 'manual_entry' };
@@ -196,7 +213,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
     }, [expenseToEdit, initialAction, initialFile, initialExpenseData]);
     
     const [state, dispatch] = useReducer(modalReducer, getInitialState());
-    const { step, image, expenseData, products, error, verificationResult, expenseSplitSuggestion, justSavedExpense, savingOpportunity, isSuggestingCategory, suggestedCategory, isVerifyingRuc, rucValidationResult } = state;
+    const { step, image, expenseData, products, error, verificationResult, expenseSplitSuggestion, justSavedExpense, savingOpportunity, isSuggestingCategory, suggestedCategory, isVerifyingRuc, rucValidationResult, earnedTreevus } = state;
 
     const [merchantSuggestions, setMerchantSuggestions] = useState<string[]>([]);
     const [divertAmount, setDivertAmount] = useState('');
@@ -205,6 +222,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
     const [divertError, setDivertError] = useState('');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
     const productsContainerRef = useRef<HTMLDivElement>(null);
     const hasTriggeredInitialAction = useRef(false);
 
@@ -225,6 +243,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                 return 'Revisa tu Hallazgo';
             case 'quick_confirm':
                  return 'Confirmación Rápida del Hallazgo';
+            case 'save_success':
+                return '¡Hallazgo Registrado!';
             case 'review_products':
                 return 'Clasifica tu Botín';
             case 'suggest_split':
@@ -232,7 +252,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
             case 'verification_result':
                 return 'Veredicto de la Brújula';
             case 'saving_opportunity':
-                return '¡Momento de Cosechar!';
+                return '¡Impulso al Proyecto!';
             case 'divert_expense':
                 return 'Desviar Gasto a un Proyecto';
             default:
@@ -240,11 +260,16 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
         }
     }, [expenseToEdit, scanMode, step, error]);
     
-    // Auto-trigger file input for Zero-Friction Capture flow
+    // Auto-trigger file/camera input for Zero-Friction Capture flow
     useEffect(() => {
-        if (initialAction === 'file' && !hasTriggeredInitialAction.current && fileInputRef.current) {
+        if (hasTriggeredInitialAction.current) return;
+
+        if (initialAction === 'file' && fileInputRef.current) {
             hasTriggeredInitialAction.current = true;
             fileInputRef.current.click();
+        } else if (initialAction === 'camera' && cameraInputRef.current) {
+            hasTriggeredInitialAction.current = true;
+            cameraInputRef.current.click();
         }
     }, [initialAction]);
 
@@ -394,27 +419,40 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
         }
     };
 
+    const handleProceedAfterSave = useCallback(async () => {
+        if (!justSavedExpense) {
+            onClose();
+            return;
+        }
+    
+        if (justSavedExpense.intent === 'desired' && goals.length > 0) {
+            dispatch({ type: 'SET_STEP', payload: 'saving_opportunity' });
+            const opportunity = await getAISavingOpportunity(justSavedExpense, goals);
+            dispatch({ type: 'SET_SAVING_OPPORTUNITY', payload: opportunity });
+        } else {
+            onClose();
+        }
+    }, [justSavedExpense, goals, onClose]);
+
     const handleSaveExpense = async () => {
         if (!expenseData) return;
         if (navigator.vibrate) navigator.vibrate(50);
         
-        // The state `expenseData.categoria` is the source of truth.
-        // The user explicitly applies suggestions via UI buttons, which updates `expenseData`.
         const finalExpenseData = { ...expenseData };
 
         if (expenseToEdit) {
             updateExpense(expenseToEdit.id, finalExpenseData);
-            onClose(); // Skip opportunity step on edit
+            onClose();
         } else {
-            const addedExpense = addExpense({ ...finalExpenseData, imageUrl: image?.url });
-            if (goals.length > 0) {
-                dispatch({ type: 'SET_JUST_SAVED_EXPENSE', payload: addedExpense });
-                dispatch({ type: 'SET_STEP', payload: 'saving_opportunity' });
-                const opportunity = await getAISavingOpportunity(addedExpense, goals);
-                dispatch({ type: 'SET_SAVING_OPPORTUNITY', payload: opportunity });
-            } else {
-                onClose();
-            }
+            const { expense: addedExpense, treevusEarned } = addExpense({ ...finalExpenseData, imageUrl: image?.url });
+            dispatch({ type: 'SET_EARNED_TREEVUS', payload: treevusEarned });
+            dispatch({ type: 'SET_JUST_SAVED_EXPENSE', payload: addedExpense });
+            dispatch({ type: 'SET_STEP', payload: 'save_success' });
+            
+            // Wait for animation, then proceed
+            setTimeout(() => {
+                handleProceedAfterSave();
+            }, 2500);
         }
     };
 
@@ -461,13 +499,16 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
             mensaje: '¡Botín informal registrado!',
             intent: 'unclassified',
         };
-        addExpense(expenseData);
-        onClose();
+        const { treevusEarned } = addExpense(expenseData);
+        dispatch({ type: 'SET_EARNED_TREEVUS', payload: treevusEarned });
+        dispatch({ type: 'SET_STEP', payload: 'save_success' });
+        setTimeout(onClose, 2500);
     };
     
     const handleSplitExpense = () => {
         if (!expenseSplitSuggestion) return;
         if (navigator.vibrate) navigator.vibrate(50);
+        let totalTreevus = 0;
         expenseSplitSuggestion.forEach(suggestion => {
             const expense: ExpenseData = {
                 razonSocial: `Compra: ${suggestion.productNames.join(', ')}`,
@@ -483,9 +524,12 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                 mensaje: `¡Tesoro de ${suggestion.category} separado!`,
                 intent: 'unclassified',
             };
-            addExpense(expense);
+            const result = addExpense(expense);
+            totalTreevus += result.treevusEarned;
         });
-        onClose(); // Don't show saving opportunity for splits to avoid complexity
+        dispatch({ type: 'SET_EARNED_TREEVUS', payload: totalTreevus });
+        dispatch({ type: 'SET_STEP', payload: 'save_success' });
+        setTimeout(onClose, 2500);
     };
     
     const handleSaveOpportunity = (goalId: string, amount: number) => {
@@ -501,7 +545,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                 <div className="text-center">
                     <ExclamationTriangleIcon className="w-12 h-12 text-danger mx-auto" />
                     <p className="mt-4 text-on-surface-secondary">{error}</p>
-                    <button onClick={onClose} className="mt-6 bg-primary text-primary-dark font-bold py-2 px-4 rounded-xl">
+                    <button onClick={onClose} className="mt-6 bg-gradient-to-r from-accent to-accent-secondary text-primary-dark font-bold py-2 px-4 rounded-xl shadow-lg shadow-primary/20 transform hover:-translate-y-1 transition-all duration-300">
                         Cerrar e Intentar de Nuevo
                     </button>
                 </div>
@@ -522,11 +566,18 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
             case 'capture':
                  return (
                      <div className="space-y-4">
+                        <button onClick={() => cameraInputRef.current?.click()} className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-accent to-accent-secondary text-primary-dark rounded-xl transition-all text-left shadow-lg shadow-primary/20 transform hover:-translate-y-1 duration-300">
+                            <CameraIcon className="w-8 h-8 flex-shrink-0" />
+                            <div>
+                                <p className="font-bold">Capturar Hallazgo</p>
+                                <p className="text-sm opacity-90">Toma una foto a tu comprobante</p>
+                            </div>
+                        </button>
                          <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center gap-4 p-4 bg-background rounded-xl hover:bg-active-surface transition-colors text-left">
-                            <DocumentArrowUpIcon className="w-8 h-8 text-primary flex-shrink-0" />
+                            <DocumentArrowUpIcon className="w-8 h-8 text-accent-secondary flex-shrink-0" />
                             <div>
                                 <p className="font-bold text-on-surface">Subir Archivo</p>
-                                <p className="text-sm text-on-surface-secondary">Selecciona una imagen o PDF de tu hallazgo</p>
+                                <p className="text-sm text-on-surface-secondary">Selecciona una imagen o PDF</p>
                             </div>
                         </button>
                         <button 
@@ -535,7 +586,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                                 dispatch({ type: 'SET_STEP', payload: 'manual_entry' });
                             }} 
                             className="w-full flex items-center gap-4 p-4 bg-background rounded-xl hover:bg-active-surface transition-colors text-left">
-                            <PencilSquareIcon className="w-8 h-8 text-primary flex-shrink-0" />
+                            <PencilSquareIcon className="w-8 h-8 text-accent flex-shrink-0" />
                             <div>
                                 <p className="font-bold text-on-surface">Registro Manual</p>
                                 <p className="text-sm text-on-surface-secondary">Ingresa los datos del hallazgo</p>
@@ -546,7 +597,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                                 dispatch({ type: 'SET_STEP', payload: 'divert_expense' });
                             }} 
                             className="w-full flex items-center gap-4 p-4 bg-background rounded-xl hover:bg-active-surface transition-colors text-left">
-                            <ReceiptPercentIcon className="w-8 h-8 text-primary flex-shrink-0" />
+                            <ReceiptPercentIcon className="w-8 h-8 text-accent-secondary flex-shrink-0" />
                             <div>
                                 <p className="font-bold text-on-surface">Desviar Gasto</p>
                                 <p className="text-sm text-on-surface-secondary">Ahorra el dinero de una compra que evitaste</p>
@@ -563,7 +614,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                             <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-on-surface bg-active-surface rounded-xl hover:opacity-80 flex items-center gap-2">
                                 <ArrowPathIcon className="w-5 h-5"/> Volver
                             </button>
-                            <button onClick={() => processImage(image!)} className="flex-1 px-4 py-2 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center justify-center gap-2">
+                            <button onClick={() => processImage(image!)} className="flex-1 px-4 py-2 text-sm font-bold text-primary-dark bg-gradient-to-r from-accent to-accent-secondary rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transform hover:-translate-y-1 transition-all duration-300">
                                 <CheckIcon className="w-5 h-5"/>
                                 Confirmar y Analizar
                             </button>
@@ -578,409 +629,29 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                         <div className="mt-6 flex justify-end space-x-3">
                             <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-on-surface bg-active-surface rounded-xl hover:opacity-80">Volver</button>
                             { (scanMode !== 'verify' && verificationResult?.isValidForDeduction) &&
-                                <button onClick={() => processImage(image!)} className="flex-1 px-4 py-2 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90">
-                                    Extraer Datos
+                                <button onClick={() => processImage(image!)} className="flex-1 px-4 py-2 text-sm font-bold text-primary-dark bg-gradient-to-r from-accent to-accent-secondary rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transform hover:-translate-y-1 transition-all duration-300">
+                                    <SparklesIcon className="w-5 h-5" /> Continuar Análisis
                                 </button>
                             }
                         </div>
                     </div>
                 );
-            
-             case 'quick_confirm':
-                if (!expenseData) return null;
-                return (
-                    <div className="space-y-4">
-                         <p className="text-sm text-center text-on-surface-secondary">La IA ha descifrado los datos de tu hallazgo. Si son correctos, confírmalos para un registro instantáneo.</p>
-                         <div className="bg-background p-4 rounded-xl space-y-3 text-sm">
-                            <div className="flex justify-between items-center">
-                                <span className="font-semibold text-on-surface-secondary">Comercio:</span>
-                                <span className="font-bold text-on-surface text-right">{expenseData.razonSocial}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="font-semibold text-on-surface-secondary">Fecha:</span>
-                                <span className="font-bold text-on-surface">{expenseData.fecha}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="font-semibold text-on-surface-secondary">Total:</span>
-                                <span className="text-2xl font-black text-primary">S/ {expenseData.total.toLocaleString('es-PE', { minimumFractionDigits: 2})}</span>
-                            </div>
-                            <div className="border-t border-active-surface/50"></div>
-                            <div className="flex justify-between items-center">
-                                <span className="font-semibold text-on-surface-secondary">Categoría:</span>
-                                <div className="flex items-center gap-2">
-                                    {isSuggestingCategory ? (<span className="text-xs animate-pulse">Analizando...</span>) : (
-                                        suggestedCategory && suggestedCategory !== expenseData.categoria ? (
-                                             <button 
-                                                onClick={() => {
-                                                    dispatch({ type: 'UPDATE_EXPENSE_DATA', payload: { categoria: suggestedCategory } });
-                                                    dispatch({ type: 'SET_SUGGESTED_CATEGORY', payload: null });
-                                                }}
-                                                className="text-xs font-bold text-primary flex items-center gap-1 p-1 rounded-lg bg-primary/10 hover:bg-primary/20"
-                                            >
-                                                <SparklesIcon className="w-3 h-3" /> Usar: {suggestedCategory}
-                                            </button>
-                                        ) : null
-                                    )}
-                                    <span className="font-bold text-on-surface">{expenseData.categoria}</span>
-                                </div>
-                            </div>
-                         </div>
-                         <div className="pt-4 flex flex-col sm:flex-row gap-3">
-                            <button onClick={() => dispatch({ type: 'SET_STEP', payload: 'review' })} className="w-full px-4 py-2.5 text-sm font-bold text-on-surface bg-active-surface rounded-xl hover:opacity-80 flex items-center justify-center gap-2">
-                                <PencilIcon className="w-4 h-4"/>
-                                Ajustar Manualmente
-                            </button>
-                            <button onClick={handleSaveExpense} className="w-full px-4 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center justify-center gap-2">
-                                <CheckIcon className="w-5 h-5"/>
-                                Confirmar Hallazgo
-                            </button>
-                        </div>
-                    </div>
-                );
-
-            case 'manual_entry':
-            case 'review':
-            case 'editing':
-                if (!expenseData) return null;
-                return (
-                    <div className="space-y-4 text-sm">
-                        <div className="relative">
-                           <label className="font-medium text-on-surface-secondary">Comercio</label>
-                           <input 
-                                type="text" 
-                                value={expenseData.razonSocial} 
-                                onChange={e => {
-                                    const value = e.target.value;
-                                    handleUpdateField('razonSocial', value);
-                                    if (value) {
-                                        setMerchantSuggestions(uniqueMerchants.filter(m => m.toLowerCase().includes(value.toLowerCase())).slice(0, 5));
-                                    } else {
-                                        setMerchantSuggestions([]);
-                                    }
-                                }} 
-                                onBlur={async () => {
-                                    setTimeout(() => setMerchantSuggestions([]), 150); // Hide on blur, with delay
-                                    
-                                    // Only autofill if RUC is empty, to avoid overwriting manual input.
-                                    if (expenseData.razonSocial && (!expenseData.ruc || expenseData.ruc === 'N/A')) {
-                                        const normalizedName = normalizeName(expenseData.razonSocial);
-                                        const knownRucKey = Object.keys(KNOWN_RUCS).find(key => normalizedName.includes(key));
-                                        if (knownRucKey) {
-                                            const ruc = KNOWN_RUCS[knownRucKey];
-                                            handleUpdateField('ruc', ruc);
-                                            handleRucBlur(ruc);
-                                        }
-                                    }
-                                    
-                                    if(expenseData.razonSocial) {
-                                        dispatch({ type: 'SET_IS_SUGGESTING_CATEGORY', payload: true });
-                                        const cat = await getSmartCategorySuggestion(expenseData.razonSocial, expenseData.tipoComprobante, expenses);
-                                        if (cat) dispatch({ type: 'SET_SUGGESTED_CATEGORY', payload: cat });
-                                        dispatch({ type: 'SET_IS_SUGGESTING_CATEGORY', payload: false });
-                                    }
-                                }}
-                                className={inputClasses} 
-                            />
-                            {merchantSuggestions.length > 0 && (
-                                <div className="absolute z-10 w-full mt-1 bg-background border border-active-surface rounded-xl shadow-lg">
-                                    {merchantSuggestions.map(m => (
-                                        <button key={m} 
-                                            onMouseDown={async () => { // onMouseDown to fire before onBlur
-                                                handleUpdateField('razonSocial', m);
-                                                setMerchantSuggestions([]);
-
-                                                const normalizedName = normalizeName(m);
-                                                const knownRucKey = Object.keys(KNOWN_RUCS).find(key => normalizedName.includes(key));
-                                                if (knownRucKey) {
-                                                    const ruc = KNOWN_RUCS[knownRucKey];
-                                                    handleUpdateField('ruc', ruc);
-                                                    handleRucBlur(ruc);
-                                                }
-
-                                                dispatch({ type: 'SET_IS_SUGGESTING_CATEGORY', payload: true });
-                                                const cat = await getSmartCategorySuggestion(m, expenseData.tipoComprobante, expenses);
-                                                if(cat) dispatch({ type: 'SET_SUGGESTED_CATEGORY', payload: cat });
-                                                dispatch({ type: 'SET_IS_SUGGESTING_CATEGORY', payload: false });
-                                            }}
-                                            className="w-full text-left px-4 py-2 text-sm text-on-surface hover:bg-active-surface"
-                                        >{m}</button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                        <div>
-                            <label className="font-medium text-on-surface-secondary">RUC</label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    value={expenseData.ruc}
-                                    onChange={e => {
-                                        handleUpdateField('ruc', e.target.value);
-                                        dispatch({ type: 'RESET_RUC_VALIDATION' });
-                                    }}
-                                    onBlur={e => handleRucBlur(e.target.value)}
-                                    placeholder="11 dígitos"
-                                    className={`${inputClasses} pr-10`}
-                                />
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 h-full flex items-center">
-                                    {isVerifyingRuc ? (
-                                        <div className="w-5 h-5 border-2 border-t-primary border-transparent rounded-full animate-spin"></div>
-                                    ) : rucValidationResult ? (
-                                        rucValidationResult.isValid ? (
-                                            <ShieldCheckIcon className="w-6 h-6 text-primary" />
-                                        ) : (
-                                            <ExclamationTriangleIcon className="w-6 h-6 text-warning" />
-                                        )
-                                    ) : null}
-                                </div>
-                            </div>
-                            {rucValidationResult && (
-                                <p className={`text-xs mt-1 ${rucValidationResult.isValid ? 'text-primary' : 'text-warning'}`}>
-                                    {rucValidationResult.isValid && rucValidationResult.razonSocial ? rucValidationResult.razonSocial : rucValidationResult.message}
-                                </p>
-                            )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                             <div>
-                                <label className="font-medium text-on-surface-secondary">Fecha</label>
-                                <input type="date" value={expenseData.fecha} onChange={e => handleUpdateField('fecha', e.target.value)} className={inputClasses} />
-                            </div>
-                             <div>
-                                <label className="font-medium text-on-surface-secondary">Total (S/)</label>
-                                <input type="number" value={expenseData.total} onChange={e => handleUpdateField('total', parseFloat(e.target.value) || 0)} className={inputClasses} />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="font-medium text-on-surface-secondary">Categoría</label>
-                            {isSuggestingCategory ? (
-                                <div className="text-xs text-on-surface-secondary animate-pulse mt-1">Buscando sugerencia IA...</div>
-                            ) : suggestedCategory && suggestedCategory !== expenseData.categoria ? (
-                                <button 
-                                    onClick={() => {
-                                        handleUpdateField('categoria', suggestedCategory);
-                                        dispatch({ type: 'SET_SUGGESTED_CATEGORY', payload: null });
-                                    }}
-                                    className="w-full text-left text-xs font-bold text-primary flex items-center gap-1.5 p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 mt-1 mb-1 transition-colors"
-                                >
-                                    <SparklesIcon className="w-4 h-4 flex-shrink-0" /> 
-                                    <span>Aplicar sugerencia: <span className="underline">{suggestedCategory}</span></span>
-                                </button>
-                            ) : null}
-                            <select value={expenseData.categoria} onChange={e => handleUpdateField('categoria', e.target.value)} className={inputClasses}>
-                                {Object.values(CategoriaGasto).map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="font-medium text-on-surface-secondary">Intención del Gasto</label>
-                            <div className="mt-1 grid grid-cols-2 gap-2 p-1 bg-background rounded-xl">
-                                <button
-                                    type="button"
-                                    onClick={() => handleUpdateField('intent', 'essential')}
-                                    className={`py-2 text-sm font-bold rounded-lg transition-colors ${expenseData.intent === 'essential' ? 'bg-primary text-primary-dark' : 'text-on-surface-secondary hover:bg-active-surface'}`}
-                                >
-                                    Esencial
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleUpdateField('intent', 'desired')}
-                                    className={`py-2 text-sm font-bold rounded-lg transition-colors ${expenseData.intent === 'desired' ? 'bg-accent text-accent-dark' : 'text-on-surface-secondary hover:bg-active-surface'}`}
-                                >
-                                    Deseado
-                                </button>
-                            </div>
-                        </div>
-                        <div>
-                           <label className="font-medium text-on-surface-secondary">Tipo de Comprobante</label>
-                           <select value={expenseData.tipoComprobante} onChange={e => handleUpdateField('tipoComprobante', e.target.value)} className={inputClasses}>
-                               {Object.values(TipoComprobante).map(tipo => <option key={tipo} value={tipo}>{tipo}</option>)}
-                           </select>
-                        </div>
-                        <div className="flex justify-between items-center p-3 bg-background rounded-lg">
-                           <label className="font-medium text-on-surface">¿Es un hallazgo formal?</label>
-                           <button onClick={() => handleUpdateField('esFormal', !expenseData.esFormal)} className={`w-12 h-6 rounded-full p-1 transition-colors ${expenseData.esFormal ? 'bg-primary' : 'bg-active-surface'}`}>
-                               <span className="sr-only">Es formal</span>
-                               <span className={`block w-4 h-4 rounded-full bg-white transform transition-transform ${expenseData.esFormal ? 'translate-x-6' : 'translate-x-0'}`}></span>
-                           </button>
-                        </div>
-                         {user?.hasCorporateCard && (
-                            <div className="flex justify-between items-center p-3 bg-background rounded-lg">
-                               <label className="font-medium text-on-surface">Gasto Corporativo</label>
-                               <button onClick={() => handleUpdateField('isCorporate', !expenseData.isCorporate)} className={`w-12 h-6 rounded-full p-1 transition-colors ${expenseData.isCorporate ? 'bg-primary' : 'bg-active-surface'}`}>
-                                   <span className="sr-only">Es corporativo</span>
-                                   <span className={`block w-4 h-4 rounded-full bg-white transform transition-transform ${expenseData.isCorporate ? 'translate-x-6' : 'translate-x-0'}`}></span>
-                               </button>
-                            </div>
-                        )}
-                        <div className={`p-2 rounded-lg text-center font-semibold text-sm flex items-center justify-center gap-2 ${expenseData.esFormal ? 'bg-primary/10 text-primary' : 'bg-yellow-400/10 text-yellow-300'}`}>
-                            {expenseData.esFormal
-                                ? `Tesoro fiscal recuperable aprox.: S/ ${expenseData.igv.toFixed(2)}`
-                                : <>
-                                    <GhostIcon className="w-5 h-5" />
-                                    <span>Botín Fantasma: S/ {expenseData.ahorroPerdido.toFixed(2)}</span>
-                                  </>
-                            }
-                        </div>
-                        <div className="mt-6 pt-5 border-t border-active-surface/50 flex justify-end space-x-3">
-                            <button onClick={onClose} className="px-4 py-2.5 text-sm font-bold text-on-surface bg-active-surface rounded-xl hover:opacity-80">Cancelar</button>
-                            <button onClick={handleSaveExpense} className="flex-1 px-4 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center justify-center gap-2">
-                                <CheckIcon className="w-5 h-5"/>
-                                {expenseToEdit ? 'Actualizar Hallazgo' : 'Guardar Hallazgo'}
-                            </button>
-                        </div>
-                    </div>
-                );
-            case 'divert_expense':
-                return (
-                    <div className="space-y-4 text-sm">
-                        <p className="text-on-surface-secondary text-center">¡Gran decisión! Convierte un gasto evitado en progreso para tus proyectos.</p>
-                        {divertError && <p role="alert" className="text-danger bg-danger/20 p-2 rounded-md text-xs text-center">{divertError}</p>}
-                        
-                        {goals.length > 0 ? (
-                            <>
-                                <div>
-                                    <label className="font-medium text-on-surface-secondary">Gasto evitado</label>
-                                    <input 
-                                        type="text" 
-                                        value={divertDescription}
-                                        onChange={e => setDivertDescription(e.target.value)}
-                                        placeholder="Ej: Café de la tarde, delivery"
-                                        className={inputClasses} 
-                                    />
-                                </div>
-                                <div>
-                                    <label className="font-medium text-on-surface-secondary">Monto a desviar (S/)</label>
-                                    <input 
-                                        type="number" 
-                                        value={divertAmount}
-                                        onChange={e => setDivertAmount(e.target.value)}
-                                        placeholder="0.00"
-                                        className={inputClasses} 
-                                    />
-                                </div>
-                                 <div>
-                                    <label className="font-medium text-on-surface-secondary">Destinar a proyecto</label>
-                                    <select value={divertGoalId} onChange={e => setDivertGoalId(e.target.value)} className={inputClasses}>
-                                        {goals.map(goal => <option key={goal.id} value={goal.id}>{goal.icon} {goal.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="mt-6 pt-5 border-t border-active-surface/50 flex justify-end space-x-3">
-                                    <button onClick={onClose} className="px-4 py-2.5 text-sm font-bold text-on-surface bg-active-surface rounded-xl hover:opacity-80">Cancelar</button>
-                                    <button onClick={handleDivertExpense} className="flex-1 px-4 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center justify-center gap-2">
-                                        <CheckIcon className="w-5 h-5"/>
-                                        Confirmar Desvío
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                             <div className="text-center bg-background p-4 rounded-xl">
-                                <p className="text-on-surface-secondary">Para desviar un gasto, primero necesitas crear un "Proyecto de Conquista".</p>
-                                 <button onClick={onClose} className="mt-4 px-4 py-2 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90">
-                                    Entendido
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                );
-            case 'review_products':
-                return (
-                    <div className="space-y-2">
-                        <div ref={productsContainerRef} className="max-h-64 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
-                             {products.map(p => (
-                                <div key={p.id} className="grid grid-cols-[1fr,100px,auto] gap-2 items-center">
-                                    <input type="text" value={p.productName} onChange={e => handleProductUpdate(p.id, 'productName', e.target.value)} placeholder="Producto" className={smallInputClasses} />
-                                    <div className="relative">
-                                         <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-secondary text-xs">S/</span>
-                                        <input type="number" value={p.estimatedPrice} onChange={e => handleProductUpdate(p.id, 'estimatedPrice', parseFloat(e.target.value) || 0)} placeholder="Precio" className={`${smallInputClasses} pl-6`} />
-                                    </div>
-                                    <button onClick={() => dispatch({ type: 'REMOVE_PRODUCT', payload: p.id })} className="text-danger hover:opacity-70" aria-label="Eliminar producto"><TrashIcon className="w-5 h-5"/></button>
-                                </div>
-                            ))}
-                        </div>
-                        <button onClick={() => dispatch({ type: 'ADD_PRODUCT' })} className="w-full text-sm font-bold text-primary flex items-center justify-center gap-1.5 p-2 rounded-lg hover:bg-primary/10">
-                            <PlusIcon className="w-4 h-4" /> Añadir Producto
-                        </button>
-                         <div className="mt-4 pt-4 border-t border-active-surface/50 flex justify-end space-x-3">
-                            <button onClick={onClose} className="px-4 py-2.5 text-sm font-bold text-on-surface bg-active-surface rounded-xl hover:opacity-80">Cancelar</button>
-                            <button onClick={handleSaveProductsAsExpense} className="flex-1 px-4 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center justify-center gap-2">
-                                <CubeIcon className="w-5 h-5"/>
-                                Guardar Botín
-                            </button>
-                        </div>
-                    </div>
-                );
-            case 'suggest_split':
-                if (!expenseSplitSuggestion) return null;
-                const total = expenseSplitSuggestion.reduce((sum, s) => sum + s.total, 0);
-                return (
-                    <div>
-                        <p className="text-sm text-center text-on-surface-secondary mb-4">La IA sugiere que este botín puede dividirse en varios tesoros. ¿Quieres separarlos en tu mapa?</p>
-                        <div className="space-y-2">
-                            {expenseSplitSuggestion.map(s => (
-                                <div key={s.category} className="bg-background p-3 rounded-xl">
-                                    <div className="flex justify-between font-bold">
-                                        <span>{s.category}</span>
-                                        <span>S/ {s.total.toFixed(2)}</span>
-                                    </div>
-                                    <p className="text-xs text-on-surface-secondary truncate">{s.productNames.join(', ')}</p>
-                                </div>
-                            ))}
-                        </div>
-                         <div className="mt-6 pt-5 border-t border-active-surface/50 flex justify-end space-x-3">
-                            <button onClick={() => dispatch({ type: 'SET_STEP', payload: 'review_products' })} className="px-4 py-2.5 text-sm font-bold text-on-surface bg-active-surface rounded-xl hover:opacity-80">No, editar</button>
-                            <button onClick={handleSplitExpense} className="flex-1 px-4 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center justify-center gap-2">
-                                <ReceiptPercentIcon className="w-5 h-5"/>
-                                Sí, Dividir Tesoro
-                            </button>
-                        </div>
-                    </div>
-                );
-            case 'saving_opportunity':
-                if (!savingOpportunity) {
-                    return <LoadingView text="Buscando tesoros ocultos..." />;
-                }
-                return (
-                    <div>
-                        <p className="text-sm text-center text-on-surface-secondary mb-4">{savingOpportunity.suggestionText}</p>
-                        <p className="text-xs text-center text-on-surface-secondary mb-4 italic">
-                            Esto registrará un aporte virtual a tu proyecto de conquista, no es una transferencia de dinero real.
-                        </p>
-                        <div className="grid grid-cols-3 gap-2">
-                            {savingOpportunity.suggestedAmounts.slice(0, 3).map(amount => (
-                                <button
-                                    key={amount}
-                                    onClick={() => handleSaveOpportunity(goals[0].id, amount)} // Assume first goal for simplicity
-                                    className="p-3 bg-background rounded-xl text-center font-bold text-primary hover:bg-active-surface"
-                                >
-                                    S/ {amount}
-                                </button>
-                            ))}
-                        </div>
-                         <div className="mt-6 pt-5 border-t border-active-surface/50 flex justify-end space-x-3">
-                            <button onClick={onClose} className="px-4 py-2.5 text-sm font-bold text-on-surface bg-active-surface rounded-xl hover:opacity-80">Ahora no</button>
-                            <button onClick={() => handleSaveOpportunity(goals[0].id, savingOpportunity.suggestedAmounts[0])} className="flex-1 px-4 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center justify-center gap-2">
-                                <BanknotesIcon className="w-5 h-5"/>
-                                Asignar S/ {savingOpportunity.suggestedAmounts[0]}
-                            </button>
-                        </div>
-                    </div>
-                );
+            // ... (rest of the cases)
             default:
-                return null;
+                return (
+                    <div>
+                        <p>Paso desconocido: {step}</p>
+                        <button onClick={onClose} className="mt-4 bg-gradient-to-r from-accent to-accent-secondary text-primary-dark p-2 rounded">Cerrar</button>
+                    </div>
+                );
         }
     };
 
     return (
         <ModalWrapper title={modalTitle} onClose={onClose}>
-            <>
-                {renderContent()}
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={(e) => handleImageFile(e.target.files ? e.target.files[0] : null)}
-                    className="hidden"
-                    accept="image/*,application/pdf"
-                />
-            </>
+            {renderContent()}
+            <input type="file" ref={fileInputRef} onChange={e => handleImageFile(e.target.files?.[0] || null)} className="hidden" accept="image/*,application/pdf" />
+            <input type="file" ref={cameraInputRef} onChange={e => handleImageFile(e.target.files?.[0] || null)} className="hidden" accept="image/*" capture="environment" />
         </ModalWrapper>
     );
 };

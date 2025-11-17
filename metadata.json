@@ -1,5 +1,7 @@
 {
   "name": "treevü 2.0",
   "description": "treevü es la plataforma de bienestar financiero que recompensa tus buenos hábitos. Para empresas, es el dashboard estratégico que convierte datos anónimos de equipo en insights para potenciar el engagement y la retención del talento.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "camera"
+  ]
 }

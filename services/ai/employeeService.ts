@@ -19,7 +19,7 @@ export const getAIGreeting = async (user: User): Promise<string> => {
         **Contexto del Usuario (${user.name.split(' ')[0]}):**
         - Nivel: ${levelData[user.level].name}
         - Racha: ${user.streak?.count || 0} días.
-        - Índice de Bienestar Financiero (FWI): ${fwi.toFixed(0)}%
+        - Puntaje de Bienestar: ${fwi.toFixed(0)}%
         - Trofeos enviados: ${user.kudosSent}
         - Hora local: ${new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
 
@@ -42,7 +42,7 @@ export const getAIGreeting = async (user: User): Promise<string> => {
                         type: Type.OBJECT,
                         properties: {
                             level: { type: Type.STRING, description: `El nivel del usuario: "${levelData[user.level].name}"` },
-                            fwi: { type: Type.STRING, description: `El FWI actual del usuario en formato 'XX%'` },
+                            fwi: { type: Type.STRING, description: `El Puntaje de Bienestar actual del usuario en formato 'XX%'` },
                             insight: { type: Type.STRING, description: "Un dato curioso o insight financiero breve." },
                             challenge: { type: Type.STRING, description: "Un pequeño reto para hoy, ej: 'Otorga un reconocimiento a un compañero'." },
                         },
@@ -375,62 +375,4 @@ export const getFWIExplanation = async (user: User, components: FwiComponents): 
     };
     const jsonText = await callAIApi(request);
     return jsonText ? parseJsonFromMarkdown<Record<string, string>>(jsonText) : null;
-};
-
-export const getAI7DaySpendingAnalysis = async (last7DaysExpenses: Expense[]): Promise<{ title: string; analysis: string[] } | null> => {
-    if (last7DaysExpenses.length === 0) return null;
-
-    const totalSpent = last7DaysExpenses.reduce((sum, e) => sum + e.total, 0);
-    const topCategoryMap = last7DaysExpenses.reduce((acc, e) => {
-        acc[e.categoria] = (acc[e.categoria] || 0) + e.total;
-        return acc;
-    }, {} as Record<string, number>);
-
-    const topCategoryName = Object.keys(topCategoryMap).length > 0
-        ? Object.keys(topCategoryMap).sort((a, b) => topCategoryMap[b] - topCategoryMap[a])[0]
-        : 'ninguna';
-
-    const prompt = `
-        Eres "treevü", un coach financiero que analiza los gastos de los últimos 7 días de un usuario en Perú. Tu tono es conciso, amigable y da insights accionables.
-
-        **Contexto de Gastos (Últimos 7 Días):**
-        - Total Gastado: S/ ${totalSpent.toFixed(2)} en ${last7DaysExpenses.length} transacciones.
-        - Categoría Principal: '${topCategoryName}'
-
-        **Instrucciones de Respuesta:**
-        1.  Genera un 'title' corto y llamativo para el análisis (ej: "Radiografía Semanal", "Pulso de tu Gasto").
-        2.  Genera un array 'analysis' con 2 o 3 puntos clave (strings). Cada punto debe ser una frase corta y útil.
-            - Punto 1: Un resumen del gasto total y número de transacciones.
-            - Punto 2: Un insight sobre la categoría principal. Si es 'Ocio' o 'Consumos', sugiere balance. Si es 'Alimentación' o 'Transporte', enfócate en la consistencia del gasto.
-            - Punto 3 (opcional): Una recomendación para la próxima semana.
-        
-        **Ejemplo:**
-        {
-          "title": "Radiografía Semanal",
-          "analysis": [
-            "Tu gasto total fue de S/ ${totalSpent.toFixed(2)} en ${last7DaysExpenses.length} hallazgos.",
-            "La mayor parte se destinó a '${topCategoryName}', ¡asegúrate de que se alinee con tu presupuesto!",
-            "Para la próxima semana, intenta planificar tus comidas para optimizar ese gasto."
-          ]
-        }
-
-        Responde en formato JSON estricto.
-    `;
-    const request = {
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    title: { type: Type.STRING },
-                    analysis: { type: Type.ARRAY, items: { type: Type.STRING } }
-                },
-                required: ["title", "analysis"]
-            }
-        }
-    };
-    const jsonText = await callAIApi(request);
-    return jsonText ? parseJsonFromMarkdown<{ title: string; analysis: string[] }>(jsonText) : null;
 };

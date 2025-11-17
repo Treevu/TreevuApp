@@ -50,16 +50,16 @@ const AddGoalContributionModal: React.FC<AddGoalContributionModalProps> = ({ onC
     };
 
     return (
-        <ModalWrapper title={`Añadir Fondos al Proyecto "${goal.name}"`} onClose={onClose}>
+        <ModalWrapper title={`Añadir Aporte al Proyecto "${goal.name}"`} onClose={onClose}>
             <div>
                 <p className="text-on-surface-secondary mb-4 text-sm">
-                    Registra un avance en tu proyecto. Este es un <strong className="text-on-surface">registro virtual</strong> para monitorear tu progreso, no una transferencia de dinero real.
+                    Registra un avance en tu proyecto. Este es un <strong className="text-on-surface">registro virtual</strong> para monitorear tu progreso, no un movimiento de dinero real.
                 </p>
                 {error && <p role="alert" className="text-danger bg-danger/20 p-2 rounded-md text-xs text-center mb-4">{error}</p>}
                 
                 <div>
                     <label htmlFor="contribution-amount" className="block text-sm font-medium text-on-surface-secondary">
-                        Monto a Invertir
+                        Monto del Aporte
                     </label>
                     <div className="mt-1 relative rounded-md shadow-sm">
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -89,7 +89,7 @@ const AddGoalContributionModal: React.FC<AddGoalContributionModalProps> = ({ onC
                     </button>
                     <button
                         onClick={handleSave}
-                        className="px-6 py-2 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center transition-opacity"
+                        className="px-6 py-2 text-sm font-bold text-primary-dark bg-gradient-to-br from-primary to-emerald-500 rounded-xl hover:opacity-90 flex items-center shadow-lg shadow-primary/20 transition-opacity"
                     >
                         <BanknotesIcon className="w-5 h-5 mr-1.5"/>
                         Registrar Aporte

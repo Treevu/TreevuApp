@@ -31,7 +31,7 @@ export enum TreevuLevel {
     Bosque = 5,
 }
 
-export type ActiveTab = 'inicio' | 'billetera' | 'club' | 'perfil';
+export type ActiveTab = 'inicio' | 'billetera' | 'comunidad' | 'tienda';
 
 export interface FwiComponent {
     name: string;

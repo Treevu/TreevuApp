@@ -1,39 +1,56 @@
 
+
 import React, { useMemo, useState } from 'react';
 import ExpenseCardUltraCompact from './ExpenseCardUltraCompact';
 import { useAppContext } from '../contexts/AppContext';
-import { XMarkIcon, SeedlingIcon } from './Icons';
-import Logo from './Logo';
+import { XMarkIcon, ChevronDownIcon } from './Icons';
 
 import { CategoriaGasto } from '../types/common';
 import { Expense } from '../types/expense';
 
-const formatDateGroup = (dateString: string) => {
-    const date = new Date(dateString + 'T00:00:00');
+const groupExpensesByPeriod = (expenses: Expense[]) => {
+    const groups: Record<string, Expense[]> = {
+        "Hoy": [],
+        "Ayer": [],
+        "Última Semana": [],
+        "Último Mes": [],
+        "Más Antiguos": [],
+    };
+
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const todayString = today.toISOString().split('T')[0];
-    const yesterdayString = yesterday.toISOString().split('T')[0];
-
-    if (dateString === todayString) return 'Hoy';
-    if (dateString === yesterdayString) return 'Ayer';
+    yesterday.setDate(today.getDate() - 1);
     
-    // Shortened format: "jueves, 25 de jul."
-    return new Intl.DateTimeFormat('es-PE', { weekday: 'long', day: 'numeric', month: 'short' }).format(date);
+    const weekAgo = new Date(today);
+    weekAgo.setDate(today.getDate() - 7);
+
+    const monthAgo = new Date(today);
+    monthAgo.setDate(today.getDate() - 30);
+
+    const sortedExpenses = [...expenses].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+    for (const expense of sortedExpenses) {
+        const expenseDate = new Date(expense.fecha + 'T00:00:00');
+        expenseDate.setHours(0, 0, 0, 0);
+        const time = expenseDate.getTime();
+
+        if (time === today.getTime()) {
+            groups["Hoy"].push(expense);
+        } else if (time === yesterday.getTime()) {
+            groups["Ayer"].push(expense);
+        } else if (time > weekAgo.getTime()) {
+            groups["Última Semana"].push(expense);
+        } else if (time > monthAgo.getTime()) {
+            groups["Último Mes"].push(expense);
+        } else {
+            groups["Más Antiguos"].push(expense);
+        }
+    }
+    return groups;
 };
 
-const groupTransactionsByDate = (transactions: Expense[]) => {
-    return transactions.reduce((acc, transaction) => {
-        const dateKey = transaction.fecha;
-        if (!acc[dateKey]) {
-            acc[dateKey] = [];
-        }
-        acc[dateKey].push(transaction);
-        return acc;
-    }, {} as Record<string, Expense[]>);
-};
 
 interface TransactionListProps {
     expenses: Expense[];
@@ -46,28 +63,14 @@ interface TransactionListProps {
 
 const TransactionList: React.FC<TransactionListProps> = React.memo(({ expenses, searchQuery, onDelete, onEdit, categoryFilter, onClearFilter }) => {
     const { state: { expenses: allExpenses } } = useAppContext();
-    const [expandedCardIds, setExpandedCardIds] = useState<Set<string>>(new Set());
-
-    const toggleCardExpansion = (expenseId: string) => {
-        setExpandedCardIds(prevIds => {
-            const newIds = new Set(prevIds);
-            if (newIds.has(expenseId)) {
-                newIds.delete(expenseId);
-            } else {
-                newIds.add(expenseId);
-            }
-            return newIds;
-        });
-    };
+    const [expandedGroup, setExpandedGroup] = useState<string | null>('Hoy');
+    const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
 
     const groupedTransactions = useMemo(() => {
-        const sorted = [...expenses].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
-        return groupTransactionsByDate(sorted);
+        return groupExpensesByPeriod(expenses);
     }, [expenses]);
     
-    const sortedDateGroups = useMemo(() => {
-        return Object.keys(groupedTransactions).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    }, [groupedTransactions]);
+    const groupOrder = ["Hoy", "Ayer", "Última Semana", "Último Mes", "Más Antiguos"];
     
     const renderEmptyState = () => {
         if (searchQuery || categoryFilter) {
@@ -84,7 +87,7 @@ const TransactionList: React.FC<TransactionListProps> = React.memo(({ expenses, 
              return (
                 <div className="text-center py-12 px-4 bg-surface rounded-2xl animate-grow-and-fade-in shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
                     <p className="text-on-surface-secondary">
-                        Aún no has registrado ningún gasto. Ve a la pestaña 'Inicio' para empezar tu expedición.
+                        Aún no has registrado ningún hallazgo. Ve a la pestaña 'Inicio' para empezar tu expedición.
                     </p>
                 </div>
             );
@@ -109,27 +112,53 @@ const TransactionList: React.FC<TransactionListProps> = React.memo(({ expenses, 
             {expenses.length === 0 ? (
                 renderEmptyState()
             ) : (
-                <div className="space-y-3">
-                    {sortedDateGroups.map(dateKey => (
-                        <div key={dateKey}>
-                            <h2 className="text-xs font-bold text-on-surface-secondary uppercase tracking-wider py-1.5">
-                                {formatDateGroup(dateKey)}
-                            </h2>
-                            <div className="space-y-1.5">
-                                {groupedTransactions[dateKey].map((expense, index) => (
-                                    <ExpenseCardUltraCompact
-                                        key={expense.id}
-                                        expense={expense}
-                                        onDelete={onDelete}
-                                        onEdit={onEdit}
-                                        isExpanded={expandedCardIds.has(expense.id)}
-                                        onToggle={() => toggleCardExpansion(expense.id)}
-                                        index={index}
-                                    />
-                                ))}
+                <div className="space-y-2">
+                    {groupOrder.map(groupName => {
+                        const groupExpenses = groupedTransactions[groupName];
+                        if (!groupExpenses || groupExpenses.length === 0) return null;
+
+                        const isExpanded = expandedGroup === groupName;
+                        const total = groupExpenses.reduce((sum, exp) => sum + exp.total, 0);
+
+                        return (
+                            <div key={groupName} className="bg-surface rounded-2xl overflow-hidden transition-all duration-300 shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
+                                <button
+                                    onClick={() => setExpandedGroup(isExpanded ? null : groupName)}
+                                    className="w-full p-4 flex justify-between items-center text-left"
+                                    aria-expanded={isExpanded}
+                                >
+                                    <div className="flex-1">
+                                        <h2 className="font-bold text-on-surface">{groupName}</h2>
+                                        <p className="text-xs text-on-surface-secondary">{groupExpenses.length} {groupExpenses.length === 1 ? 'movimiento' : 'movimientos'}</p>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <span className="font-bold text-on-surface">S/ {total.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                                        <ChevronDownIcon className={`w-6 h-6 text-on-surface-secondary transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                                    </div>
+                                </button>
+                                <div
+                                    className="transition-all duration-500 ease-in-out"
+                                    style={{ maxHeight: isExpanded ? '2000px' : '0px' }}
+                                >
+                                    <div className="px-4 pb-4 pt-0 space-y-1.5 border-t border-active-surface/50">
+                                        <div className="pt-2">
+                                        {groupExpenses.map((expense, index) => (
+                                            <ExpenseCardUltraCompact
+                                                key={expense.id}
+                                                expense={expense}
+                                                onDelete={onDelete}
+                                                onEdit={onEdit}
+                                                isExpanded={expense.id === expandedCardId}
+                                                onToggle={() => setExpandedCardId(prev => (prev === expense.id ? null : expense.id))}
+                                                index={index}
+                                            />
+                                        ))}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </>

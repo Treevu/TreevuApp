@@ -20,13 +20,14 @@ export interface Expense {
     mensaje?: string;
     intent?: 'essential' | 'desired' | 'unclassified';
     violations?: PolicyViolation[];
+    isMissionContribution?: boolean;
     // --- NEW FIELDS FOR ML ---
     paymentMethod?: PaymentMethod;
     isRecurring?: boolean;
     notes?: string;
 }
 
-export type ExpenseData = Omit<Expense, 'id' | 'imageUrl' | 'violations'>;
+export type ExpenseData = Omit<Expense, 'id' | 'imageUrl' | 'violations' | 'isMissionContribution'>;
 
 export interface Product {
   productName: string;

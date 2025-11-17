@@ -78,7 +78,7 @@ const MerchantAnalysis: React.FC<MerchantAnalysisProps> = ({ expenses }) => {
                     <ShoppingBagIcon className="w-6 h-6 mr-2 text-primary"/>
                     Top Comercios
                 </h2>
-                <Tooltip id="top-comercios-tooltip" text="Los 5 comercios donde más gastas. Haz clic para ver su detalle de los últimos 30 días y tu ticket promedio." />
+                <Tooltip id="top-comercios-tooltip" text="Los 5 comercios donde más registras movimientos. Haz clic para ver su detalle de los últimos 30 días y tu ticket promedio." />
             </div>
             <div className="space-y-2">
                 {dataByMerchant.map(({ name, total, count, avg }) => {
@@ -90,7 +90,7 @@ const MerchantAnalysis: React.FC<MerchantAnalysisProps> = ({ expenses }) => {
                             <button onClick={() => handleToggle(name)} className="w-full p-3 flex justify-between items-center text-left">
                                 <div>
                                     <p className="font-semibold text-on-surface text-base truncate max-w-[150px] sm:max-w-xs">{name}</p>
-                                    <p className="text-xs text-on-surface-secondary">{count} {count === 1 ? 'transacción' : 'transacciones'}</p>
+                                    <p className="text-xs text-on-surface-secondary">{count} {count === 1 ? 'movimiento' : 'movimientos'}</p>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <span className="font-bold text-on-surface text-base">
@@ -106,7 +106,7 @@ const MerchantAnalysis: React.FC<MerchantAnalysisProps> = ({ expenses }) => {
                                 <div className="px-3 pb-3">
                                     <div className="pt-2 border-t border-active-surface/50">
                                          <div className="flex justify-between items-center mb-2">
-                                            <h4 className="text-xs font-bold text-on-surface-secondary">Gasto en los últimos 30 días</h4>
+                                            <h4 className="text-xs font-bold text-on-surface-secondary">Movimientos en los últimos 30 días</h4>
                                             <div className="text-right">
                                                  <p className="text-xs font-semibold text-on-surface-secondary">Ticket Promedio</p>
                                                  <p className="font-bold text-primary text-sm">

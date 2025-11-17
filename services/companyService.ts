@@ -1,7 +1,8 @@
 import { CompanyAlliance } from "../types/employer";
 
 // Mock database of partner companies
-const MOCK_ALLIANCES: CompanyAlliance[] = [
+// FIX: Export MOCK_ALLIANCES to make it available for import in other modules.
+export const MOCK_ALLIANCES: CompanyAlliance[] = [
     {
         id: 'acme-corp-123',
         name: 'Acme Corp',

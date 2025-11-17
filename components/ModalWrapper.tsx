@@ -63,19 +63,19 @@ const ModalWrapper: React.FC<ModalWrapperProps> = ({ onClose, children, title, t
 
     return (
         <div 
-            className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-end sm:items-center z-50 p-4 pb-24 sm:pb-4 animate-fade-in" 
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-end sm:items-center z-50 p-4 pb-24 sm:pb-4 animate-fade-in" 
             onClick={onClose}
         >
             <div 
                 ref={modalRef}
-                className="bg-surface rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-sm max-h-[90vh] flex flex-col animate-grow-and-fade-in"
+                className="bg-surface/90 backdrop-blur-xl border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-sm max-h-[90vh] flex flex-col animate-grow-and-fade-in"
                 onClick={(e) => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
                 style={{ animationDuration: '0.3s' }}
             >
-                <div className="p-5 border-b border-active-surface/50 flex justify-between items-center flex-shrink-0">
+                <div className="p-5 border-b border-white/10 flex justify-between items-center flex-shrink-0">
                     <h2 id={titleId} className="text-xl font-bold text-on-surface">{title}</h2>
                     <button ref={closeButtonRef} onClick={onClose} className="text-on-surface-secondary hover:text-on-surface rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
                         <span className="sr-only">Cerrar modal</span>

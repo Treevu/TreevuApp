@@ -37,9 +37,9 @@ const ExpenseChart: React.FC<ExpenseChartProps> = ({ expenses }) => {
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold text-on-surface flex items-center">
                     <ChartPieIcon className="w-6 h-6 mr-2 text-primary"/>
-                    Gastos por Categoría
+                    Movimientos por Categoría
                 </h2>
-                <Tooltip id="gastos-categoria-tooltip" text="Desglose visual de tus gastos. La barra de la categoría con mayor gasto siempre es del 100%, y las demás se escalan en comparación para que veas rápidamente dónde se concentra tu dinero." />
+                <Tooltip id="gastos-categoria-tooltip" text="Desglose visual de tus movimientos. La barra de la categoría con mayor gasto siempre es del 100%, y las demás se escalan en comparación para que veas rápidamente dónde se concentra tu dinero." />
             </div>
             <div className="space-y-4">
                 {chartData.map(({ categoria, total }) => {

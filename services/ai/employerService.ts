@@ -80,7 +80,10 @@ export const getAIEmployerResponse = async (query: string, data: any): Promise<s
 export const getAIStrategicInsights = async (data: any): Promise<{ metricName: string; status: string; insight: string; recommendation: string }[] | null> => {
     const prompt = `
         Eres un consultor de C-Level especializado en bienestar corporativo.
-        Tu tarea es generar un diagnóstico rápido y una recomendación estratégica para cada una de las siguientes métricas clave.
+        Tu tarea es generar un diagnóstico rápido y una recomendación estratégica para cada una de las siguientes métricas clave, con un enfoque principal en reducir el riesgo de fuga de talento.
+
+        **Contexto General del Segmento:**
+        - **Riesgo de Fuga de Talento (PRIORIDAD ALTA): ${data.talentFlightRisk}**
 
         **Métricas a Analizar:**
         - Salud Financiera (valor: ${data.formalityScore?.toFixed(1) || 'N/A'}%)
@@ -94,7 +97,9 @@ export const getAIStrategicInsights = async (data: any): Promise<{ metricName: s
         2.  **Análisis ('insight'):** Proporciona una frase corta que explique qué significa este valor en términos de negocio (ej. impacto en retención, productividad, cultura).
         3.  **Recomendación ('recommendation'):** Sugiere UNA iniciativa de alto impacto, específica y accionable.
         
-        **Barrera de Contención (Guardrail):** NO generes respuestas genéricas. Tu recomendación debe ser accionable.
+        **Barreras de Contención (Guardrails):**
+        - **Prioridad Máxima:** Si el 'Riesgo de Fuga de Talento' es 'Alto' o 'Medio', tus recomendaciones DEBEN estar directamente enfocadas en mitigar este riesgo. Conecta la métrica que estás analizando con una acción que reduzca la probabilidad de rotación.
+        - NO generes respuestas genéricas. Tu recomendación debe ser accionable.
         Responde en formato JSON estricto con un array de 4 objetos. Cada objeto debe tener: 'metricName', 'status', 'insight', 'recommendation'.
     `;
      const request = {
@@ -199,7 +204,6 @@ export const getAIImpactProjection = async (simulationParams: {
         - Un 'workshop' de educación financiera tiene un impacto sostenido pero lento en el FWI (+1-2 pts por trimestre) y un impacto bajo en el riesgo de fuga a corto plazo.
         - El impacto es un 20% mayor si se enfoca en un departamento con bajo FWI.
     `;
-    // FIX: Completed the function implementation to call the AI and return a value.
     const request = {
         model: 'gemini-2.5-pro',
         contents: prompt,
@@ -222,7 +226,6 @@ export const getAIImpactProjection = async (simulationParams: {
     return jsonText ? parseJsonFromMarkdown<any>(jsonText) : null;
 };
 
-// FIX: Added missing function 'getAIGoalInsight'
 export const getAIGoalInsight = async (
     savingsByCategory: { category: string; amount: number }[],
     department: string,
@@ -265,7 +268,6 @@ export const getAIGoalInsight = async (
     return jsonText ? parseJsonFromMarkdown<{ insight: string; recommendation: string }>(jsonText) : null;
 };
 
-// FIX: Added missing function 'getAIStrategicReportSummary'
 export const getAIStrategicReportSummary = async (data: any): Promise<{ executiveSummary: string; recommendations: { title: string; detail: string }[] } | null> => {
     const prompt = `
         Eres un consultor de estrategia de alto nivel (C-Level) para RRHH. Analiza los siguientes KPIs de un segmento de la empresa y genera un informe ejecutivo.

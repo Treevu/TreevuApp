@@ -37,7 +37,7 @@ type Message = {
 const AIHeaderDisplay: React.FC<{ header: AIHeader }> = ({ header }) => (
     <div className="space-y-1 mb-3 p-3 bg-background rounded-lg border border-active-surface/50">
         <p className="text-sm"><span className="font-bold text-on-surface-secondary">🌿 Nivel:</span> <span className="font-semibold text-on-surface">{header.level}</span></p>
-        <p className="text-sm"><span className="font-bold text-on-surface-secondary">💸 FWI Actual:</span> <span className="font-semibold text-on-surface">{header.fwi}</span></p>
+        <p className="text-sm"><span className="font-bold text-on-surface-secondary">💸 Puntaje de Bienestar:</span> <span className="font-semibold text-on-surface">{header.fwi}</span></p>
         <p className="text-sm"><span className="font-bold text-on-surface-secondary">📊 Insight:</span> <span className="font-semibold text-on-surface">{header.insight}</span></p>
         <p className="text-sm"><span className="font-bold text-on-surface-secondary">🎯 Próximo reto:</span> <span className="font-semibold text-on-surface">{header.challenge}</span></p>
     </div>
@@ -145,7 +145,7 @@ const ChatInput = React.memo(({
                 <button
                     type="submit"
                     disabled={isLoading || !inputValue.trim()}
-                    className={`w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 bg-primary text-primary-dark disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 bg-gradient-to-r from-accent to-accent-secondary text-primary-dark disabled:opacity-50 disabled:cursor-not-allowed`}
                     aria-label={'Enviar mensaje'}
                 >
                     {isLoading ? (

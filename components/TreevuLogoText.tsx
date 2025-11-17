@@ -6,14 +6,17 @@ interface TreevuLogoTextProps {
   middleColorClass?: string;
 }
 
-const TreevuLogoText: React.FC<TreevuLogoTextProps> = ({ className, isTreevus = false, middleColorClass = 'text-on-surface' }) => {
+const TreevuLogoText: React.FC<TreevuLogoTextProps> = ({ className, isTreevus = false, middleColorClass }) => {
+  
+  // Use the theme's primary color for high contrast and consistency, removing the multi-color gradient.
+  // The middleColorClass prop is kept for specific overrides where needed (e.g., StatusCard).
+  const textClasses = middleColorClass
+    ? middleColorClass
+    : 'text-primary';
+
   return (
-    <span className={className}>
-      <span className="text-primary">t</span>
-      <span className="text-accent">r</span>
-      <span className={middleColorClass}>ee</span>
-      <span className="text-blue-500">v</span>
-      <span className="text-primary">ü{isTreevus ? 's' : ''}</span>
+    <span className={`font-black ${textClasses} ${className}`}>
+      treevü{isTreevus ? 's' : ''}
     </span>
   );
 };

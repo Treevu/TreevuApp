@@ -64,35 +64,24 @@ const AIGoalCoachCard: React.FC<AIGoalCoachCardProps> = ({ onCategoryClick }) =>
 
     if (isLoading) {
         return (
-            <div className="bg-surface rounded-2xl p-4 animate-pulse">
-                <div className="h-5 w-1/2 bg-active-surface rounded mb-3"></div>
-                <div className="h-4 w-full bg-active-surface rounded mb-2"></div>
-                <div className="h-4 w-3/4 bg-active-surface rounded"></div>
+            <div className="animate-pulse">
+                <div className="h-4 w-1/2 bg-active-surface rounded mb-3"></div>
+                <div className="h-3 w-full bg-active-surface rounded mb-2"></div>
+                <div className="h-3 w-3/4 bg-active-surface rounded"></div>
             </div>
         );
     }
     
     if (error || !coaching) {
         return (
-            <div className="bg-surface rounded-2xl p-4 animate-grow-and-fade-in">
-                <h2 className="text-lg font-bold text-on-surface mb-2 flex items-center">
-                    <SparklesIcon className="w-6 h-6 mr-2 text-primary"/>
-                    Consejero de Proyectos IA
-                </h2>
-                <div className="text-sm text-on-surface-secondary min-h-[40px] flex items-center">
-                    <p>No hay sugerencias por ahora. ¡Sigue registrando gastos y metas para recibir consejos personalizados!</p>
-                </div>
+            <div className="text-sm text-on-surface-secondary min-h-[40px] flex items-center">
+                <p>No hay sugerencias por ahora. ¡Sigue registrando gastos y metas para recibir consejos personalizados!</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-gradient-to-br from-surface to-active-surface rounded-2xl p-4 animate-grow-and-fade-in border border-active-surface/50">
-            <h2 className="text-lg font-bold text-on-surface mb-2 flex items-center">
-                <SparklesIcon className="w-6 h-6 mr-2 text-primary"/>
-                Consejero de Proyectos IA
-            </h2>
-
+        <div className="animate-grow-and-fade-in">
             <div className="bg-background/50 rounded-lg p-3 my-3">
                  <p className="text-sm text-on-surface font-semibold text-center">
                     "{coaching.plan}"

@@ -4,28 +4,45 @@ import { useAppContext } from '../contexts/AppContext';
 import { useModal } from '../contexts/ModalContext';
 import Tooltip from './Tooltip';
 import { StackedBarChart, StackedChartDataPoint } from './TrendAnalysis';
-import { getAI7DaySpendingAnalysis } from '../services/ai/employeeService';
+// FIX: Changed import from non-existent 'getAI7DaySpendingAnalysis' to 'getAIWeeklySummary'.
+import { getAIWeeklySummary } from '../services/ai/employeeService';
 import { Expense } from '../types/expense';
 import { CategoriaGasto } from '../types/common';
+import { useAuth } from '../contexts/AuthContext';
+import { User } from '../types/user';
 
-const AIWeeklyAnalysis: React.FC<{ expenses: Expense[] }> = ({ expenses }) => {
+const AIWeeklyAnalysis: React.FC<{ expenses: Expense[]; user: User | null }> = ({ expenses, user }) => {
     const [analysis, setAnalysis] = useState<{ title: string; analysis: string[] } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchAnalysis = async () => {
-            if (expenses.length === 0) {
+            if (expenses.length === 0 || !user) {
                 setIsLoading(false);
                 setAnalysis(null);
                 return;
             }
             setIsLoading(true);
-            const result = await getAI7DaySpendingAnalysis(expenses);
-            setAnalysis(result);
-            setIsLoading(false);
+            try {
+                const resultString = await getAIWeeklySummary(user, expenses);
+                if (resultString) {
+                    // FIX: Parse the string response from the AI into the expected object structure.
+                    const sentences = resultString.match(/[^.!?]+[.!?]+/g) || [resultString];
+                    const title = sentences.length > 0 ? sentences[0].trim() : 'Análisis Semanal';
+                    const analysisPoints = sentences.length > 1 ? sentences.slice(1).map(s => s.trim()) : [];
+                    setAnalysis({ title, analysis: analysisPoints });
+                } else {
+                    setAnalysis(null);
+                }
+            } catch (error) {
+                console.error("Error fetching or parsing AI analysis:", error);
+                setAnalysis(null);
+            } finally {
+                setIsLoading(false);
+            }
         };
         fetchAnalysis();
-    }, [expenses]);
+    }, [expenses, user]);
 
     if (isLoading) {
         return (
@@ -39,7 +56,7 @@ const AIWeeklyAnalysis: React.FC<{ expenses: Expense[] }> = ({ expenses }) => {
         );
     }
 
-    if (!analysis) {
+    if (!analysis || analysis.analysis.length === 0) {
         return null; // Don't show anything if no analysis could be generated
     }
 
@@ -65,6 +82,8 @@ const BudgetTracker: React.FC = () => {
     const { state: appState } = useAppContext();
     const { expenses, budget } = appState;
     const { openModal } = useModal();
+    // FIX: Get user from AuthContext to pass to the AI service.
+    const { user } = useAuth();
     const [flashKey, setFlashKey] = useState(0);
     const [showTrend, setShowTrend] = useState(false);
     
@@ -116,15 +135,14 @@ const BudgetTracker: React.FC = () => {
 
     if (budget === null || budget <= 0) {
         return (
-            <div className="bg-surface rounded-2xl p-4 flex flex-col items-center text-center justify-center min-h-[200px] animate-grow-and-fade-in border border-dashed dark:border-dotted border-active-surface/80 shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
+            <div className="flex flex-col items-center text-center justify-center py-4">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
                     <BanknotesIcon className="w-7 h-7 text-primary" />
                 </div>
-                <h3 className="font-bold text-lg text-on-surface">Tu Presupuesto</h3>
-                <p className="text-sm text-on-surface-secondary mt-1 mb-3 max-w-xs">Establece un límite para empezar a monitorear tus gastos.</p>
+                <p className="text-sm text-on-surface-secondary mt-1 mb-3 max-w-xs">Establece un límite para empezar a monitorear tus movimientos.</p>
                 <button
                     onClick={() => openModal('setBudget')}
-                    className="bg-primary text-primary-dark font-bold py-2 px-5 rounded-xl hover:opacity-90 transition-opacity text-sm flex items-center"
+                    className="bg-gradient-to-r from-accent to-accent-secondary text-primary-dark font-bold py-2 px-5 rounded-xl text-sm flex items-center shadow-lg shadow-primary/30 transform hover:-translate-y-1 transition-all duration-300"
                 >
                     <PencilIcon className="w-4 h-4 mr-1.5" />
                     Establecer Presupuesto
@@ -138,23 +156,8 @@ const BudgetTracker: React.FC = () => {
     const progressBarColor = percentage >= 100 ? 'bg-danger' : percentage > 80 ? 'bg-warning' : 'bg-primary';
     
     return (
-        <div className="bg-surface rounded-2xl p-4 mb-4 animate-grow-and-fade-in shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
-            <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-on-surface">Tu Presupuesto</h2>
-                    <Tooltip id="presupuesto-tooltip" text="Compara tus gastos del mes actual con el límite que estableciste. Es tu brújula para saber si vas por buen camino con tu plan." />
-                </div>
-                 <button
-                    onClick={() => openModal('setBudget')}
-                    className="flex items-center text-sm font-semibold text-primary hover:opacity-80 transition-opacity"
-                    aria-label="Editar presupuesto"
-                >
-                    <PencilIcon className="w-4 h-4 mr-1" />
-                    Editar
-                </button>
-            </div>
-
-            <div className="space-y-2">
+        <div className="animate-grow-and-fade-in">
+             <div className="space-y-2">
                 <div className="flex justify-between text-sm font-medium text-on-surface-secondary">
                     <span>Gastado ({percentage.toFixed(0)}%)</span>
                      <span
@@ -178,13 +181,13 @@ const BudgetTracker: React.FC = () => {
 
             <div className="mt-4 pt-3 border-t border-active-surface/50">
                 <button onClick={() => setShowTrend(!showTrend)} className="w-full flex justify-between items-center text-sm font-semibold text-on-surface-secondary hover:text-on-surface">
-                    <span>Evolución del Gasto Diario (7 días)</span>
+                    <span>Evolución de Movimientos Diarios (7 días)</span>
                     {showTrend ? <ChevronUpIcon className="w-5 h-5"/> : <ChevronDownIcon className="w-5 h-5"/>}
                 </button>
                 <div className={`transition-all duration-500 ease-in-out overflow-hidden ${showTrend ? 'max-h-[450px] mt-4' : 'max-h-0'}`}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                         <StackedBarChart data={dailyData} />
-                        <AIWeeklyAnalysis expenses={last7DaysExpenses} />
+                        <AIWeeklyAnalysis expenses={last7DaysExpenses} user={user} />
                     </div>
                 </div>
             </div>

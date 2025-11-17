@@ -16,7 +16,7 @@ export interface Reward {
     description: string;
     costInTreevus: number;
     icon: string; // Could be an emoji or an icon name
-    category: 'Bienestar' | 'Educación' | 'Ocio' | 'Impacto Social';
+    category: 'Bienestar' | 'Salud' | 'Finanzas' | 'Educación' | 'Viajes' | 'Ocio' | 'Impacto Social' | 'Otros';
     minLevel?: TreevuLevel;
     isCompanyExclusive?: boolean;
 }
@@ -49,6 +49,8 @@ export interface User {
     kudosSent: number;
     kudosReceived: number;
     featuredBadge?: BadgeType;
+    // FIX: Add badges property to User type
+    badges?: BadgeType[];
     role?: string;
     company?: string;
     prestigeLevel?: number;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { GiftIcon, AcademicCapIcon, HeartIcon, SparklesIcon } from '../Icons';
+import { GiftIcon, AcademicCapIcon, HeartIcon, SparklesIcon, BanknotesIcon, PaperAirplaneIcon } from '../Icons';
 import { Reward } from '../../types/user';
 import Tooltip from '../Tooltip';
 
@@ -9,9 +9,13 @@ interface RewardCategoryDonutChartProps {
 
 const categoryDetails: { [key in Reward['category']]: { color: string, Icon: React.FC<{className?: string}> } } = {
     'Bienestar': { color: '#2dd4bf', Icon: HeartIcon },
+    'Salud': { color: '#34d399', Icon: HeartIcon },
+    'Finanzas': { color: '#6366f1', Icon: BanknotesIcon },
     'Educación': { color: '#fb923c', Icon: AcademicCapIcon },
+    'Viajes': { color: '#3b82f6', Icon: PaperAirplaneIcon },
     'Ocio': { color: '#c084fc', Icon: GiftIcon },
     'Impacto Social': { color: '#f472b6', Icon: SparklesIcon },
+    'Otros': { color: '#9ca3af', Icon: SparklesIcon },
 };
 
 const DonutSegment: React.FC<{ percentage: number; color: string; offset: number; radius: number; strokeWidth: number }> = ({ percentage, color, offset, radius, strokeWidth }) => {

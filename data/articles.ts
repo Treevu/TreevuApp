@@ -1,5 +1,7 @@
+
+
 import React from 'react';
-import { ShieldCheckIcon, BanknotesIcon, BuildingBlocksIcon } from '../components/Icons';
+import { ShieldCheckIcon, BanknotesIcon, BuildingBlocksIcon, CommandLineIcon, BriefcaseIcon } from '../components/Icons';
 
 export interface ArticleData {
   id: string;

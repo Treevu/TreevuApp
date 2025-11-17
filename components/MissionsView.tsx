@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTribes } from '../contexts/TribesContext';
@@ -16,7 +14,7 @@ const MissionsView: React.FC = () => {
     if (!userTribe) {
         return (
             <div className="bg-surface rounded-2xl p-4 text-center">
-                <p className="text-on-surface-secondary">Debes pertenecer a un escuadrón para participar en misiones.</p>
+                <p className="text-on-surface-secondary">Debes pertenecer a un Squad para participar en misiones.</p>
             </div>
         );
     }
@@ -26,10 +24,10 @@ const MissionsView: React.FC = () => {
             <div className="bg-surface rounded-2xl p-4">
                 <h2 className="text-xl font-bold text-on-surface mb-2 flex items-center">
                     <RocketLaunchIcon className="w-6 h-6 mr-2 text-primary"/>
-                    Expediciones de Escuadrón
+                    Expediciones de Squad
                 </h2>
                 <p className="text-sm text-on-surface-secondary">
-                    ¡Colabora con tu equipo para completar misiones y obtener un botín para todo el escuadrón!
+                    ¡Colabora con tu equipo para completar misiones y obtener un botín para todo el equipo!
                 </p>
             </div>
 

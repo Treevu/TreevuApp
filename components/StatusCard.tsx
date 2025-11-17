@@ -5,9 +5,11 @@ import { TreevuCoinIcon, FireIcon, PencilIcon, BroteIcon, PlantonIcon, ArbustoIc
 import { levelData } from '../services/gamificationService';
 import { TreevuLevel } from '../types/common';
 import { useModal } from '../contexts/ModalContext';
-import { generateMockTreevuId, getMemberSinceYear } from '../utils';
+import { generateAmexStyleCardNumber, getMemberSinceYear } from '../utils';
 import TreevuLogoText from './TreevuLogoText';
 import { User, BadgeType } from '../types/user';
+// FIX: Added missing import for the `Logo` component.
+import Logo from './Logo';
 
 interface StatusCardProps { }
 
@@ -44,7 +46,7 @@ const QrCodePlaceholder: React.FC = () => (
 
 const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) => {
     const { user } = useAuth();
-    const { state: { expenses } } = useAppContext();
+    const { state: { fwi_v2 } } = useAppContext();
     const { openModal } = useModal();
     const [customization, setCustomization] = useState({ material: 'default', accent: 'primary' });
     const [isFlipped, setIsFlipped] = useState(false);
@@ -67,7 +69,9 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
     }, [storageKey]);
     
 
-    const handleFlip = () => {
+    const handleFlip = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        e.currentTarget.blur();
         if (navigator.vibrate) navigator.vibrate(50);
         setIsFlipped(!isFlipped);
     };
@@ -83,6 +87,12 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
     }, [customization.material, user]);
 
     const embossClass = isLightCard ? 'text-emboss-light' : 'text-emboss-dark';
+
+    const fwiStatus = useMemo(() => {
+        if (fwi_v2 < 50) return 'low';
+        if (fwi_v2 >= 75) return 'high';
+        return 'medium';
+    }, [fwi_v2]);
     
     if (!user) {
         return (
@@ -113,8 +123,6 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
     
     const cardClasses = `${cardMaterialClass} ${specialEffectClass}`;
     
-    const currentLevelData = levelData[user.level];
-    
     let textColorClass = 'text-white';
     let subTextColorClass = 'text-gray-300';
     if (isLightCard) {
@@ -132,76 +140,75 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
             >
                 <div className={`status-card-inner ${isFlipped ? 'is-flipped' : ''}`}>
                     {/* FRONT FACE */}
-                    <div className={`status-card-face status-card-front ${cardClasses} shadow-lg`}>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                openModal('personalization', { storageKey });
-                            }}
-                            className={`absolute top-3 right-3 z-10 p-1.5 rounded-full transition-colors ${subTextColorClass} hover:bg-black/20`}
-                            aria-label="Personalizar tarjeta"
-                        >
-                            <PencilIcon className="w-4 h-4" />
-                        </button>
-                        <div className="flex justify-between items-start">
-                             <h2 className={`status-card-logo text-2xl font-bold ${embossClass}`}>
-                                <TreevuLogoText middleColorClass={isLightCard ? 'text-gray-800' : 'text-white'} />
-                            </h2>
-                            <div className="status-card-chip"></div>
-                        </div>
+                    <div className={`status-card-face status-card-front ${cardClasses} shadow-lg relative dark:ring-1 dark:ring-white/10`}>
+                        <Logo className={`absolute inset-0 m-auto w-2/3 h-2/3 ${isLightCard ? 'text-black/5' : 'text-white/5'} transition-colors duration-300 z-0`} src={user.branding?.logoUrl} />
                         
-                        <div>
-                            <p className={`font-sans text-xl md:text-2xl tracking-widest ${textColorClass} ${embossClass}`}>
-                                {generateMockTreevuId(user.id)}
-                            </p>
-                            <div className={`flex items-center mt-2 ${subTextColorClass}`}>
-                                <span className="text-[8px] font-semibold leading-none mr-1.5 text-center">MIEMBRO<br/>DESDE</span>
-                                <span className={`font-mono text-base font-semibold ${textColorClass} ${embossClass}`}>
-                                    ' {getMemberSinceYear()}
-                                </span>
+                        {/* FWI Visual Overlay */}
+                        <div className={`fwi-overlay fwi-${fwiStatus}`}></div>
+
+                        <div className="relative z-10 h-full flex flex-col justify-between">
+                            <div className="flex justify-between items-center">
+                                <div className="status-card-chip"></div>
+                                <h2 className={`status-card-logo text-2xl font-bold ${embossClass}`}>
+                                    <TreevuLogoText middleColorClass={isLightCard ? 'text-gray-800' : 'text-white'} />
+                                </h2>
                             </div>
-                        </div>
-                        
-                        <div className="flex justify-between items-end">
-                            <div className="flex-1 min-w-0">
-                                <p className={`text-lg font-semibold truncate ${textColorClass} ${embossClass}`}>
-                                    {user.name}
-                                    {user.prestigeLevel && user.prestigeLevel > 0 && 
-                                        <span className="text-yellow-400 ml-1.5" title={`Nivel de Prestigio ${user.prestigeLevel}`}>
-                                            🏆
-                                        </span>
-                                    }
-                                </p>
-                                <div className="leading-tight">
-                                    <p className={`text-xs ${subTextColorClass} ${embossClass}`}>
-                                        Nivel: {currentLevelData.name}
-                                        {user.prestigeLevel && user.prestigeLevel > 0 && ` (P${user.prestigeLevel})`}
+                            
+                            <div/>
+
+                            <div className="flex justify-between items-end">
+                                <div className="flex-1 min-w-0">
+                                    <p className={`font-sans text-2xl md:text-3xl tracking-wider ${textColorClass} ${embossClass}`}>
+                                        {generateAmexStyleCardNumber(user.id)}
+                                    </p>
+                                    <div className="flex items-baseline mt-2 gap-4">
+                                        <div className="flex items-baseline">
+                                            <span className={`text-[8px] font-semibold leading-none mr-1.5 text-center ${subTextColorClass} ${embossClass}`}>MEMBER<br/>SINCE</span>
+                                            <span className={`font-mono text-base font-semibold ${textColorClass} ${embossClass}`}>
+                                                '{getMemberSinceYear()}
+                                            </span>
+                                        </div>
+                                        <p className={`text-xl font-semibold truncate ${textColorClass} ${embossClass}`}>
+                                            {user.name}
+                                            {user.prestigeLevel && user.prestigeLevel > 0 && 
+                                                <span className="text-yellow-400 ml-1.5" title={`Nivel de Prestigio ${user.prestigeLevel}`}>
+                                                    🏆
+                                                </span>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                    <p className={`font-bold text-xl ${textColorClass} ${embossClass} flex items-center justify-end gap-1`}>
+                                        {user.treevus.toLocaleString('es-PE')} <TreevuCoinIcon className="w-5 h-5" level={user.level}/>
+                                    </p>
+                                    <p className={`text-xs -mt-1 ${subTextColorClass} ${embossClass}`}>
+                                        Treevüs
                                     </p>
                                 </div>
-                            </div>
-                            <div className="text-right">
-                                <p className={`font-bold text-xl ${textColorClass} ${embossClass} flex items-center justify-end gap-1`}>
-                                    {user.treevus.toLocaleString('es-PE')} <TreevuCoinIcon className="w-5 h-5" level={user.level}/>
-                                </p>
-                                <p className={`text-xs -mt-1 ${subTextColorClass} ${embossClass}`}>
-                                    Treevüs
-                                </p>
                             </div>
                         </div>
                     </div>
                      {/* BACK FACE */}
-                    <div className={`status-card-face status-card-back ${cardClasses} shadow-lg !p-0 !justify-start`}>
+                    <div className={`status-card-face status-card-back ${cardClasses} shadow-lg !p-0 !justify-start dark:ring-1 dark:ring-white/10`}>
                         <div className="w-full h-full flex flex-col">
-                            {/* Magnetic Strip */}
                             <div className="magnetic-strip mt-5"></div>
                             
                             <div className="p-4 flex-grow flex flex-col justify-between">
                                 <div>
-                                    <h4 className={`font-bold ${textColorClass} mb-1 flex items-center gap-1.5`}>
-                                        ¿Qué es un <TreevuLogoText isTreevus={false} middleColorClass={isLightCard ? 'text-gray-800' : 'text-white'}/>?
-                                    </h4>
-                                    <p className={`text-xs ${subTextColorClass}`}>
-                                        Un treevü es más que una moneda; es el símbolo de tu crecimiento. Cada uno que cosechas es un paso adelante en tu maestría financiera, una prueba de que estás construyendo un futuro más fuerte. ¡Es el poder de tus hábitos en tus manos!
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            openModal('personalization', { storageKey });
+                                        }}
+                                        className={`w-full flex items-center justify-center gap-2 p-2 rounded-lg transition-colors ${subTextColorClass} bg-black/10 hover:bg-black/20`}
+                                        aria-label="Personalizar tarjeta"
+                                    >
+                                        <PencilIcon className="w-4 h-4" />
+                                        <span className="text-sm font-semibold">Personalizar Tarjeta</span>
+                                    </button>
+                                    <p className={`text-xs mt-3 ${subTextColorClass}`}>
+                                        Un treevü es más que una moneda; es el símbolo de tu crecimiento. Cada uno que cosechas es un paso adelante en tu maestría financiera.
                                     </p>
                                 </div>
                                 <div className="flex items-end justify-between">

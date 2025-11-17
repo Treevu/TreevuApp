@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Offer } from '../../data/merchantData';
 import { PlusIcon, PencilIcon, TrashIcon } from '../Icons';
@@ -8,14 +7,16 @@ interface OfferManagerProps {
     onCreate: () => void;
     onEdit: (offer: Offer) => void;
     onDelete: (offerId: string) => void;
+    createOfferBtnRef: React.RefObject<HTMLButtonElement>;
 }
 
-const OfferManager: React.FC<OfferManagerProps> = ({ offers, onCreate, onEdit, onDelete }) => {
+const OfferManager: React.FC<OfferManagerProps> = ({ offers, onCreate, onEdit, onDelete, createOfferBtnRef }) => {
     return (
         <div className="animate-fade-in">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-on-surface">Mis Ofertas</h2>
                 <button
+                    ref={createOfferBtnRef}
                     onClick={onCreate}
                     className="bg-primary text-primary-dark font-bold py-2 px-4 rounded-xl flex items-center gap-2"
                 >

@@ -3,6 +3,8 @@ export interface TribeMember {
     name: string;
     avatarInitial: string;
     kudosReceived: number;
+    treevus: number;
+    streak: number;
 }
 
 export type MissionMetric = 'formalExpenseCount' | 'kudosSentCount' | 'lessonsCompletedCount';

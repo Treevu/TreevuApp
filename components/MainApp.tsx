@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Header from './Header';
 import Alert from './Alert';
@@ -10,69 +12,75 @@ import { useSwipeNavigation } from '../hooks/useSwipeNavigation';
 import { useModal } from './../contexts/ModalContext';
 import DashboardView from './DashboardView';
 import BottomNavBar from './BottomNavBar';
-import { BanknotesIcon, HomeIcon, UserCircleIcon, StarIcon, PencilSquareIcon } from './Icons';
+import { BanknotesIcon, UsersIcon, GiftIcon, HomeIcon } from './Icons';
 import ClubView from './ClubView';
-import ProfileView from './ProfileView';
-import { levelData } from '../services/gamificationService';
+import { levelData, badgeData, Badge, BadgeType } from '../services/gamificationService';
+import FloatingActionButton from './FloatingActionButton';
+import RewardsView from './RewardsView';
+import QandAView from './QandAView';
+import { getAIWeeklySummary } from '../services/ai/employeeService';
+import { useNotifications } from '../contexts/NotificationContext';
+import { NotificationType } from '../types/notification';
 
 import { ActiveTab, CategoriaGasto } from '../types/common';
 import { useModal as useAchievementModal } from '../contexts/ModalContext'; // Renamed to avoid conflict
 
-type NavTabId = ActiveTab | 'registrar';
+type NavTabId = ActiveTab;
 
 
 const AppContent: React.FC = () => {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const { state: { expenses }, deleteExpense } = useAppContext();
     const { state: { budget } } = useAppContext();
     const { alert, setAlert } = useAlert();
     const { openModal, closeModal } = useModal();
     const { openModal: openAchievementModal } = useAchievementModal();
+    const { addNotification } = useNotifications();
     
     const [activeTab, setActiveTab] = useState<ActiveTab>('inicio');
     const [categoryFilter, setCategoryFilter] = useState<CategoriaGasto | null>(null);
     
     const [isTourActive, setIsTourActive] = useState(false);
     const [tourStep, setTourStep] = useState(0);
+
+    const [isFabMenuOpen, setIsFabMenuOpen] = useState(false);
     
     const dashboardContentRef = useRef<HTMLDivElement>(null);
-    const registrarTabRef = useRef<HTMLButtonElement>(null);
     const inicioTabRef = useRef<HTMLButtonElement>(null);
     const billeteraTabRef = useRef<HTMLButtonElement>(null);
-    const clubTabRef = useRef<HTMLButtonElement>(null);
-    const perfilTabRef = useRef<HTMLButtonElement>(null);
+    const comunidadTabRef = useRef<HTMLButtonElement>(null);
+    const tiendaTabRef = useRef<HTMLButtonElement>(null);
 
-    const swipeableTabs: ActiveTab[] = ['inicio', 'billetera', 'club', 'perfil'];
+    const swipeableTabs: ActiveTab[] = ['inicio', 'billetera', 'tienda', 'comunidad'];
 
     const { swipeHandlers, swipeOffset, isSwiping } = useSwipeNavigation(activeTab, (newTab) => setActiveTab(newTab), swipeableTabs);
     
      const navTabs = useMemo(() => [
         { id: 'inicio' as const, ref: inicioTabRef, label: 'Inicio', Icon: HomeIcon },
         { id: 'billetera' as const, ref: billeteraTabRef, label: 'Billetera', Icon: BanknotesIcon },
-        { id: 'registrar' as const, ref: registrarTabRef, label: 'Registro', Icon: PencilSquareIcon },
-        { id: 'club' as const, ref: clubTabRef, label: 'Club', Icon: StarIcon },
-        { id: 'perfil' as const, ref: perfilTabRef, label: 'Perfil', Icon: UserCircleIcon },
-    ], []);
+        { id: 'tienda' as const, ref: tiendaTabRef, label: 'Tienda', Icon: GiftIcon },
+        { id: 'comunidad' as const, ref: comunidadTabRef, label: 'Squad', Icon: UsersIcon },
+    ], [inicioTabRef, billeteraTabRef, tiendaTabRef, comunidadTabRef]);
+
+    const activeTabLabel = useMemo(() => {
+        return navTabs.find(tab => tab.id === activeTab)?.label || 'treevü';
+    }, [activeTab, navTabs]);
 
     const handleEndTour = useCallback(() => {
         setIsTourActive(false);
         setTourStep(0);
+        localStorage.setItem('treevu-tour-completed', 'true');
     }, []);
 
     const tourSteps = useMemo(() => {
-        const registrarText = user?.hasCorporateCard
-            ? "Usa el Registro para escanear los vouchers de tu tarjeta corporativa o añadir gastos manualmente. ¡Cada registro te acerca a tus metas y te da treevüs!"
-            : "El botón de Registro es tu herramienta principal. Convierte cada gasto en un hallazgo, cada ahorro en un paso adelante. Captura, clasifica y conquista. ¡Pruébalo ahora!";
-
         return [
-            { targetRef: dashboardContentRef, text: 'Este es tu Campamento Base. Tu centro de mando para la expedición. Monitorea tu presupuesto, el avance de tus proyectos y recibe consejos de tu brújula IA.', position: 'bottom' as const, tab: 'inicio' },
+            { targetRef: dashboardContentRef, text: 'Este es tu Perfil. Tu centro de mando para la expedición. Monitorea tu presupuesto, el avance de tus proyectos y recibe consejos de tu brújula IA.', position: 'bottom' as const, tab: 'inicio' },
             { targetRef: billeteraTabRef, text: "Tu Billetera es el diario de tu expedición. Registra cada hallazgo y usa la búsqueda para rastrear tus movimientos en el mapa financiero.", position: 'top' as const, tab: 'billetera' },
-            { targetRef: registrarTabRef, text: registrarText, position: 'top' as const, tab: 'billetera', isInteractive: true },
-            { targetRef: clubTabRef, text: "Bienvenido al Club. Aquí tu expedición se vuelve colectiva. Colabora con tu escuadrón, compite en misiones y cosecha recompensas en el mercado.", position: 'top' as const, tab: 'club' },
-            { targetRef: perfilTabRef, text: "Este es tu Perfil de Explorador. Aquí personalizas tu identidad, revisas tus logros y trazas tu ruta en la Senda del Conocimiento.", position: 'top' as const, tab: 'perfil' },
-            { targetRef: null, text: '¡Estás listo, explorador! Ya conoces el terreno. Es hora de iniciar tu expedición y cultivar tu bienestar financiero.', position: 'bottom' as const, tab: 'perfil' },
+            { targetRef: tiendaTabRef, text: "La Tienda es donde tu esfuerzo se materializa. Canjea tus treevüs por beneficios exclusivos de tu empresa y de nuestros aliados.", position: 'top' as const, tab: 'tienda' },
+            { targetRef: comunidadTabRef, text: "Bienvenido al Squad. Aquí tu expedición se vuelve colectiva. Colabora con tu equipo, compite en misiones y cosecha recompensas en el mercado.", position: 'top' as const, tab: 'comunidad' },
+            { targetRef: null, text: '¡Estás listo, explorador! Ya conoces el terreno. Es hora de iniciar tu expedición y cultivar tu bienestar financiero.', position: 'bottom' as const, tab: 'inicio' },
         ];
-    }, [user, dashboardContentRef, billeteraTabRef, registrarTabRef, clubTabRef, perfilTabRef]);
+    }, [dashboardContentRef, billeteraTabRef, tiendaTabRef, comunidadTabRef]);
 
     const handleNextStep = useCallback(() => {
         const nextStepIndex = tourStep + 1;
@@ -103,19 +111,71 @@ const AppContent: React.FC = () => {
     }, [tourStep, activeTab, tourSteps]);
     
     const handleTabClick = useCallback((tab: NavTabId) => {
-        if (tab === 'registrar') {
-             const currentTourStep = tourSteps[tourStep];
-             if (isTourActive && currentTourStep?.targetRef === registrarTabRef && currentTourStep.isInteractive) {
-                handleNextStep();
-            } else {
-                openModal('addExpense', { initialAction: null });
-            }
-        } else {
-            setActiveTab(tab);
-        }
-    }, [openModal, isTourActive, tourStep, handleNextStep, tourSteps, registrarTabRef]);
+        setActiveTab(tab);
+    }, []);
 
-    // --- IMPLEMENTACIÓN: Logro Compartible (Level Up) ---
+    // --- Badge Unlocking Logic ---
+    useEffect(() => {
+        if (!user) return;
+        
+        const currentBadges = new Set(user.badges || []);
+        let newBadgesFound = false;
+
+        Object.keys(badgeData).forEach(key => {
+            const badgeKey = key as BadgeType;
+            if (!currentBadges.has(badgeKey)) {
+                if (badgeData[badgeKey].isUnlocked(user)) {
+                    currentBadges.add(badgeKey);
+                    newBadgesFound = true;
+                    setAlert({
+                        message: `¡Insignia Desbloqueada: <strong>${badgeData[badgeKey].title}</strong>!`,
+                        type: 'success'
+                    });
+                }
+            }
+        });
+
+        if (newBadgesFound) {
+            updateUser({ badges: Array.from(currentBadges) });
+        }
+    }, [user, setAlert, updateUser]);
+
+
+    // --- AI Weekly Summary Logic ---
+    useEffect(() => {
+        if (!user || expenses.length < 3) return;
+        const now = new Date();
+        const lastSummaryKey = `last-summary-${user.id}`;
+        const lastSummaryDate = localStorage.getItem(lastSummaryKey);
+        
+        const oneWeek = 7 * 24 * 60 * 60 * 1000;
+        
+        if (!lastSummaryDate || (now.getTime() - new Date(lastSummaryDate).getTime()) > oneWeek) {
+            const fetchSummary = async () => {
+                const oneWeekAgo = new Date(now.getTime() - oneWeek);
+                const lastWeekExpenses = expenses.filter(e => new Date(e.fecha) >= oneWeekAgo);
+
+                if(lastWeekExpenses.length < 2) return;
+
+                try {
+                    const summary = await getAIWeeklySummary(user, lastWeekExpenses);
+                    if(summary) {
+                         addNotification({
+                            type: NotificationType.WeeklySummary,
+                            title: 'Tu Resumen Semanal IA',
+                            message: summary,
+                        });
+                        localStorage.setItem(lastSummaryKey, now.toISOString());
+                    }
+                } catch(e) {
+                    console.error("Failed to fetch weekly summary:", e);
+                }
+            };
+            fetchSummary();
+        }
+    }, [user, expenses, addNotification]);
+
+
     const prevLevelRef = useRef(user?.level);
     useEffect(() => {
         if (user && prevLevelRef.current !== undefined && user.level > prevLevelRef.current) {
@@ -128,7 +188,6 @@ const AppContent: React.FC = () => {
         }
         prevLevelRef.current = user?.level;
     }, [user, openAchievementModal]);
-    // --- FIN IMPLEMENTACIÓN ---
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -142,11 +201,11 @@ const AppContent: React.FC = () => {
 
 
     useEffect(() => {
-        if (!user || !user.hasCompletedOnboarding) return; // Only show tour after onboarding wizard
+        if (!user || !user.hasCompletedOnboarding) return;
         const tourCompleted = localStorage.getItem('treevu-tour-completed') === 'true';
-        if (tourCompleted || expenses.length === 0) return;
-        setTimeout(() => setIsTourActive(true), 1000);
-    }, [user, expenses]);
+        if (tourCompleted) return;
+        setTimeout(() => setIsTourActive(true), 1500);
+    }, [user]);
 
     useEffect(() => {
         const totalExpensesThisMonth = expenses.filter(e => {
@@ -159,10 +218,10 @@ const AppContent: React.FC = () => {
             if (budget === null || budget <= 0) return null;
             const percentage = (totalExpensesThisMonth / budget) * 100;
             if (percentage >= 100) {
-                const message = "¡Presupuesto excedido! Has superado tu límite. Analicemos juntos tus gastos.";
+                const message = "¡Presupuesto excedido! Has superado tu límite. Analicemos juntos tus movimientos.";
                 if (currentAlert?.message !== message) return { message, type: 'danger' };
             } else if (percentage >= 90) {
-                const message = "¡Atención! Estás al 90% de tu límite. Considera frenar gastos no esenciales.";
+                const message = "¡Atención! Estás al 90% de tu límite. Considera frenar movimientos no esenciales.";
                  if (currentAlert?.message !== message) return { message, type: 'warning' };
             }
             else if (currentAlert?.type === 'warning' || currentAlert?.type === 'danger') {
@@ -199,8 +258,8 @@ const AppContent: React.FC = () => {
     const transformValue = -activeIndex * 100;
 
     return (
-        <div className="flex flex-col h-screen bg-background">
-            <Header />
+        <div className="flex flex-col h-screen">
+            <Header activeTabLabel={activeTabLabel} />
             
             <main className="flex-1 max-w-3xl w-full mx-auto flex flex-col overflow-hidden">
                 <div className="px-4 pt-4">
@@ -231,20 +290,24 @@ const AppContent: React.FC = () => {
                                 onClearFilter={handleClearFilter}
                             />
                         </div>
-                        <div role="tabpanel" id="panel-club" aria-labelledby="tab-club" className="w-1/4 h-full overflow-y-auto custom-scrollbar px-4 pb-28">
-                            <ClubView />
+                        <div role="tabpanel" id="panel-tienda" aria-labelledby="tab-tienda" className="w-1/4 h-full overflow-y-auto custom-scrollbar px-4 pb-28">
+                            <RewardsView />
                         </div>
-                        <div role="tabpanel" id="panel-perfil" aria-labelledby="tab-perfil" className="w-1/4 h-full overflow-y-auto custom-scrollbar px-4 pb-28">
-                            <ProfileView setActiveTab={setActiveTab} />
+                        <div role="tabpanel" id="panel-comunidad" aria-labelledby="tab-comunidad" className="w-1/4 h-full overflow-y-auto custom-scrollbar px-4 pb-28">
+                            <ClubView />
                         </div>
                     </div>
                 </div>
             </main>
             
+            <FloatingActionButton isOpen={isFabMenuOpen} onClose={() => setIsFabMenuOpen(false)} />
+
             <BottomNavBar
                 tabs={navTabs}
                 activeTab={activeTab}
                 onTabClick={handleTabClick}
+                onFabClick={() => setIsFabMenuOpen(prev => !prev)}
+                isFabMenuOpen={isFabMenuOpen}
             />
             
             {isTourActive && tourSteps[tourStep] && (

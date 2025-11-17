@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SparklesIcon, GiftIcon, PlusIcon, FlagIcon, ChevronDownIcon, UsersIcon, ArrowTrendingUpIcon } from '../Icons';
 import Tooltip from '../Tooltip';
@@ -80,11 +79,11 @@ const ChallengeCard: React.FC<{
                         
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center">
                             <div className="bg-surface/50 p-2 rounded-lg">
-                                <p className="text-xs font-semibold text-on-surface-secondary flex items-center justify-center gap-1"><ArrowTrendingUpIcon className="w-4 h-4"/> Mejora</p>
+                                <p className="text-xs font-semibold text-on-surface-secondary flex items-center justify-center gap-1"><ArrowTrendingUpIcon className="w-4 h-4"/> Mejora del KPI</p>
                                 <p className={`text-xl font-bold ${lift > 0 ? 'text-green-400' : 'text-danger'}`}>{lift > 0 ? '+' : ''}{lift.toFixed(1)} pts</p>
                             </div>
                             <div className="bg-surface/50 p-2 rounded-lg">
-                                <p className="text-xs font-semibold text-on-surface-secondary flex items-center justify-center gap-1"><UsersIcon className="w-4 h-4"/> Participación</p>
+                                <p className="text-xs font-semibold text-on-surface-secondary flex items-center justify-center gap-1"><UsersIcon className="w-4 h-4"/> Tasa de Participación</p>
                                 <p className="text-xl font-bold text-primary">{participationRate.toFixed(0)}%</p>
                             </div>
                             <div className="bg-surface/50 p-2 rounded-lg col-span-2 sm:col-span-1">
