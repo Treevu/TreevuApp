@@ -180,8 +180,9 @@ export const suggestReceiptType = async (source: { base64: string, mimeType: str
 };
 
 export const verifyReceiptValidity = async (base64Image: string, mimeType: string): Promise<VerificationResult | null> => {
+    const today = new Date().toISOString().split('T')[0];
     const prompt = `
-      Actúa como un experto de SUNAT. Analiza esta imagen de un comprobante de pago peruano.
+      Actúa como un experto de SUNAT. La fecha actual es ${today} Analiza esta imagen de un comprobante de pago peruano.
       Valida los puntos clave para determinar si podría ser usado para la deducción de impuestos.
       
       **Checklist de Verificación (Chain-of-Thought):**
