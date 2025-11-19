@@ -5,7 +5,7 @@ import { useAppContext } from '@/contexts/AppContext';
 import OnboardingChecklist from '@/features/profile/OnboardingChecklist.tsx';
 import BudgetTracker from '@/features/wallet/BudgetTracker.tsx';
 import TaxSavingsWidget from '@/features/analytics/TaxSavingsWidget.tsx';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import { CategoriaGasto } from '@/types/common';
 import ActionableInsightCard from '@/features/analytics/ActionableInsightCard.tsx';
 

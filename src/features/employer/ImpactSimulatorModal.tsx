@@ -3,7 +3,7 @@ import ModalWrapper from '@/components/ui/ModalWrapper.tsx';
 import { SparklesIcon, FlagIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, CheckIcon } from '@/components/ui/Icons';
 import { DEPARTMENTS, Challenge } from '@/types/employer';
 import { getAIImpactProjection } from '@/services/ai/employerService';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 
 interface ImpactSimulatorModalProps {
     onClose: () => void;

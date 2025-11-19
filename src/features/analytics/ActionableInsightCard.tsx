@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { trackEvent } from '@/services/analyticsService.ts';
 import { SparklesIcon, RocketLaunchIcon } from '@/components/ui/Icons';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import { useAppContext } from '@/contexts/AppContext';
 import { Goal } from '@/types/goal';
 

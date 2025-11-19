@@ -3,7 +3,7 @@ import { useAppContext } from '@/contexts/AppContext';
 import { TreevuCoinIcon, FireIcon, PencilIcon, BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon, TrophyIcon, RocketLaunchIcon, HandThumbUpIcon } from '@/components/ui/Icons';
 import { levelData } from '@/services/gamificationService.ts';
 import { TreevuLevel } from '@/types/common';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import { generateMockTreevuId, getMemberSinceYear } from '@/utils';
 import TreevuLogoText from '@/components/ui/TreevuLogoText.tsx';
 import { User, BadgeType } from '@/types/user';

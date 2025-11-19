@@ -2,12 +2,11 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Header from '@/components/layout/Header';
 import Alert from '@/components/ui/Alert';
 import OnboardingTour from '@/features/profile/OnboardingTour';
-import { useExpenses } from '@/contexts/ExpensesContext';
-import { useBudget } from '@/contexts/BudgetContext';
+import { useExpenses, useBudget, useAlert } from '@/hooks/useZustandCompat';
+import { useZustandModal } from '@/components/modals/ZustandModalRenderer';
 import WalletView from '@/features/wallet/WalletView';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import DeveloperNotice from '@/features/notifications/DeveloperNotice';
-import { useModal } from '@/contexts/ModalContext';
 import DashboardView from './DashboardView';
 import BottomNavBar from '@/components/layout/BottomNavBar';
 import { BanknotesIcon, HomeIcon, UserCircleIcon, StarIcon, PencilSquareIcon } from '@/components/ui/Icons';
@@ -21,23 +20,11 @@ type NavTabId = ActiveTab | 'registrar';
 
 
 const MainApp: React.FC = () => {
+    // Zustand hooks de compatibilidad
     const { expenses, deleteExpense, totalExpenses } = useExpenses();
     const { budget } = useBudget();
-    // Mock para alert
-    // const type: "danger" = "danger";
-    // const alert = {
-    //     message: 'Test',
-    //     type: type,
-    //     action: {
-    //         text: 'TESTING',
-    //         onClick: ()=>{}
-    //     }
-    // };
-    const alert = null;
-    const setAlert = (alertData: any) => {
-        console.log('setAlert called with:', alertData);
-    };
-    const { openModal, closeModal } = useModal();
+    const { alert, setAlert } = useAlert();
+    const { openModal, closeModal } = useZustandModal();
     
     const [activeTab, setActiveTab] = useState<ActiveTab>('inicio');
     const [categoryFilter, setCategoryFilter] = useState<CategoriaGasto | null>(null);
@@ -94,22 +81,26 @@ const MainApp: React.FC = () => {
 
 
     useEffect(() => {
-        setAlert(currentAlert => {
-            if (budget === null || budget <= 0) return null;
-            const percentage = (totalExpenses / budget) * 100;
-            if (percentage >= 100) {
-                const message = "¡Presupuesto excedido! Has superado tu límite. Analicemos juntos tus gastos.";
-                if (currentAlert?.message !== message) return { message, type: 'danger' };
-            } else if (percentage >= 90) {
-                const message = "¡Atención! Estás al 90% de tu límite. Considera frenar gastos no esenciales.";
-                 if (currentAlert?.message !== message) return { message, type: 'warning' };
+        if (budget === null || budget <= 0) {
+            setAlert(null);
+            return;
+        }
+        
+        const percentage = (totalExpenses / budget) * 100;
+        if (percentage >= 100) {
+            const message = "¡Presupuesto excedido! Has superado tu límite. Analicemos juntos tus gastos.";
+            if (alert?.message !== message) {
+                setAlert({ message, type: 'danger' });
             }
-            else if (currentAlert?.type === 'warning' || currentAlert?.type === 'danger') {
-                return null;
+        } else if (percentage >= 90) {
+            const message = "¡Atención! Estás al 90% de tu límite. Considera frenar gastos no esenciales.";
+            if (alert?.message !== message) {
+                setAlert({ message, type: 'warning' });
             }
-            return currentAlert;
-        });
-    }, [budget, totalExpenses, setAlert]);
+        } else if (alert?.type === 'warning' || alert?.type === 'danger') {
+            setAlert(null);
+        }
+    }, [budget, totalExpenses, alert, setAlert]);
 
     const handleEndTour = useCallback(() => {
         setIsTourActive(false);

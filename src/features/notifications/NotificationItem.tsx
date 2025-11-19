@@ -2,7 +2,7 @@ import React from 'react';
 // FIX: Updated imports from deprecated 'types.ts' to 'types/notification.ts'.
 import { type Notification, NotificationType } from '@/types/notification';
 import { SparklesIcon, ExclamationTriangleIcon, CheckBadgeIcon, FireIcon, TrophyIcon } from '@/components/ui/Icons';
-import { useNotifications } from '@/contexts/NotificationContext';
+import { useNotifications }  from '@/hooks/useZustandCompat';
 
 interface NotificationItemProps {
     notification: Notification;
@@ -55,7 +55,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
     return (
         <div 
             onClick={handleClick}
-            className={`p-3 rounded-xl flex items-start gap-3 transition-colors ${isClickable ? 'cursor-pointer hover:bg-active-surface/50' : ''} ${!notification.isRead ? 'bg-primary/10' : 'bg-background'}`}
+            className={`p-3 max-w-3xl rounded-xl flex items-start gap-3 transition-colors ${isClickable ? 'cursor-pointer hover:bg-active-surface/50' : ''} ${!notification.isRead ? 'bg-primary/10' : 'bg-background'}`}
             role={isClickable ? 'button' : 'listitem'}
             tabIndex={isClickable ? 0 : -1}
         >

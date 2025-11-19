@@ -9,7 +9,7 @@ import EmployerExportButton from './EmployerExportButton';
 import { TOTAL_COMPANY_EMPLOYEES, DEPARTMENT_TOTALS } from '@/services/employerDataService';
 import FilterDrawer from './FilterDrawer';
 import { AdjustmentsHorizontalIcon, ArrowLeftIcon, BuildingBlocksIcon, SparklesIcon } from '@/components/ui/Icons';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import { Challenge } from '@/types/employer';
 
 interface EmployerDashboardViewProps {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PencilIcon, BanknotesIcon } from '@/components/ui/Icons';
 import { useAppContext } from '@/contexts/AppContext';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import Tooltip from '@/components/ui/Tooltip.tsx';
 
 const BudgetTracker: React.FC = () => {
@@ -29,7 +29,7 @@ const BudgetTracker: React.FC = () => {
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
                     <BanknotesIcon className="w-7 h-7 text-primary" />
                 </div>
-                <h3 className="font-bold text-lg text-on-surface">Tu Presupuesto</h3>
+                <h3 className="font-bold text-lg text-on-surface">Mi Presupuesto</h3>
                 <p className="text-sm text-on-surface-secondary mt-1 mb-3 max-w-xs">Establece un límite para empezar a monitorear tus gastos.</p>
                 <button
                     onClick={() => openModal('setBudget')}
@@ -50,7 +50,7 @@ const BudgetTracker: React.FC = () => {
         <div className="bg-surface rounded-2xl p-4 mb-4 animate-grow-and-fade-in shadow-card dark:shadow-none dark:ring-1 dark:ring-white/10">
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-on-surface">Tu Presupuesto</h2>
+                    <h2 className="text-lg font-bold text-on-surface">Mi Presupuesto</h2>
                     <Tooltip id="presupuesto-tooltip" text="Compara tus gastos del mes actual con el límite que estableciste. Es tu brújula para saber si vas por buen camino con tu plan." />
                 </div>
                  <button

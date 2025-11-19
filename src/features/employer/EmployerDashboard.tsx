@@ -8,7 +8,7 @@ import EmployerProfileView from './EmployerProfileView';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { generateUniqueId } from '../../utils';
 import { generateMockEmployees, calculateKpisForSegment, MOCK_CHALLENGES } from '@/services/employerDataService';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import { Challenge } from '@/types/employer';
 import { HomeIcon, ChartPieIcon, HeartIcon, UserCircleIcon } from '@/components/ui/Icons';
 

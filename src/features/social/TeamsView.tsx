@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useTribes } from '@/contexts/TribesContext';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import { UsersIcon, TrophyIcon, PlusIcon, BosqueIcon, BroteIcon, HandThumbUpIcon, MagnifyingGlassIcon } from '@/components/ui/Icons';
 import Tooltip from '@/components/ui/Tooltip.tsx';
 // FIX: Updated imports from deprecated 'types.ts' to 'types/tribe.ts'.

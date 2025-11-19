@@ -1,15 +1,30 @@
-import React from 'react';
-import { BellIcon } from '@/components/ui/Icons';
+import React, { useRef, useEffect } from 'react';
+import { Button } from 'primereact/button';
 import Logo from '@/components/ui/Logo';
 import TreevuLogoText from '@/components/ui/TreevuLogoText.tsx';
+import { OverlayPanel } from 'primereact/overlaypanel';
+import NotificationCenter from '@/features/notifications/NotificationCenter';
+import useNotificationStore from '@/stores/useNotificationStore';
 
 interface HeaderProps {}
 
 const Header: React.FC<HeaderProps> = () => {
+    const alertOverlay = useRef<OverlayPanel>(null);
+    const notifications = useNotificationStore((state) => state.notifications);
+    const unReadNotifications = useNotificationStore((state) => state.getUnreadCount);
+    
+    // Realinear el overlay cuando cambien las notificaciones
+    useEffect(() => {
+        if (alertOverlay.current && alertOverlay.current.isVisible()) {
+            setTimeout(() => {
+                alertOverlay.current?.align();
+            }, 50);
+        }
+    }, [notifications]);
+    
 
     return (
         <header className="bg-surface text-on-surface relative border-b border-active-surface/50">
-            {/* Top section with title and profile */}
             <div className="max-w-3xl mx-auto px-4 pt-4 pb-4">
                 <div className="flex justify-between items-center">
                      <div className="flex items-center gap-2">
@@ -18,23 +33,26 @@ const Header: React.FC<HeaderProps> = () => {
                             <TreevuLogoText />
                         </h1>
                     </div>
-                    {(
-                        <div className="flex items-center gap-3">
-                             <button
-                                onClick={() => {}}
-                                className="relative p-2 rounded-full text-on-surface-secondary hover:bg-active-surface hover:text-on-surface focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary"
-                                aria-label={`Ver notificaciones (NaN no leídas)`}
-                            >
-                                <BellIcon className="w-6 h-6"/>
-                                <span className="absolute top-1 right-1.5 flex h-4 w-4">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-4 w-4 bg-danger text-white text-xs items-center justify-center font-bold">
-                                        '9+'
-                                    </span>
-                                </span>
-                            </button>
-                        </div>
-                    )}
+                    <div className="flex items-center gap-3">
+                        <Button
+                            id="alertOverlayBtn" 
+                            icon="pi pi-bell" 
+                            className="p-button-rounded p-button-text p-button-sm"
+                            aria-label="Notificaciones"
+                            badge={unReadNotifications()!=0? String(unReadNotifications()):null}
+                            badgeClassName="p-badge-danger"
+                            onClick={(e) => alertOverlay.current?.toggle(e)}
+                        />
+                        <OverlayPanel 
+                            ref={alertOverlay}
+                            style={{
+                                width: '400px',
+                                maxHeight: '500px'
+                            }}
+                        >
+                            <NotificationCenter />
+                        </OverlayPanel>
+                    </div>
                 </div>
             </div>
         </header>

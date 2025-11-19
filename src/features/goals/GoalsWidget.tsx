@@ -1,7 +1,7 @@
 import React from 'react';
 import { useGoals } from '@/contexts/GoalsContext';
 import { PlusIcon, TrashIcon, BuildingBlocksIcon, InformationCircleIcon, TrophyIcon } from '@/components/ui/Icons';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 
 interface GoalsWidgetProps {
     variant?: 'full' | 'compact';

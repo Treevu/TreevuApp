@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/Icons';
 import GamificationBar from '@/features/gamification/GamificationBar.tsx';
 import { useAppContext } from '@/contexts/AppContext';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import ThemeSwitcher from '@/features/profile/ThemeSwitcher.tsx';
 import { levelData } from '@/services/gamificationService.ts';
 import LearnView from '@/features/social/LearnView.tsx';

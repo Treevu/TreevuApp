@@ -1,7 +1,7 @@
 import React, { useState, useEffect, forwardRef, useMemo } from 'react';
 import { CurrentUserType } from './EmployerDashboard';
 import { UsersIcon, ArrowTrendingDownIcon, ArrowTrendingUpIcon, PencilIcon, TreevuNetworkIcon } from '@/components/ui/Icons';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import { generateMockCardNumber, generateMockExpiryDate, generateMockCvv } from '../../utils';
 import TreevuLogoText from '@/components/ui/TreevuLogoText.tsx';
 

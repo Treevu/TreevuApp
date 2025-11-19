@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import TransactionList from '@/features/expenses/TransactionList.tsx';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import { type Expense } from '@/types/expense';
 import { type CategoriaGasto } from '@/types/common';
 import SubNavBar from '@/components/layout/SubNavBar.tsx';

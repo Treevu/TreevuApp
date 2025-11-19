@@ -7,6 +7,7 @@ const MainApp = React.lazy(() => import('@/features/dashboard/MainApp'));
 const EmployerDashboard = React.lazy(() => import('@/features/employer/EmployerDashboard'));
 const BusinessWelcome = React.lazy(() => import('@/features/employer/BusinessWelcome'));
 const PersonDashboard = React.lazy(()=>import('@/templates/PersonDashboard'));
+const PrimeReactExample = React.lazy(() => import('@/components/examples/PrimeReactExample'));
 
 // Components
 import Spinner from '@/components/ui/Spinner';
@@ -50,6 +51,17 @@ const AppRoutes: React.FC<AppRoutesProps> = ({  }) => {
                         </div>
                     } 
                 />
+                
+                {/* Ruta para probar PrimeReact */}
+                <Route 
+                    path="/primereact-demo" 
+                    element={
+                        <div className="min-h-screen bg-background text-on-surface">
+                            <PrimeReactExample />
+                        </div>
+                    } 
+                />
+                
                 {/* Redirigir rutas no encontradas */}
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

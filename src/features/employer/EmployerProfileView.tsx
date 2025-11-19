@@ -1,7 +1,7 @@
 import React from 'react';
 import { BuildingOffice2Icon, ArrowLeftIcon, SparklesIcon, TrophyIcon, ChartPieIcon, UsersIcon, LightBulbIcon, CheckBadgeIcon } from '@/components/ui/Icons';
 import ThemeSwitcher from '@/features/profile/ThemeSwitcher.tsx';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import { type CurrentUserType } from './EmployerDashboard';
 import EmployerStatusCard from './EmployerStatusCard';
 

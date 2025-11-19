@@ -3,12 +3,9 @@ import { PaperAirplaneIcon, XMarkIcon, ExclamationTriangleIcon, ArrowPathIcon } 
 import TreevuLogoText from '@/components/ui/TreevuLogoText.tsx';
 // FIX: Updated imports from deprecated 'geminiService.ts' to specific AI service files.
 import { getGeneralChatResponse } from '@/services/ai/chatService.ts';
-import { useBudget } from '@/contexts/BudgetContext';
-import { useExpenses } from '@/contexts/ExpensesContext';
-import { useGoals } from '@/contexts/GoalsContext';
+import { useBudget, useExpenses, useGoals, useModal } from '@/hooks/useZustandCompat';
 import { levelData } from '@/services/gamificationService.ts';
 import { parseJsonFromMarkdown } from '@/utils';
-import { useModal } from '@/contexts/ModalContext';
 
 interface AIAssistantChatProps {
     onClose: () => void;

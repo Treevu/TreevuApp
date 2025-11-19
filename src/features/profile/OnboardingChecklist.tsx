@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppContext } from '@/contexts/AppContext';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import { BanknotesIcon, BuildingBlocksIcon, PencilSquareIcon, CheckIcon } from '@/components/ui/Icons';
 
 const OnboardingChecklist: React.FC = () => {

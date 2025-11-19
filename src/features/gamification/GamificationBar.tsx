@@ -1,6 +1,6 @@
 import React, { forwardRef, useMemo } from 'react';
 import { levelData } from '@/services/gamificationService.ts';
-import { useModal } from '@/contexts/ModalContext';
+import { useModal } from '@/hooks/useZustandCompat';
 import { TreevuLevel } from '@/types/common';
 import { BroteIcon, PlantonIcon, ArbustoIcon, RobleIcon, BosqueIcon } from '@/components/ui/Icons';
 

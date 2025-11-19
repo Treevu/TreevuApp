@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
+// PrimeReact
+import { PrimeReactProvider } from 'primereact/api';
+
 // Rutas
 import AppRoutes from '@/routes/AppRoutes';
 
-// Contexts
-import { ModalProvider, ModalRenderer } from '@/contexts/ModalContext';
+// Contexts (mantenemos solo ThemeProvider)
 import { ThemeProvider } from '@/contexts/ThemeContext.tsx';
 
 // Components
 import PilotNotice from '@/features/notifications/PilotNotice';
 import EthicalPromise from '@/features/notifications/EthicalPromise';
 import ErrorBoundary from '@/components/layout/ErrorBoundary';
+import { ZustandModalRenderer } from '@/components/modals/ZustandModalRenderer';
 
 // Types
 import { type CurrentUserType } from '@/features/employer/EmployerDashboard';
@@ -47,17 +50,17 @@ const App: React.FC = () => {
     }
 
     return (
-        <ThemeProvider>
-            <BrowserRouter>
-                <ModalProvider>
+        <PrimeReactProvider>
+            <ThemeProvider>
+                <BrowserRouter>
                     <ErrorBoundary>
                         <AppRoutes/>
-                        <ModalRenderer />
+                        <ZustandModalRenderer />
                     </ErrorBoundary>
                     {showPilotNotice && <PilotNotice onClose={handleDismissPilotNotice} />}
-                </ModalProvider>
-            </BrowserRouter>
-        </ThemeProvider>
+                </BrowserRouter>
+            </ThemeProvider>
+        </PrimeReactProvider>
     );
 };
 

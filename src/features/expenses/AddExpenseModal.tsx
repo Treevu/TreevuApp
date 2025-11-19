@@ -29,7 +29,7 @@ import {
     ArrowPathIcon, SparklesIcon, ShieldCheckIcon, CubeIcon, ReceiptPercentIcon, BanknotesIcon, PencilSquareIcon, GhostIcon 
 } from '@/components/ui/Icons';
 import LoadingView from '@/components/ui/LoadingView.tsx';
-import { useAppContext } from '@/contexts/AppContext';
+import { useExpenses, useGoals } from '@/hooks/useZustandCompat';
 import ModalWrapper from '@/components/ui/ModalWrapper.tsx';
 
 interface AddExpenseModalProps {
@@ -171,15 +171,22 @@ const VerificationDisplay = ({ result }: { result: VerificationResult }) => {
 };
 
 export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initialAction, initialFile, scanMode, expenseToEdit }) => {
-    const { state: appState, addExpense, updateExpense, updateGoalContribution } = useAppContext();
-    const { expenses, goals } = appState;
+    // Usando hooks de Zustand directamente
+    const { expenses, addExpense, updateExpense } = useExpenses();
+    const { goals } = useGoals();
+    
+    // Función mock para updateGoalContribution - TODO: implementar en store
+    const updateGoalContribution = (goalId: string, amount: number) => {
+        console.log(`updateGoalContribution called with goalId: ${goalId}, amount: ${amount}`);
+    };
+    
     // Función mock para addTreevus
     const addTreevus = (amount: number) => {
         console.log(`addTreevus called with amount: ${amount}`);
     };
     // Función mock para setAlert
     const setAlert = (alertData: any) => {
-        console.log('setAlert called with:', alertData);
+        console.log('setAlert call  |2qaed with:', alertData);
     };
     
     const getInitialState = useCallback((): ModalState => {
@@ -206,7 +213,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
     const [merchantSuggestions, setMerchantSuggestions] = useState<string[]>([]);
     const [divertAmount, setDivertAmount] = useState('');
     const [divertDescription, setDivertDescription] = useState('');
-    const [divertGoalId, setDivertGoalId] = useState(goals.length > 0 ? goals[0].id : '');
+    const [divertGoalId, setDivertGoalId] = useState((goals && goals.length > 0) ? goals[0].id : '');
     const [divertError, setDivertError] = useState('');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -214,8 +221,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
     const hasTriggeredInitialAction = useRef(false);
 
     const uniqueMerchants = useMemo(() => {
-        const merchantSet = new Set(expenses.map(e => e.razonSocial));
-        return Array.from(merchantSet);
+        const merchantSet = new Set(expenses.map(e => e.razonSocial).filter(Boolean));
+        return Array.from(merchantSet) as string[];
     }, [expenses]);
 
     const modalTitle = useMemo(() => {
@@ -401,11 +408,16 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
         } else {
             // FIX: The addExpense function expects a single object argument.
             // The expense data and imageUrl are now combined into one object.
-            const addedExpense = addExpense({ ...finalExpenseData, imageUrl: image?.url });
-            if (goals.length > 0) {
-                dispatch({ type: 'SET_JUST_SAVED_EXPENSE', payload: addedExpense });
+            const expenseWithId = { 
+                ...finalExpenseData, 
+                id: generateUniqueId(),
+                imageUrl: image?.url 
+            };
+            addExpense(expenseWithId);
+            if (goals && goals.length > 0) {
+                dispatch({ type: 'SET_JUST_SAVED_EXPENSE', payload: expenseWithId });
                 dispatch({ type: 'SET_STEP', payload: 'saving_opportunity' });
-                const opportunity = await getAISavingOpportunity(addedExpense, goals);
+                const opportunity = await getAISavingOpportunity(expenseWithId, goals);
                 dispatch({ type: 'SET_SAVING_OPPORTUNITY', payload: opportunity });
             } else {
                 onClose();
@@ -456,7 +468,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
             mensaje: '¡Botín informal registrado!',
             intent: 'unclassified',
         };
-        addExpense(expenseData);
+        const expenseWithId = { ...expenseData, id: generateUniqueId() };
+        addExpense(expenseWithId);
         onClose();
     };
     
@@ -478,7 +491,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                 mensaje: `¡Tesoro de ${suggestion.category} separado!`,
                 intent: 'unclassified',
             };
-            addExpense(expense);
+            const expenseWithId = { ...expense, id: generateUniqueId() };
+            addExpense(expenseWithId);
         });
         onClose(); // Don't show saving opportunity for splits to avoid complexity
     };
@@ -821,7 +835,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                         <p className="text-on-surface-secondary text-center">¡Gran decisión! Convierte un gasto evitado en progreso para tus proyectos.</p>
                         {divertError && <p role="alert" className="text-danger bg-danger/20 p-2 rounded-md text-xs text-center">{divertError}</p>}
                         
-                        {goals.length > 0 ? (
+                        {(goals && goals.length > 0) ? (
                             <>
                                 <div>
                                     <label className="font-medium text-on-surface-secondary">Gasto evitado</label>
@@ -934,7 +948,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                             {savingOpportunity.suggestedAmounts.slice(0, 3).map(amount => (
                                 <button
                                     key={amount}
-                                    onClick={() => handleSaveOpportunity(goals[0].id, amount)} // Assume first goal for simplicity
+                                    onClick={() => handleSaveOpportunity((goals && goals[0]) ? goals[0].id : '', amount)} // Assume first goal for simplicity
                                     className="p-3 bg-background rounded-xl text-center font-bold text-primary hover:bg-active-surface"
                                 >
                                     S/ {amount}
@@ -943,7 +957,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({ onClose, initi
                         </div>
                          <div className="mt-6 pt-5 border-t border-active-surface/50 flex justify-end space-x-3">
                             <button onClick={onClose} className="px-4 py-2.5 text-sm font-bold text-on-surface bg-active-surface rounded-xl hover:opacity-80">Ahora no</button>
-                            <button onClick={() => handleSaveOpportunity(goals[0].id, savingOpportunity.suggestedAmounts[0])} className="flex-1 px-4 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center justify-center gap-2">
+                            <button onClick={() => handleSaveOpportunity((goals && goals[0]) ? goals[0].id : '', savingOpportunity.suggestedAmounts[0])} className="flex-1 px-4 py-2.5 text-sm font-bold text-primary-dark bg-primary rounded-xl hover:opacity-90 flex items-center justify-center gap-2">
                                 <BanknotesIcon className="w-5 h-5"/>
                                 Asignar S/ {savingOpportunity.suggestedAmounts[0]}
                             </button>
