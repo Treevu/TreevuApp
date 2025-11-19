@@ -4,7 +4,7 @@ interface NavTab<T extends string> {
     id: T;
     ref?: React.RefObject<HTMLButtonElement>;
     label: string;
-    Icon: React.FC<{ className?: string }>;
+    Icon: string;
 }
 
 interface BottomNavBarProps<T extends string> {
@@ -17,14 +17,34 @@ const BottomNavBar = <T extends string>({ tabs, activeTab, onTabClick }: BottomN
     const renderTab = (tab: NavTab<T>) => {
         const isActive = activeTab === tab.id;
         const isRegistrar = tab.id === 'registrar';
-
+        
+        if (isRegistrar) {
+            // Botón de registro especial
+            return (
+                <div key={tab.id as string} className="registrar-tab">
+                    <button
+                        ref={tab.ref}
+                        id={`tab-${tab.id}`}
+                        role="tab"
+                        aria-label={tab.label}
+                        onClick={() => onTabClick(tab.id)}
+                        className="nav-button"
+                    >
+                        <i className={`nav-icon ${tab.Icon}`}></i>
+                    </button>
+                    {/* <span className="nav-label">{tab.label}</span> */}
+                </div>
+            );
+        }
+        
+        // Botones normales
         return (
             <button
                 key={tab.id as string}
                 ref={tab.ref}
                 id={`tab-${tab.id}`}
                 role="tab"
-                aria-selected={isActive && !isRegistrar}
+                aria-selected={isActive}
                 aria-controls={`panel-${tab.id}`}
                 onClick={() => onTabClick(tab.id)}
                 className={`flex-1 flex flex-col items-center justify-center text-center py-2 duration-200 outline-none rounded-t-sm ${
@@ -32,13 +52,13 @@ const BottomNavBar = <T extends string>({ tabs, activeTab, onTabClick }: BottomN
                 }`}
             >
                 <div className="relative">
-                     <div 
-                        className={`absolute -top-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-primary rounded-full transition-all duration-300 ease-in-out ${
+                    <i className={`text-lg h-8 ${tab.Icon}`}></i>
+                    <div 
+                        className={`absolute top-7 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full transition-all duration-300 ease-in-out ${
                             isActive && !isRegistrar ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
                         }`}
                         aria-hidden="true"
                     />
-                    <tab.Icon className="w-7 h-7 mb-1"/>
                 </div>
                 <span className="text-xs font-bold">{tab.label}</span>
             </button>
@@ -49,7 +69,7 @@ const BottomNavBar = <T extends string>({ tabs, activeTab, onTabClick }: BottomN
         <nav
             role="tablist"
             aria-label="Navegación principal"
-            className="fixed bottom-0 left-0 right-0 z-20 mx-auto bg-surface/80 backdrop-blur-lg border-t border-active-surface/50 flex justify-around items-end h-[72px]"
+            className="bottom-nav-bar flex justify-around items-end h-[72px]"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
             {tabs.map(renderTab)}

@@ -1,0 +1,121 @@
+// ===================================
+// Central Registration Button Styles
+// ===================================
+.bottom-nav-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0 auto;
+  
+  // Efecto glass avanzado
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.8) 0%,
+    rgba(15, 23, 42, 0.6) 100%
+  );
+  
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  
+  // Borde con gradiente
+  border-top: 1px solid;
+  border-image: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  ) 1;
+  
+  // Sombra sutil hacia arriba
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+}
+.top-nav-bar{
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.8) 0%,
+    rgba(15, 23, 42, 0.6) 100%
+  );
+  border-image: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  ) 1;
+  border-bottom: 1px solid;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+.registrar-tab {
+    position: relative;
+    z-index: 10;
+    
+    .nav-button {
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: none;
+      border-radius: 50%;
+      width: 5.5rem;
+      height: 5.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 
+        0 4px 16px rgba(16, 185, 129, 0.4),
+        0 2px 8px rgba(16, 185, 129, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-bottom: 1.5rem; // Elevarlo un poco
+      
+      &:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 
+          0 6px 20px rgba(16, 185, 129, 0.5),
+          0 4px 12px rgba(16, 185, 129, 0.3);
+      }
+      
+      &:active {
+        transform: translateY(0) scale(0.98);
+      }
+      
+      .nav-icon {
+        color: white;
+        font-size: 2rem;
+        font-weight: bold;
+      }
+    }
+    
+    
+  }
+
+// Animación de pulso sutil para el botón de registro
+@keyframes subtle-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 4px 16px rgba(16, 185, 129, 0.4),
+      0 2px 8px rgba(16, 185, 129, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 4px 20px rgba(16, 185, 129, 0.5),
+      0 2px 10px rgba(16, 185, 129, 0.3);
+  }
+}
+
+// Aplicar la animación ocasionalmente
+.registrar-tab .nav-button {
+  animation: subtle-pulse 3s ease-in-out infinite;
+}
+
+// Responsive adjustments
+@media (max-width: 480px) {
+  .nav-tabs .nav-tab.registrar-tab {
+    .nav-button {
+      width: 3rem;
+      height: 3rem;
+      
+      .nav-icon {
+        font-size: 1.5rem;
+      }
+    }
+  }
+}

@@ -24,7 +24,7 @@ const Header: React.FC<HeaderProps> = () => {
     
 
     return (
-        <header className="bg-surface text-on-surface relative border-b border-active-surface/50">
+        <header className="top-nav-bar text-on-surface relative">
             <div className="max-w-3xl mx-auto px-4 pt-4 pb-4">
                 <div className="flex justify-between items-center">
                      <div className="flex items-center gap-2">

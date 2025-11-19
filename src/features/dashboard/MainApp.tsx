@@ -59,11 +59,11 @@ const MainApp: React.FC = () => {
     const { swipeHandlers, swipeOffset, isSwiping } = useSwipeNavigation(activeTab, (newTab) => setActiveTab(newTab), swipeableTabs);
     
      const navTabs = useMemo(() => [
-        { id: 'inicio' as const, ref: inicioTabRef, label: 'Inicio', Icon: HomeIcon },
-        { id: 'billetera' as const, ref: billeteraTabRef, label: 'Billetera', Icon: BanknotesIcon },
-        { id: 'registrar' as const, ref: registrarTabRef, label: 'Registro', Icon: PencilSquareIcon },
-        { id: 'club' as const, ref: clubTabRef, label: 'Club', Icon: StarIcon },
-        { id: 'perfil' as const, ref: perfilTabRef, label: 'Perfil', Icon: UserCircleIcon },
+        { id: 'inicio' as const, ref: inicioTabRef, label: 'Inicio', Icon: 'fa-solid fa-house' },
+        { id: 'billetera' as const, ref: billeteraTabRef, label: 'Billetera', Icon: 'fa-solid fa-wallet'},
+        { id: 'registrar' as const, ref: registrarTabRef, label: 'Registro', Icon: 'fa-solid fa-plus' },
+        { id: 'club' as const, ref: clubTabRef, label: 'Tienda', Icon: 'fa-solid fa-shop' },
+        { id: 'perfil' as const, ref: perfilTabRef, label: 'Perfil', Icon: 'fa-solid fa-cubes' },
     ], [inicioTabRef, billeteraTabRef, registrarTabRef, clubTabRef, perfilTabRef]);
 
     // Handle PWA shortcut
@@ -185,13 +185,13 @@ const MainApp: React.FC = () => {
                     </div>
                     <div 
                         {...swipeHandlers}
-                        className="flex w-[400%] h-full absolute top-0 left-0 mt-4"
+                        className="flex w-[400%] h-full absolute top-0 left-0"
                         style={{ 
                             transform: `translateX(calc(${transformValue / 4}% + ${swipeOffset}px))`,
                             transition: isSwiping ? 'none' : 'transform 0.3s ease-in-out'
                         }}
                     >
-                        <div role="tabpanel" id="panel-inicio" aria-labelledby="tab-inicio" className="w-1/4 h-full overflow-y-auto custom-scrollbar px-4 pb-28">
+                        <div role="tabpanel" id="panel-inicio" aria-labelledby="tab-inicio" className="w-1/4 h-full overflow-y-auto custom-scrollbar px-4 pt-4 pb-28">
                             <DashboardView 
                                 dashboardContentRef={dashboardContentRef}
                                 onCategoryClick={handleCategoryClick}

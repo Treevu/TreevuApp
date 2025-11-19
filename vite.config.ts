@@ -32,7 +32,8 @@ export default defineConfig(({ mode }) => {
           '@/types': path.resolve(__dirname, 'src/types'),
           '@/services': path.resolve(__dirname, 'src/services'),
           '@/utils': path.resolve(__dirname, 'src/utils'),
-          '@/data': path.resolve(__dirname, 'src/data')
+          '@/data': path.resolve(__dirname, 'src/data'),
+          '~': path.resolve(__dirname,'./node_modules')
         }
       },
       preview: {

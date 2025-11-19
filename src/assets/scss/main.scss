@@ -1,0 +1,25 @@
+
+@use './components/nav-tabs';
+
+// ===================================
+// PrimeReact & PrimeIcons Imports
+// ===================================
+
+// PrimeReact Theme
+@import 'primereact/resources/themes/lara-dark-blue/theme.css';
+
+// PrimeReact Core CSS
+@import 'primereact/resources/primereact.min.css';
+
+// PrimeIcons
+@import 'primeicons/primeicons.css';
+
+// ===================================
+// Custom Component Styles
+// ===================================
+
+:root{
+  --background : rgb(15 23 42 / var(--tw-bg-opacity, 1));
+}
+
+
