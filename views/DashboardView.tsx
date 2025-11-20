@@ -1215,7 +1215,7 @@ const EmployeeWallet: React.FC = () => {
   };
 
   return (
-    <div className="pb-24 p-4 max-w-lg mx-auto animate-fadeIn relative min-h-screen">
+    <div className="p-4 max-w-7xl mx-auto space-y-4 animate-fadeIn pb-20">
       {isCameraOpen && (
         <CameraView
           onCapture={handleProcessReceipt}
