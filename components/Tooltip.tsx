@@ -1,67 +1,34 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { QuestionMarkCircleIcon } from './Icons';
+import React from 'react';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
 interface TooltipProps {
-    text: string;
-    id: string; // Required for aria-describedby
+  content: string;
+  position?: 'top' | 'bottom' | 'left' | 'right';
 }
 
-const Tooltip: React.FC<TooltipProps> = ({ text, id }) => {
-    const [isVisible, setIsVisible] = useState(false);
-    const tooltipRef = useRef<HTMLDivElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
+const Tooltip: React.FC<TooltipProps> = ({ content, position = 'top' }) => {
+  const positionClasses = {
+    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
+    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
+    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
+    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
+  };
 
-    useEffect(() => {
-        if (isVisible && tooltipRef.current && containerRef.current) {
-            const tooltip = tooltipRef.current;
-            const container = containerRef.current;
-            const rect = tooltip.getBoundingClientRect();
-            
-            tooltip.style.left = '50%';
-            tooltip.style.transform = 'translateX(-50%)';
-
-            const newRect = tooltip.getBoundingClientRect();
-
-            if (newRect.left < 8) {
-                const containerRect = container.getBoundingClientRect();
-                tooltip.style.left = `calc(-${containerRect.left}px + 8px)`;
-                tooltip.style.transform = 'translateX(0)';
-            } else if (newRect.right > window.innerWidth - 8) {
-                const containerRect = container.getBoundingClientRect();
-                tooltip.style.left = `auto`;
-                tooltip.style.right = `calc(-${window.innerWidth - containerRect.right}px + 8px)`;
-                tooltip.style.transform = 'translateX(0)';
-            }
-        }
-    }, [isVisible]);
-
-    return (
-        <div 
-            ref={containerRef}
-            className="tooltip-container"
-            onMouseEnter={() => setIsVisible(true)}
-            onMouseLeave={() => setIsVisible(false)}
-            onFocus={() => setIsVisible(true)}
-            onBlur={() => setIsVisible(false)}
-        >
-            <button
-                type="button"
-                aria-describedby={id}
-                className="text-on-surface-secondary hover:text-on-surface focus:outline-none focus:ring-2 focus:ring-primary rounded-full"
-            >
-                <QuestionMarkCircleIcon className="w-5 h-5" />
-                <span className="sr-only">Más información</span>
-            </button>
-            <div
-                id={id}
-                ref={tooltipRef}
-                role="tooltip"
-                className={`tooltip-box ${isVisible ? 'tooltip-visible' : ''}`}
-            >
-                {text}
-            </div>
-        </div>
-    );
+  return (
+    <div className="group relative inline-flex items-center ml-2 z-20">
+      <InformationCircleIcon className="h-4 w-4 text-gray-500 hover:text-primary transition-colors cursor-help" />
+      <div 
+        className={`absolute ${positionClasses[position]} w-48 md:w-56 p-3 bg-base/90 backdrop-blur-xl border border-white/10 rounded-lg shadow-2xl text-xs text-gray-200 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none transform scale-95 group-hover:scale-100 origin-center`}
+      >
+        {content}
+        {/* Little triangle arrow */}
+        <div className={`absolute w-2 h-2 bg-base/90 border-r border-b border-white/10 rotate-45
+          ${position === 'top' ? 'bottom-[-5px] left-1/2 -translate-x-1/2' : ''}
+          ${position === 'bottom' ? 'top-[-5px] left-1/2 -translate-x-1/2 rotate-[225deg]' : ''}
+        `}></div>
+      </div>
+    </div>
+  );
 };
 
 export default Tooltip;
