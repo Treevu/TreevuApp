@@ -1,6 +1,8 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { UserRole, UserProfile, Expense, Offer, TreevuLevel, ExpenseCategory, CompanyKPIs, SavingsGoal, Squad, SubscriptionTier, PlanConfig, MissionType, MissionStatus, OfferType, Kudo, AppTheme, Department, SafeToSpendGranularity, DashboardSummaryResponse, ProjectionFocusResponse, AppView, MerchantActivityLog, HourlyTrafficData, AppNotification } from '../types';
+import { UserRole, UserProfile, Expense, Offer, TreevuLevel, ExpenseCategory, CompanyKPIs, SavingsGoal, Squad, SubscriptionTier, PlanConfig, MissionType, MissionStatus, OfferType, Kudo, AppTheme, Department, SafeToSpendGranularity, DashboardSummaryResponse, ProjectionFocusResponse, AppView, MerchantActivityLog, HourlyTrafficData, AppNotification, AIQueryResponse } from '../types';
 import { calculateLevel, calculateStreak, calculateExpensePoints } from '../services/gamificationService';
+import { queryFinancialAgent } from '../services/geminiService';
 
 // --- PRICING MATRIX CONFIGURATION (USD) ---
 export const PLANS: Record<UserRole, PlanConfig[]> = {
@@ -11,14 +13,14 @@ export const PLANS: Record<UserRole, PlanConfig[]> = {
       name: "Starter",
       priceMonthly: 0,
       priceAnnual: 0,
-      slogan: "Tu aventura financiera personal.",
+      slogan: "Para quienes inician su camino al orden.",
       ctaText: "Plan Actual",
       features: [
-        { text: "Registro de Gastos (Manual + IA Básico)", included: true },
-        { text: "Creación de Proyectos de Ahorro", included: true },
-        { text: "Gamificación (Niveles y Badges)", included: true },
-        { text: "Asistente IA Avanzado", included: false },
-        { text: "Radar Fiscal (Devolución de Impuestos)", included: false },
+        { text: "Registro manual ilimitado", included: true },
+        { text: "IA básica (Lectura simple)", included: true },
+        { text: "Gamificación (Niveles 1-5)", included: true },
+        { text: "Reportes mensuales", included: true },
+        { text: "Radar Fiscal", included: false },
       ]
     },
     {
@@ -26,15 +28,15 @@ export const PLANS: Record<UserRole, PlanConfig[]> = {
       name: "Explorer",
       priceMonthly: 9,
       priceAnnual: 90, // Savings: $18 (2 months free)
-      slogan: "Acceso total y beneficios corporativos.",
+      slogan: "Maximizar la devolución fiscal.",
       recommended: true,
       ctaText: "Mejorar Plan",
       features: [
         { text: "Todo lo del plan Starter", included: true },
-        { text: "Asistente IA Avanzado & Coaching", included: true, highlight: true },
-        { text: "Radar Fiscal (Análisis 3 UIT)", included: true, highlight: true },
-        { text: "Tienda Global de Recompensas", included: true },
-        { text: "Protección de Rachas (Streak Guard)", included: true },
+        { text: "Coach IA Personal", included: true, highlight: true },
+        { text: "Radar Fiscal (Alerta 3 UIT)", included: true, highlight: true },
+        { text: "Acceso VIP al Marketplace", included: true },
+        { text: "Protección de Rachas", included: true },
       ]
     }
   ],
@@ -45,30 +47,31 @@ export const PLANS: Record<UserRole, PlanConfig[]> = {
       priceMonthly: 7,
       priceAnnual: 70, // Savings: $14 (2 months free)
       priceUnit: "/ usuario",
-      slogan: "Para Pilotos y Startups.",
+      slogan: "Bienestar financiero básico.",
       ctaText: "Comenzar Piloto",
       features: [
-        { text: "App de Bienestar para empleados", included: true },
-        { text: "Dashboard con KPIs Globales", included: true },
-        { text: "FWI General de la Compañía", included: true },
+        { text: "KPIs globales anonimizados", included: true },
+        { text: "Financial Wellness Index (FWI)", included: true },
+        { text: "Onboarding digital", included: true },
         { text: "Módulo de Kudos Básico", included: true },
-        { text: "Riesgo de Fuga Predictivo", included: false },
+        { text: "Predicción Riesgo de Fuga", included: false },
       ]
     },
     {
       id: SubscriptionTier.PRO,
       name: "Growth",
-      priceMonthly: 15,
-      priceAnnual: 150, // Savings: $30 (2 months free)
-      priceUnit: "/ usuario",
-      slogan: "Inteligencia para expansión.",
+      priceMonthly: 0,
+      priceAnnual: 0,
+      isCustom: true,
+      priceUnit: "",
+      slogan: "Analítica predictiva de retención.",
       recommended: true,
-      ctaText: "Mejorar Plan",
+      ctaText: "Cotizar",
       features: [
-        { text: "FWI Segmentado (Áreas/Edad)", included: true, highlight: true },
-        { text: "Riesgo de Fuga Predictivo", included: true, highlight: true },
-        { text: "Módulo de Engagement & Retos", included: true },
-        { text: "Filtros Estratégicos de Data", included: true },
+        { text: "Todo lo del plan Launch", included: true },
+        { text: "Predicción Riesgo de Fuga", included: true, highlight: true },
+        { text: "Segmentación por áreas", included: true },
+        { text: "Morning Brief Ejecutivo", included: true },
         { text: "Simulador de Impacto IA", included: false },
       ]
     },
@@ -78,14 +81,14 @@ export const PLANS: Record<UserRole, PlanConfig[]> = {
       priceMonthly: 0,
       priceAnnual: 0,
       isCustom: true,
-      slogan: "Para Grandes Organizaciones.",
+      slogan: "Grandes corporaciones.",
       ctaText: "Contactar Ventas",
       features: [
-        { text: "Simulador de Impacto IA", included: true, highlight: true },
-        { text: "Integración HRIS & SSO", included: true },
-        { text: "Soporte Dedicado (CSM)", included: true },
-        { text: "Recompensas Personalizadas", included: true },
-        { text: "Boosts de Gamificación", included: true },
+        { text: "Integraciones API / ERP", included: true, highlight: true },
+        { text: "Customer Success Manager dedicado", included: true },
+        { text: "Soporte 24/7", included: true },
+        { text: "Marca blanca opcional", included: true },
+        { text: "Simulador de Impacto IA", included: true },
       ]
     }
   ],
@@ -96,14 +99,14 @@ export const PLANS: Record<UserRole, PlanConfig[]> = {
       priceMonthly: 0,
       priceAnnual: 0,
       priceUnit: "(CPA)",
-      slogan: "Únete a la red sin riesgo.",
+      slogan: "Unirse al marketplace.",
       ctaText: "Plan Actual",
       features: [
-        { text: "Publicación en Marketplace", included: true },
-        { text: "Dashboard de Rendimiento Básico", included: true },
-        { text: "Pago solo por conversión (Venta)", included: true },
+        { text: "Perfil de negocio", included: true },
+        { text: "Listado en Marketplace", included: true },
+        { text: "Estadísticas de visitas", included: true },
+        { text: "IA para campañas", included: false },
         { text: "Visibilidad Destacada", included: false },
-        { text: "IA Marketing Assistant", included: false },
       ]
     },
     {
@@ -111,15 +114,14 @@ export const PLANS: Record<UserRole, PlanConfig[]> = {
       name: "Amplify",
       priceMonthly: 39,
       priceAnnual: 390, // Savings: $78 (2 months free)
-      slogan: "Maximiza tu alcance.",
+      slogan: "Ventas impulsadas por IA.",
       recommended: true,
       ctaText: "Mejorar Plan",
       features: [
         { text: "Todo lo del plan Connect", included: true },
-        { text: "Visibilidad Destacada (Featured)", included: true, highlight: true },
-        { text: "Analítica Avanzada vs Sector", included: true },
-        { text: "Asistente IA de Marketing", included: true, highlight: true },
-        { text: "Reporte de Oportunidad B2B", included: true },
+        { text: "IA para campañas dirigidas", included: true, highlight: true },
+        { text: "Benchmarking sectorial", included: true },
+        { text: "Insights de competencia", included: true },
       ]
     }
   ]
@@ -140,7 +142,7 @@ const INITIAL_USER: UserProfile = {
     balanceScore: 80,
     devScore: 50
   },
-  monthlyBudget: 3000,
+  monthlyBudget: 0, // Initial 0 to trigger configuration flow
   squadId: undefined, // Start without squad to show join flow
   subscriptionTier: SubscriptionTier.FREE, // Default starting tier
   currentStreak: 4,
@@ -180,7 +182,7 @@ const MOCK_GOALS: SavingsGoal[] = [
     currentAmount: 1800, 
     deadline: '2024-07-28', 
     image: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?auto=format&fit=crop&w=800&q=80', 
-    color: 'bg-green-600' 
+    color: 'bg-emerald-500' 
   },
   { 
     id: '3', 
@@ -189,7 +191,7 @@ const MOCK_GOALS: SavingsGoal[] = [
     currentAmount: 1500, 
     deadline: '2024-12-31', 
     image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=800&q=80', 
-    color: 'bg-teal-600' 
+    color: 'bg-emerald-700' 
   },
 ];
 
@@ -417,6 +419,13 @@ const INITIAL_MERCHANT_MAP: Record<string, ExpenseCategory> = {
     'LUZ DEL SUR': ExpenseCategory.UTILITIES
 };
 
+export interface ChatMessage {
+    id: string;
+    sender: 'user' | 'ai';
+    text: string;
+    timestamp: string;
+}
+
 interface StoreContextType {
   user: UserProfile;
   role: UserRole;
@@ -428,8 +437,9 @@ interface StoreContextType {
   userSquad: Squad | undefined;
   isPricingOpen: boolean;
   isChatOpen: boolean;
+  isBudgetModalOpen: boolean;
   kudos: Kudo[];
-  levelUp: TreevuLevel | null; // New State for Modal
+  levelUp: TreevuLevel | null;
   setLevelUp: (l: TreevuLevel | null) => void;
   switchRole: (role: UserRole) => void;
   updateUserProfile: (updates: Partial<UserProfile>) => void;
@@ -443,6 +453,7 @@ interface StoreContextType {
   upgradeSubscription: (tier: SubscriptionTier) => void;
   togglePricingModal: (isOpen: boolean) => void;
   toggleChat: (isOpen: boolean) => void;
+  toggleBudgetModal: (isOpen: boolean) => void;
   submitPulseCheck: (mood: number) => void;
   sendKudos: (toUser: string, message: string) => void;
   updateMonthlyBudget: (amount: number) => void;
@@ -473,6 +484,15 @@ interface StoreContextType {
   notifications: AppNotification[];
   addNotification: (message: string, type?: 'success' | 'info' | 'error' | 'warning') => void;
   removeNotification: (id: string) => void;
+  // Analytics
+  trackEvent: (eventName: string, properties?: Record<string, any>) => void;
+  // Onboarding
+  showTour: boolean;
+  closeTour: () => void;
+  // AI Chat
+  chatMessages: ChatMessage[];
+  isAiThinking: boolean;
+  sendAIChatMessage: (text: string) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -499,11 +519,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Gamification Celebration State
   const [levelUp, setLevelUp] = useState<TreevuLevel | null>(null);
 
-  // Pricing Modal State
+  // Modal States
   const [isPricingOpen, setIsPricingOpen] = useState(false);
-  
-  // AI Chat State
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
 
   // Notifications State
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -514,6 +533,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Navigation State
   const [viewStack, setViewStack] = useState<AppView[]>([AppView.DASHBOARD]);
   const currentView = viewStack[viewStack.length - 1];
+  
+  // Onboarding State
+  const [showTour, setShowTour] = useState(false);
+
+  // AI Chat State
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+      { id: 'welcome', sender: 'ai', text: '¡Hola! Soy tu copiloto financiero Treevü IA. ¿En qué puedo ayudarte hoy?', timestamp: new Date().toISOString() }
+  ]);
+  const [isAiThinking, setIsAiThinking] = useState(false);
 
   const userSquad = squads.find(s => s.id === user.squadId);
 
@@ -537,6 +565,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const switchRole = (newRole: UserRole) => {
     setRole(newRole);
     setViewStack([AppView.DASHBOARD]); // Reset view stack on role change
+    setShowTour(true); // Trigger tour on new role entry
     
     // Logic to reset tier based on role defaults
     let defaultTier = SubscriptionTier.FREE;
@@ -548,10 +577,25 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       role: newRole,
       subscriptionTier: defaultTier
     }));
+    
+    // Reset Chat on Role Switch
+    setChatMessages([{ id: 'welcome', sender: 'ai', text: '¡Hola! Soy tu copiloto financiero Treevü IA. ¿En qué puedo ayudarte hoy?', timestamp: new Date().toISOString() }]);
+    
+    trackEvent('role_selected', { role: newRole });
   };
 
   const updateUserProfile = (updates: Partial<UserProfile>) => {
     setUser(prev => ({ ...prev, ...updates }));
+  };
+
+  // --- ANALYTICS LOGGER (Format 3 Implementation) ---
+  const trackEvent = (eventName: string, properties: Record<string, any> = {}) => {
+      // In production, this would send data to BigQuery/Mixpanel
+      console.log(`[ANALYTICS] ${eventName}`, {
+          timestamp: new Date().toISOString(),
+          user_id: user.email,
+          ...properties
+      });
   };
 
   // --- NOTIFICATION LOGIC ---
@@ -569,6 +613,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // --- NAVIGATION LOGIC ---
   const navigate = (view: AppView) => {
     setViewStack(prev => [...prev, view]);
+    trackEvent('navigation', { view });
   };
 
   const goBack = () => {
@@ -580,26 +625,55 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
-  // --- API CONTRACT IMPLEMENTATIONS ---
+  // --- RECALCULATE FWI & RISK (Format 2 Implementation) ---
+  useEffect(() => {
+    // 1. Calculate FWI V1
+    const totalExpenses = expenses.length;
+    if (totalExpenses === 0) return;
+
+    const formalExpenses = expenses.filter(e => e.isFormal).length;
+    const formalRatio = formalExpenses / totalExpenses;
+
+    const spent = expenses.reduce((acc, e) => acc + e.amount, 0);
+    const budgetAdherence = user.monthlyBudget > 0 ? Math.max(0, 1 - (spent / user.monthlyBudget)) : 0.5;
+
+    const streakScore = Math.min(1, (user.currentStreak || 0) / 30);
+    const newFWI = Math.round((formalRatio * 40) + (budgetAdherence * 30) + (streakScore * 30));
+    
+    if (newFWI !== user.fwiScore) {
+        setUser(prev => ({ ...prev, fwiScore: newFWI }));
+    }
+    
+    // 2. Update B2B Metrics
+    const totalFormalAmount = expenses.filter(e => e.isFormal).reduce((acc, e) => acc + e.amount, 0);
+    const simulatedSavings = 120000 + (totalFormalAmount * 0.05);
+    
+    let risk = 35;
+    if (companyKPIs.teamMoodScore < 60) risk += 20;
+    if (companyKPIs.teamMoodScore > 80) risk -= 10;
+
+    setCompanyKPIs(prev => ({
+        ...prev,
+        retentionSavings: simulatedSavings,
+        flightRiskScore: Math.max(0, Math.min(100, risk))
+    }));
+
+  }, [expenses, user.monthlyBudget, companyKPIs.teamMoodScore, user.currentStreak]);
 
   const getDashboardSummary = (): DashboardSummaryResponse => {
     const today = new Date();
     const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-    const daysRemaining = Math.max(1, daysInMonth - today.getDate() + 1); // +1 to include today
+    const daysRemaining = Math.max(1, daysInMonth - today.getDate() + 1);
     
     const totalSpent = expenses.reduce((acc, e) => acc + e.amount, 0);
     const remainingBudget = Math.max(0, user.monthlyBudget - totalSpent);
     
     let safeAmount = remainingBudget / daysRemaining;
 
-    // Adjust for Granularity
     if (safeToSpendGranularity === SafeToSpendGranularity.WEEKLY) {
-        // If less than 7 days, just show total remaining (or cap at 7 days logic)
-        // Logic: (Daily * 7) or Remaining if < 7 days left
         safeAmount = safeAmount * Math.min(7, daysRemaining);
     }
 
-    // Mock trend history
     const trend = [safeAmount * 0.9, safeAmount * 0.95, safeAmount * 0.8, safeAmount * 1.1, safeAmount];
 
     return {
@@ -622,28 +696,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const getProjectionByFocus = (categoryIds: string[]): ProjectionFocusResponse => {
-    const totalSpentAll = expenses.reduce((acc, e) => acc + e.amount, 0);
-    
-    // Filter expenses by category if provided, else use all
     const relevantExpenses = categoryIds.length > 0 
         ? expenses.filter(e => categoryIds.includes(e.category))
         : expenses;
     
     const spent = relevantExpenses.reduce((acc, e) => acc + e.amount, 0);
-    
-    // Simple linear projection
     const today = new Date().getDate();
     const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
     const projected = (spent / Math.max(1, today)) * daysInMonth;
-
-    // Estimate budget portion (Mock logic: 50% for Food/Transport/Utilities, 30% others)
+    
     const budgetPortion = categoryIds.length > 0 
         ? user.monthlyBudget * 0.4 
         : user.monthlyBudget;
 
     const status = projected > budgetPortion ? 'EXCEEDING_RISK' : projected > (budgetPortion * 0.8) ? 'WARNING' : 'OK';
 
-    // Generate mock chart data
     const chartData = [1, 7, 14, 21, 28].map(day => ({
         day,
         value: (projected / daysInMonth) * day
@@ -661,21 +728,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
   };
 
-  // ------------------------------------
-
   const updateMonthlyBudget = (amount: number) => {
       setUser(prev => ({ ...prev, monthlyBudget: amount }));
       addNotification("Presupuesto actualizado correctamente");
+      trackEvent('budget_updated', { new_amount: amount });
   };
 
   // --- MERCHANT MAPPING LOGIC ---
   const normalizeMerchantName = (name: string): string => {
     if (!name) return '';
-    return name
-      .toUpperCase()
-      .replace(/[0-9]/g, '') // Remove numbers (e.g. Starbucks 123 -> STARBUCKS)
-      .replace(/[^\w\s]/g, '') // Remove special chars
-      .trim();
+    return name.toUpperCase().replace(/[0-9]/g, '').replace(/[^\w\s]/g, '').trim();
   };
 
   const getSuggestedCategory = (merchant: string): ExpenseCategory | undefined => {
@@ -685,205 +747,87 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const learnMerchantCategory = (merchant: string, category: ExpenseCategory) => {
     const normalized = normalizeMerchantName(merchant);
-    if (normalized) {
-        setMerchantMap(prev => ({ ...prev, [normalized]: category }));
-    }
+    setMerchantMap(prev => ({ ...prev, [normalized]: category }));
   };
 
-  const recalculateUserStats = (currentExpenses: Expense[]) => {
-    const allTotal = currentExpenses.reduce((acc, e) => acc + e.amount, 0);
-    const allFormalTotal = currentExpenses.filter(e => e.isFormal).reduce((acc, e) => acc + e.amount, 0);
-    const fFormal = allTotal > 0 ? (allFormalTotal / allTotal) * 100 : 0;
-    
-    const totalBudget = user.monthlyBudget || 1;
-    const savingsRatio = Math.max(0, (totalBudget - allTotal) / totalBudget);
-    const streakBonus = Math.min(100, (user.currentStreak || 0) * 10);
-
-    // FORMULA v1 (From Product Req)
-    const newFWI = Math.round((fFormal * 0.4) + (savingsRatio * 100 * 0.3) + (streakBonus * 0.3));
-
-    setUser(prev => ({ 
-        ...prev, 
-        fwiScore: newFWI,
-        fwiBreakdown: { ...prev.fwiBreakdown!, formalScore: fFormal },
-    }));
-  };
-
+  // --- ACTIONS ---
   const addExpense = (expenseData: Partial<Expense>) => {
-    bulkAddExpenses([expenseData]);
-  };
+    const newExpense: Expense = {
+      id: Date.now().toString(),
+      merchant: expenseData.merchant || 'Desconocido',
+      amount: expenseData.amount || 0,
+      date: expenseData.date || new Date().toISOString(),
+      category: expenseData.category || ExpenseCategory.OTHER,
+      isFormal: expenseData.isFormal || false,
+      ruc: expenseData.ruc,
+      igv: expenseData.isFormal ? (expenseData.amount || 0) * 0.18 : undefined,
+      lostSavings: !expenseData.isFormal ? (expenseData.amount || 0) * 0.18 : undefined,
+      treevusEarned: calculateExpensePoints(expenseData.isFormal || false, expenseData.amount || 0)
+    };
 
-  const bulkAddExpenses = (newExpensesData: Partial<Expense>[]) => {
-    if (newExpensesData.length === 0) return;
-
-    const newExpensesFormatted: Expense[] = [];
-    let totalReward = 0;
-    let totalAmount = 0;
-    let formalAmount = 0;
-
-    // --- GAMIFICATION: STREAK CALCULATION ---
-    const newStreak = calculateStreak(user.lastActivityDate, user.currentStreak);
-
-    newExpensesData.forEach(data => {
-        const amount = data.amount || 0;
-        const isFormal = !!data.isFormal;
-        
-        // Calculate Reward using Service
-        const reward = calculateExpensePoints(isFormal, amount);
-
-        totalReward += reward;
-        totalAmount += amount;
-        if (isFormal) formalAmount += amount;
-
-        newExpensesFormatted.push({
-            id: Math.random().toString(36).substring(7),
-            merchant: data.merchant || 'Unknown',
-            amount: amount,
-            date: data.date || new Date().toISOString(),
-            category: data.category || ExpenseCategory.FOOD,
-            isFormal: isFormal,
-            ruc: data.ruc,
-            igv: isFormal ? amount * 0.18 : 0,
-            lostSavings: !isFormal ? amount * 0.10 : 0,
-            treevusEarned: reward
-        });
-    });
-
-    const updatedExpenses = [...newExpensesFormatted, ...expenses];
-    setExpenses(updatedExpenses);
-
-    // --- GAMIFICATION: LEVEL & POINTS ---
-    const newTotalTreevus = user.treevus + totalReward;
-    const newLevel = calculateLevel(newTotalTreevus);
-
-    // Trigger Level Up Modal if changed
+    setExpenses(prev => [newExpense, ...prev]);
+    
+    const newPoints = user.treevus + newExpense.treevusEarned;
+    const newLevel = calculateLevel(newPoints);
+    
     if (newLevel !== user.level) {
         setLevelUp(newLevel);
     }
-    
-    // Instrument Analytics (Format 3)
-    newExpensesFormatted.forEach(e => {
-        console.log("TRACK EVENT: expense_created", {
-            amount: e.amount,
-            category: e.category,
-            is_formal: e.isFormal,
-            source: e.merchant === 'Uploaded Receipt' ? 'manual_upload' : 'camera_ocr'
-        });
-    });
 
-    setUser(prev => ({ 
-        ...prev, 
-        treevus: newTotalTreevus,
+    if (expenseData.merchant && expenseData.category) {
+        learnMerchantCategory(expenseData.merchant, expenseData.category);
+    }
+    
+    setUser(prev => ({
+        ...prev,
+        treevus: newPoints,
         level: newLevel,
-        currentStreak: newStreak,
+        currentStreak: calculateStreak(prev.lastActivityDate, prev.currentStreak),
         lastActivityDate: new Date().toISOString()
     }));
-    
-    // Force recalculate FWI
-    recalculateUserStats(updatedExpenses);
 
-    // --- NOTIFICATION (IKEA EFFECT / MINDFULNESS) ---
-    addNotification(`¡Control tomado! 🧘‍♂️ +${totalReward} Treevüs. Has convertido un gasto en data.`, 'success');
+    addNotification(
+        `¡Control tomado! 🧘‍♂️ Gasto de S/ ${newExpense.amount} registrado.`,
+        'success'
+    );
 
-    // Update Company KPI Side Effect
-    if (formalAmount > 0) {
-        setCompanyKPIs(prev => ({
-            ...prev,
-            retentionSavings: prev.retentionSavings + (formalAmount * 0.05),
-            flightRiskScore: Math.max(0, prev.flightRiskScore - (newExpensesFormatted.length * 0.01))
-        }));
-    }
+    trackEvent('expense_created', {
+        amount: newExpense.amount,
+        category: newExpense.category,
+        is_formal: newExpense.isFormal,
+        source: expenseData.ruc ? 'ocr' : 'manual'
+    });
+  };
+
+  const bulkAddExpenses = (newExpensesData: Partial<Expense>[]) => {
+      let totalPoints = 0;
+      const createdExpenses: Expense[] = newExpensesData.map(e => {
+          const pts = calculateExpensePoints(e.isFormal || false, e.amount || 0);
+          totalPoints += pts;
+          return {
+            id: Math.random().toString(36).substr(2, 9),
+            merchant: e.merchant || 'Importado',
+            amount: e.amount || 0,
+            date: e.date || new Date().toISOString(),
+            category: e.category || ExpenseCategory.OTHER,
+            isFormal: e.isFormal || false,
+            treevusEarned: pts
+          };
+      });
+
+      setExpenses(prev => [...createdExpenses, ...prev]);
+      setUser(prev => ({ ...prev, treevus: prev.treevus + totalPoints }));
+      addNotification(`Importación exitosa. +${totalPoints} Treevüs ganados.`, 'success');
   };
 
   const editExpense = (id: string, updates: Partial<Expense>) => {
-      setExpenses(prev => {
-          const updatedList = prev.map(e => e.id === id ? { ...e, ...updates } : e);
-          recalculateUserStats(updatedList);
-          return updatedList;
-      });
+    setExpenses(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
+    addNotification("Gasto actualizado");
   };
 
   const deleteExpense = (id: string) => {
-      setExpenses(prev => {
-          const expense = prev.find(e => e.id === id);
-          const updatedList = prev.filter(e => e.id !== id);
-          recalculateUserStats(updatedList);
-
-          // Reverse Side Effect on Company KPI if formal
-          if (expense && expense.isFormal) {
-              setCompanyKPIs(kpis => ({
-                  ...kpis,
-                  retentionSavings: Math.max(0, kpis.retentionSavings - (expense.amount * 0.05)),
-                  flightRiskScore: Math.min(100, kpis.flightRiskScore + 0.01)
-              }));
-          }
-          return updatedList;
-      });
-      addNotification("Gasto eliminado", "info");
-  };
-
-  const registerSkippedExpense = () => {
-    // Add Treevüs for saving money without recording an expense
-    const reward = 50; // Big reward for skipping!
-    const newTotalTreevus = user.treevus + reward;
-    const newLevel = calculateLevel(newTotalTreevus);
-    const newStreak = calculateStreak(user.lastActivityDate, user.currentStreak);
-    
-    if (newLevel !== user.level) setLevelUp(newLevel);
-
-    setUser(prev => ({ 
-        ...prev, 
-        treevus: newTotalTreevus,
-        level: newLevel,
-        currentStreak: newStreak,
-        lastActivityDate: new Date().toISOString()
-    }));
-
-    addNotification(`¡Ahorro registrado! +${reward} Treevüs 🛡️`, 'success');
-  };
-
-  const submitPulseCheck = (mood: number) => {
-    setUser(prev => ({ ...prev, lastPulseCheck: new Date().toISOString() }));
-    
-    // Logic: Lower mood increases flight risk
-    const riskImpact = mood < 3 ? 5 : -2;
-
-    setCompanyKPIs(prev => ({
-        ...prev,
-        teamMoodScore: Math.round((prev.teamMoodScore + mood * 20) / 2), // Scale 1-5 to 100
-        flightRiskScore: Math.min(100, Math.max(0, prev.flightRiskScore + riskImpact)),
-        history: {
-            ...prev.history!,
-            moodHistory: [...(prev.history?.moodHistory || []), mood * 20]
-        }
-    }));
-    
-    console.log("TRACK EVENT: pulse_submitted", { score: mood });
-    addNotification("Pulse Check enviado. ¡Gracias!", "success");
-  };
-
-  const sendKudos = (toUser: string, message: string) => {
-      const newKudo: Kudo = {
-          id: Math.random().toString(36).substring(7),
-          fromUser: user.name,
-          toUser: toUser,
-          message,
-          timestamp: new Date().toISOString(),
-          type: 'TEAMWORK'
-      };
-      setKudos(prev => [newKudo, ...prev]);
-      
-      // Reward the sender for positive culture
-      const newTotal = user.treevus + 5;
-      const newLevel = calculateLevel(newTotal);
-      if (newLevel !== user.level) setLevelUp(newLevel);
-
-      setUser(prev => ({ 
-        ...prev, 
-        level: newLevel,
-        treevus: newTotal
-      }));
-      addNotification(`Kudo enviado a ${toUser} (+5 Treevüs)`, 'success');
+    setExpenses(prev => prev.filter(e => e.id !== id));
+    addNotification("Gasto eliminado", "info");
   };
 
   const redeemOffer = (offerId: string): boolean => {
@@ -891,172 +835,195 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (!offer) return false;
 
     if (user.treevus >= offer.costTreevus) {
-      setUser(prev => ({ ...prev, treevus: prev.treevus - offer.costTreevus }));
-      setOffers(prev => prev.map(o => 
-        o.id === offerId ? { ...o, redemptions: o.redemptions + 1 } : o
-      ));
-      console.log("TRACK EVENT: offer_redeemed", { offer_id: offerId, value: offer.discount });
-      addNotification(`Oferta canjeada: ${offer.title}`, 'success');
-      return true;
+        setUser(prev => ({ ...prev, treevus: prev.treevus - offer.costTreevus }));
+        setOffers(prev => prev.map(o => o.id === offerId ? { ...o, redemptions: o.redemptions + 1 } : o));
+        
+        addNotification(`¡Canje exitoso! Disfruta tu ${offer.title}`, 'success');
+        trackEvent('offer_redeemed', { offer_id: offerId, merchant: offer.merchantName });
+        return true;
+    } else {
+        addNotification("No tienes suficientes Treevüs", "error");
+        return false;
     }
-    addNotification("No tienes suficientes Treevüs", "error");
-    return false;
   };
 
-  const addOffer = (offerData: Partial<Offer>) => {
-    const newOffer: Offer = {
-      id: Math.random().toString(36).substring(7),
-      title: offerData.title || 'Nueva Oferta',
-      description: offerData.description || '',
-      merchantName: user.name || 'Mi Comercio',
-      image: offerData.image || 'https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?auto=format&fit=crop&w=400&q=80',
-      discount: offerData.discount || 10,
-      costTreevus: offerData.costTreevus || 100,
-      redemptions: 0,
-      revenueGenerated: 0,
-      isFlash: offerData.isFlash,
-      expiresAt: offerData.expiresAt,
-      type: OfferType.GLOBAL
-    };
-    setOffers(prev => [newOffer, ...prev]);
-    addNotification("Oferta creada exitosamente", "success");
+  const addOffer = (offer: Partial<Offer>) => {
+      const newOffer: Offer = {
+          id: Date.now().toString(),
+          title: offer.title || 'Nueva Oferta',
+          description: offer.description || '',
+          merchantName: user.name || 'Mi Negocio',
+          image: 'https://via.placeholder.com/150',
+          discount: offer.discount || 0,
+          costTreevus: offer.costTreevus || 100,
+          redemptions: 0,
+          revenueGenerated: 0,
+          isFlash: offer.isFlash,
+          type: OfferType.GLOBAL
+      };
+      setOffers(prev => [newOffer, ...prev]);
+      addNotification("Oferta publicada correctamente");
+      trackEvent('offer_created', { is_flash: offer.isFlash });
+  };
+
+  const registerSkippedExpense = () => {
+      setUser(prev => ({
+          ...prev,
+          currentStreak: calculateStreak(prev.lastActivityDate, prev.currentStreak),
+          lastActivityDate: new Date().toISOString()
+      }));
+      addNotification("Racha mantenida. ¡Mañana será mejor!");
   };
 
   const upgradeSubscription = (tier: SubscriptionTier) => {
-    setUser(prev => ({ ...prev, subscriptionTier: tier }));
-    setIsPricingOpen(false);
-    addNotification(`¡Bienvenido al plan ${tier}!`, 'success');
+      setUser(prev => ({ ...prev, subscriptionTier: tier }));
+      setIsPricingOpen(false);
+      addNotification(`¡Bienvenido al plan ${tier}!`, 'success');
+      trackEvent('subscription_upgrade', { tier });
   };
 
-  const togglePricingModal = (isOpen: boolean) => {
-    setIsPricingOpen(isOpen);
+  const togglePricingModal = (isOpen: boolean) => setIsPricingOpen(isOpen);
+  const toggleChat = (isOpen: boolean) => setIsChatOpen(isOpen);
+  const toggleBudgetModal = (isOpen: boolean) => setIsBudgetModalOpen(isOpen);
+
+  const filterCompanyKPIs = (dept: Department) => {
+      if (dept === Department.GLOBAL) {
+          setCompanyKPIs(MOCK_KPIS);
+      } else {
+          setCompanyKPIs({
+              ...MOCK_KPIS,
+              avgFWI: Math.floor(Math.random() * 30) + 50,
+              flightRiskScore: Math.floor(Math.random() * 40) + 10,
+          });
+      }
   };
-  
-  const toggleChat = (isOpen: boolean) => {
-    setIsChatOpen(isOpen);
+
+  const submitPulseCheck = (mood: number) => {
+      setUser(prev => ({ ...prev, lastPulseCheck: new Date().toISOString() }));
+      setCompanyKPIs(prev => ({
+          ...prev,
+          teamMoodScore: Math.round((prev.teamMoodScore + (mood * 20)) / 2),
+          history: {
+              ...prev.history!,
+              moodHistory: [...(prev.history?.moodHistory || []), mood * 20]
+          }
+      }));
+      addNotification("¡Gracias! Tu feedback ayuda a mejorar el clima.", "success");
+      trackEvent('pulse_submitted', { score: mood });
+  };
+
+  const sendKudos = (toUser: string, message: string) => {
+      const newKudo: Kudo = {
+          id: Date.now().toString(),
+          fromUser: user.name,
+          toUser,
+          message,
+          timestamp: new Date().toISOString(),
+          type: 'TEAMWORK'
+      };
+      setKudos(prev => [newKudo, ...prev]);
+      addNotification("Kudo enviado con éxito");
   };
 
   const contributeToGoal = (goalId: string, amount: number) => {
-      setSavingsGoals(prev => prev.map(g => 
-          g.id === goalId 
-          ? { ...g, currentAmount: Math.min(g.targetAmount, g.currentAmount + amount) }
-          : g
-      ));
-      
-      console.log("TRACK EVENT: goal_contribution", { goal_id: goalId, amount });
-      
-      // Recalculate FWI (Savings Ratio changes)
-      recalculateUserStats(expenses);
+      if (user.monthlyBudget > 0 && amount > 0) {
+           setSavingsGoals(prev => prev.map(g => {
+               if (g.id === goalId) {
+                   const newAmount = Math.min(g.targetAmount, g.currentAmount + amount);
+                   if (newAmount >= g.targetAmount) {
+                       addNotification(`¡Felicidades! Has completado la meta: ${g.title}`, 'success');
+                       trackEvent('goal_completed', { goal_id: goalId });
+                   }
+                   return { ...g, currentAmount: newAmount };
+               }
+               return g;
+           }));
+           addNotification(`Aporte de S/ ${amount} registrado`, 'success');
+           trackEvent('goal_contribution', { amount, goal_id: goalId });
+      }
+  };
 
-      addNotification(`Aporte de S/${amount} realizado a tu meta`, 'success');
+  const downloadReport = () => {
+    let dataStr = "";
+    if (role === UserRole.EMPLOYEE) {
+        dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ user, expenses, goals: savingsGoals }));
+    } else if (role === UserRole.EMPLOYER) {
+        dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ kpis: companyKPIs }));
+    } else {
+        dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ offers, traffic: MOCK_HOURLY_TRAFFIC }));
+    }
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href",     dataStr);
+    downloadAnchorNode.setAttribute("download", "treevu_report.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
   };
 
   const joinSquad = (squadId: string) => {
       setUser(prev => ({ ...prev, squadId }));
       addNotification("¡Te has unido al Squad!", "success");
+      trackEvent('squad_joined', { squad_id: squadId });
   };
 
-  const downloadReport = () => {
-    // Mock CSV Generation based on Role
-    let content = "";
-    let filename = "";
+  const closeTour = () => setShowTour(false);
 
-    if (role === UserRole.EMPLOYEE) {
-      content = "Fecha,Comercio,Categoria,Monto,Formal\n" + 
-        expenses.map(e => `${e.date},${e.merchant},${e.category},${e.amount},${e.isFormal ? 'SI' : 'NO'}`).join('\n');
-      filename = `treevu_reporte_gastos_${new Date().toISOString().split('T')[0]}.csv`;
-    } else if (role === UserRole.EMPLOYER) {
-      content = "Metrica,Valor\n" +
-        `FWI Promedio,${companyKPIs.avgFWI}\n` +
-        `Riesgo Fuga,${companyKPIs.flightRiskScore}%\n` +
-        `Ahorro Retencion,S/${companyKPIs.retentionSavings}\n` +
-        `ROI,${companyKPIs.roiMultiplier}x`;
-      filename = `treevu_reporte_kpis_${new Date().toISOString().split('T')[0]}.csv`;
-    } else {
-      content = "Oferta,Redenciones,Ingresos\n" +
-        offers.map(o => `${o.title},${o.redemptions},S/${o.revenueGenerated}`).join('\n');
-      filename = `treevu_reporte_ventas_${new Date().toISOString().split('T')[0]}.csv`;
-    }
+  // --- AI CHAT LOGIC ---
+  const sendAIChatMessage = async (text: string) => {
+      const newUserMsg: ChatMessage = {
+          id: Date.now().toString(),
+          sender: 'user',
+          text,
+          timestamp: new Date().toISOString()
+      };
+      setChatMessages(prev => [...prev, newUserMsg]);
+      setIsAiThinking(true);
 
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    addNotification("Reporte descargado correctamente", "success");
-  };
+      try {
+          const aiResponse: AIQueryResponse = await queryFinancialAgent(user, expenses, savingsGoals, text);
+          
+          const newAiMsg: ChatMessage = {
+              id: aiResponse.ai_response_id,
+              sender: 'ai',
+              text: aiResponse.response_text,
+              timestamp: new Date().toISOString()
+          };
 
-  // --- B2B Granularity Logic ---
-  const filterCompanyKPIs = (department: Department) => {
-     // For MVP demo, we simulate data changes
-     const variance = department === Department.SALES ? -5 : department === Department.IT ? 5 : 0;
-     
-     setCompanyKPIs(prev => ({
-         ...MOCK_KPIS,
-         avgFWI: Math.min(100, Math.max(0, MOCK_KPIS.avgFWI + variance)),
-         flightRiskScore: Math.min(100, Math.max(0, MOCK_KPIS.flightRiskScore - variance)),
-     }));
-     addNotification(`Filtro aplicado: ${department}`, "info");
+          setChatMessages(prev => [...prev, newAiMsg]);
+          
+          // Handle Suggested Actions (e.g. Create Goal, Open Budget)
+          if (aiResponse.suggested_action) {
+              if (aiResponse.suggested_action.action_type === 'CREATE_GOAL') {
+                 // Could trigger goal modal here
+              }
+          }
+
+      } catch (error) {
+          setChatMessages(prev => [...prev, { id: 'err', sender: 'ai', text: 'Lo siento, tuve un error de conexión.', timestamp: new Date().toISOString() }]);
+      } finally {
+          setIsAiThinking(false);
+      }
   };
 
   return (
     <StoreContext.Provider value={{
-      user,
-      role,
-      expenses,
-      savingsGoals,
-      offers,
-      companyKPIs,
-      squads,
-      userSquad,
-      isPricingOpen,
-      isChatOpen,
-      kudos,
-      levelUp,
-      setLevelUp,
-      switchRole,
-      updateUserProfile,
-      addExpense,
-      bulkAddExpenses,
-      editExpense,
-      deleteExpense,
-      registerSkippedExpense,
-      redeemOffer,
-      addOffer,
-      upgradeSubscription,
-      togglePricingModal,
-      toggleChat,
-      submitPulseCheck,
-      sendKudos,
-      updateMonthlyBudget,
-      contributeToGoal,
-      joinSquad,
-      setTheme,
-      downloadReport,
-      getSuggestedCategory,
-      learnMerchantCategory,
-      filterCompanyKPIs,
-      safeToSpendGranularity,
-      setSafeToSpendGranularity,
-      getDashboardSummary,
-      getProjectionByFocus,
-      currentView,
-      navigate,
-      goBack,
+      user, role, expenses, savingsGoals, offers, companyKPIs, squads, userSquad, kudos,
+      isPricingOpen, isChatOpen, isBudgetModalOpen, levelUp, setLevelUp,
+      switchRole, updateUserProfile, addExpense, bulkAddExpenses, editExpense, deleteExpense, registerSkippedExpense,
+      redeemOffer, addOffer, upgradeSubscription, togglePricingModal, toggleChat, toggleBudgetModal,
+      submitPulseCheck, sendKudos, updateMonthlyBudget, contributeToGoal, setTheme, downloadReport, joinSquad,
+      getSuggestedCategory, learnMerchantCategory, filterCompanyKPIs,
+      safeToSpendGranularity, setSafeToSpendGranularity, getDashboardSummary, getProjectionByFocus,
+      currentView, navigate, goBack,
       merchantActivityLog: MOCK_MERCHANT_LOGS,
       hourlyTraffic: MOCK_HOURLY_TRAFFIC,
       sectorHourlyTraffic: MOCK_SECTOR_TRAFFIC,
       sectorStats: MOCK_SECTOR_STATS,
-      notifications,
-      addNotification,
-      removeNotification
+      notifications, addNotification, removeNotification, trackEvent,
+      showTour, closeTour,
+      chatMessages, isAiThinking, sendAIChatMessage
     }}>
       {children}
     </StoreContext.Provider>
   );
 };
-
-export default StoreProvider;

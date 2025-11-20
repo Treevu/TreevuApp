@@ -1,18 +1,17 @@
-
-
-
-import React, { useState, useRef } from 'react';
-import { useStore } from '../contexts/Store';
-import { 
-  UserRole, 
-  SubscriptionTier, 
+import React, { useState, useRef, useEffect } from "react";
+import { useStore } from "../contexts/Store";
+import { scanReceipt } from "../services/geminiService";
+import {
+  UserRole,
+  SubscriptionTier,
   AppView,
-  OfferType
-} from '../types';
-import { 
-  BuildingOfficeIcon, 
-  SparklesIcon, 
-  LockClosedIcon, 
+  OfferType,
+  ExpenseCategory,
+} from "../types";
+import {
+  BuildingOfficeIcon,
+  SparklesIcon,
+  LockClosedIcon,
   XMarkIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
@@ -31,70 +30,99 @@ import {
   EyeIcon,
   CursorArrowRaysIcon,
   ChartBarIcon,
-  ShoppingBagIcon
-} from '@heroicons/react/24/outline';
-import Tooltip from '../components/Tooltip';
-import { ScoreBadge, EmptyState } from '../components/UIAtoms';
-import FlipCard from '../components/FlipCard';
-import { StreamlinedAreaChart } from '../components/ModernCharts';
-import B2CAnalytics from '../components/B2CAnalytics';
-import PricingModal from '../components/PricingModal';
-import ProfileMenu from '../components/ProfileMenu';
-import { 
-  ProfileDetailsView, 
-  SecurityView, 
-  GeneralSettingsView, 
-  HelpView 
-} from '../components/SettingsViews';
-import { CameraView } from '../components/Camera';
-import TreevuCard from '../components/TreevuCard'; // Imported TreevuCard
-import { 
-    CreateOfferModal, 
-    ContributeGoalModal, 
-    BudgetConfigModal, 
-    RedemptionModal, 
-    FileImportModal,
-    SquadZone,
-    LevelUpModal,
-    AIChatOverlay
-} from './DashboardView_Partials';
+  ShoppingBagIcon,
+  FlagIcon,
+  ArrowLongRightIcon,
+  FingerPrintIcon,
+} from "@heroicons/react/24/outline";
+import Tooltip from "../components/Tooltip";
+import { ScoreBadge, EmptyState } from "../components/UIAtoms";
+import FlipCard from "../components/FlipCard";
+import { StreamlinedAreaChart } from "../components/ModernCharts";
+import B2CAnalytics from "../components/B2CAnalytics";
+import PricingModal from "../components/PricingModal";
+import ProfileMenu from "../components/ProfileMenu";
+import {
+  ProfileDetailsView,
+  SecurityView,
+  GeneralSettingsView,
+  HelpView,
+} from "../components/SettingsViews";
+import { CameraView } from "../components/Camera";
+import TreevuCard from "../components/TreevuCard";
+import {
+  CreateOfferModal,
+  ContributeGoalModal,
+  BudgetConfigModal,
+  RedemptionModal,
+  FileImportModal,
+  SquadZone,
+  LevelUpModal,
+  AIChatOverlay,
+  OnboardingTour,
+  ManualExpenseModal,
+} from "./DashboardView_Partials";
 
 // --- Local Components ---
 
 const TreevuLogo: React.FC<{ size?: string }> = ({ size = "text-xl" }) => (
-    <span className={`font-sans font-bold tracking-tight flex items-baseline ${size}`}>
-        <span className="text-emerald-500">tree</span>
-        <span className="text-red-500">v</span>
-        <span className="text-emerald-500">ü</span>
-    </span>
+  <span
+    className={`font-sans font-bold tracking-tight flex items-baseline justify-center ${size}`}
+  >
+    <span className="text-emerald-500">tree</span>
+    <span className="text-red-500">v</span>
+    <span className="text-emerald-500">ü</span>
+  </span>
 );
 
 const ToastContainer: React.FC = () => {
-    const { notifications, removeNotification } = useStore();
+  const { notifications, removeNotification } = useStore();
 
-    return (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-sm pointer-events-none px-4">
-            {notifications.map((n) => (
-                <div 
-                    key={n.id} 
-                    className={`
+  return (
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-[90%] max-w-sm pointer-events-none px-2">
+      {notifications.map((n) => (
+        <div
+          key={n.id}
+          className={`
                         pointer-events-auto flex items-center gap-3 p-4 rounded-xl shadow-2xl backdrop-blur-md border animate-slideUp
-                        ${n.type === 'success' ? 'bg-emerald-500/90 border-emerald-400 text-white' : ''}
-                        ${n.type === 'error' ? 'bg-red-500/90 border-red-400 text-white' : ''}
-                        ${n.type === 'info' ? 'bg-blue-500/90 border-blue-400 text-white' : ''}
-                        ${n.type === 'warning' ? 'bg-yellow-500/90 border-yellow-400 text-black' : ''}
+                        ${
+                          n.type === "success"
+                            ? "bg-emerald-500/90 border-emerald-400 text-white"
+                            : ""
+                        }
+                        ${
+                          n.type === "error"
+                            ? "bg-red-500/90 border-red-400 text-white"
+                            : ""
+                        }
+                        ${
+                          n.type === "info"
+                            ? "bg-blue-500/90 border-blue-400 text-white"
+                            : ""
+                        }
+                        ${
+                          n.type === "warning"
+                            ? "bg-yellow-500/90 border-yellow-400 text-black"
+                            : ""
+                        }
                     `}
-                    onClick={() => removeNotification(n.id)}
-                >
-                    {n.type === 'success' && <CheckCircleIcon className="w-5 h-5" />}
-                    {n.type === 'error' && <XMarkIcon className="w-5 h-5" />}
-                    {n.type === 'warning' && <ExclamationCircleIcon className="w-5 h-5" />}
-                    {n.type === 'info' && <InformationCircleIcon className="w-5 h-5" />}
-                    <p className="text-sm font-bold">{n.message}</p>
-                </div>
-            ))}
+          onClick={() => removeNotification(n.id)}
+        >
+          {n.type === "success" && (
+            <CheckCircleIcon className="w-5 h-5 shrink-0" />
+          )}
+          {n.type === "error" && <XMarkIcon className="w-5 h-5 shrink-0" />}
+          {n.type === "warning" && (
+            <ExclamationCircleIcon className="w-5 h-5 shrink-0" />
+          )}
+          {n.type === "info" && (
+            <InformationCircleIcon className="w-5 h-5 shrink-0" />
+          )}
+          <p className="text-sm font-bold">{n.message}</p>
         </div>
-    );
+      ))}
+    </div>
+  );
 };
 
 interface LockProps {
@@ -102,16 +130,31 @@ interface LockProps {
   featureName: string;
   upgradeAction: () => void;
   children: React.ReactNode;
-  themeColor?: 'blue' | 'purple' | 'accent';
+  themeColor?: "blue" | "purple" | "accent";
 }
 
-const PremiumFeatureLock: React.FC<LockProps> = ({ isLocked, featureName, upgradeAction, children, themeColor = 'accent' }) => {
+const PremiumFeatureLock: React.FC<LockProps> = ({
+  isLocked,
+  featureName,
+  upgradeAction,
+  children,
+  themeColor = "accent",
+}) => {
   if (!isLocked) return <>{children}</>;
 
   const themeClasses = {
-      blue: { icon: 'text-blue-400', btn: 'bg-blue-500 text-white hover:bg-blue-400' },
-      purple: { icon: 'text-purple-400', btn: 'bg-purple-500 text-white hover:bg-purple-400' },
-      accent: { icon: 'text-accent', btn: 'bg-accent text-black hover:bg-yellow-300' }
+    blue: {
+      icon: "text-blue-400",
+      btn: "bg-blue-500 text-white hover:bg-blue-400",
+    },
+    purple: {
+      icon: "text-purple-400",
+      btn: "bg-purple-500 text-white hover:bg-purple-400",
+    },
+    accent: {
+      icon: "text-yellow-500 dark:text-accent",
+      btn: "bg-yellow-400 dark:bg-accent text-black hover:bg-yellow-300",
+    },
   };
 
   const theme = themeClasses[themeColor] || themeClasses.accent;
@@ -121,10 +164,18 @@ const PremiumFeatureLock: React.FC<LockProps> = ({ isLocked, featureName, upgrad
       <div className="blur-sm pointer-events-none select-none w-full h-full opacity-50">
         {children}
       </div>
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 rounded-xl p-4 text-center backdrop-blur-[1px]">
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 dark:bg-black/40 rounded-xl p-4 text-center backdrop-blur-[1px]">
         <LockClosedIcon className={`w-8 h-8 mb-2 ${theme.icon}`} />
-        <p className="text-white font-bold text-sm mb-2">{featureName}</p>
-        <button onClick={(e) => { e.stopPropagation(); upgradeAction(); }} className={`${theme.btn} text-xs font-bold px-3 py-1.5 rounded-full hover:scale-105 transition-transform shadow-lg`}>
+        <p className="text-gray-900 dark:text-white font-bold text-sm mb-2">
+          {featureName}
+        </p>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            upgradeAction();
+          }}
+          className={`${theme.btn} text-xs font-bold px-3 py-1.5 rounded-full hover:scale-105 transition-transform shadow-lg`}
+        >
           Desbloquear
         </button>
       </div>
@@ -132,749 +183,1450 @@ const PremiumFeatureLock: React.FC<LockProps> = ({ isLocked, featureName, upgrad
   );
 };
 
-const MatrixInsightModal: React.FC<{ isOpen: boolean; onClose: () => void; dept: string }> = ({ isOpen, onClose, dept }) => {
-    if (!isOpen) return null;
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-surface border border-white/10 p-6 rounded-2xl max-w-md w-full relative shadow-2xl" onClick={e => e.stopPropagation()}>
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white"><XMarkIcon className="w-6 h-6" /></button>
-                <h3 className="text-xl font-bold text-white mb-2">Análisis: {dept}</h3>
-                <p className="text-gray-300 text-sm mb-4">
-                    Este departamento muestra un patrón de riesgo en la matriz. La IA sugiere una revisión detallada de la compensación y carga laboral.
-                </p>
-                <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                    <h4 className="text-blue-400 font-bold text-xs uppercase mb-2">Recomendación IA</h4>
-                    <ul className="text-sm text-gray-400 list-disc pl-4 space-y-1">
-                        <li>Revisar paridad salarial en {dept}.</li>
-                        <li>Programar sesión de feedback 1:1.</li>
-                        <li>Activar beneficios de "Salario On-Demand".</li>
-                    </ul>
-                </div>
-            </div>
+const MatrixInsightModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  dept: string;
+}> = ({ isOpen, onClose, dept }) => {
+  if (!isOpen) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-surface border border-white/10 p-6 rounded-2xl max-w-md w-[95%] relative shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white"
+        >
+          <XMarkIcon className="w-6 h-6" />
+        </button>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+          Análisis: {dept}
+        </h3>
+        <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+          Este departamento muestra un patrón de riesgo en la matriz. La IA
+          sugiere una revisión detallada de la compensación y carga laboral.
+        </p>
+        <div className="bg-gray-100 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/5">
+          <h4 className="text-blue-500 dark:text-blue-400 font-bold text-xs uppercase mb-2">
+            Recomendación IA
+          </h4>
+          <ul className="text-sm text-gray-700 dark:text-gray-400 list-disc pl-4 space-y-1">
+            <li>Revisar paridad salarial en {dept}.</li>
+            <li>Programar sesión de feedback 1:1.</li>
+            <li>Activar beneficios de "Salario On-Demand".</li>
+          </ul>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
-const AccessPortal: React.FC<{ onSelectRole: (r: UserRole) => void }> = ({ onSelectRole }) => {
-    return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-6 animate-fadeIn relative z-10">
-            <div className="text-center mb-10">
-                <div className="mb-4">
-                    <TreevuLogo size="text-6xl" />
-                </div>
-                <p className="text-lg text-gray-400">Bienestar Financiero 360° con IA</p>
-            </div>
+// --- MODERN ROLE CARD ---
+const RoleCard: React.FC<{
+  role: UserRole;
+  icon: React.ElementType;
+  title: string;
+  subtitle: string;
+  description: string;
+  theme: "emerald" | "blue" | "purple";
+  onClick: () => void;
+  delay: string;
+}> = ({
+  role,
+  icon: Icon,
+  title,
+  subtitle,
+  description,
+  theme,
+  onClick,
+  delay,
+}) => {
+  const themeStyles = {
+    emerald: {
+      bg: "group-hover:bg-emerald-900/20",
+      border: "group-hover:border-emerald-500/50",
+      iconBg: "bg-emerald-500/10 text-emerald-400",
+      glow: "shadow-[0_0_50px_-12px_rgba(52,211,153,0.3)]",
+      text: "text-emerald-400",
+      btn: "bg-emerald-500 text-black hover:bg-emerald-400",
+    },
+    blue: {
+      bg: "group-hover:bg-blue-900/20",
+      border: "group-hover:border-blue-500/50",
+      iconBg: "bg-blue-500/10 text-blue-400",
+      glow: "shadow-[0_0_50px_-12px_rgba(96,165,250,0.3)]",
+      text: "text-blue-400",
+      btn: "bg-blue-500 text-white hover:bg-blue-400",
+    },
+    purple: {
+      bg: "group-hover:bg-purple-900/20",
+      border: "group-hover:border-purple-500/50",
+      iconBg: "bg-purple-500/10 text-purple-400",
+      glow: "shadow-[0_0_50px_-12px_rgba(192,132,252,0.3)]",
+      text: "text-purple-400",
+      btn: "bg-purple-500 text-white hover:bg-purple-400",
+    },
+  };
 
-            <h2 className="text-white font-bold text-xl mb-6">Selecciona tu rol en treevü</h2>
+  const s = themeStyles[theme];
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
-                <button onClick={() => onSelectRole(UserRole.EMPLOYEE)} className="group relative bg-surface/60 backdrop-blur-md border border-white/10 p-8 rounded-3xl hover:bg-surface hover:border-emerald-500/50 transition-all hover:-translate-y-2 shadow-xl text-left overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-bl-full -mr-10 -mt-10 group-hover:bg-emerald-500/20 transition-colors"></div>
-                    <div className="relative z-10">
-                        <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center mb-6 text-emerald-400 group-hover:scale-110 transition-transform">
-                           <UserCircleIcon className="w-7 h-7" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-emerald-400 mb-2 drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]">Persona</h3>
-                        <p className="text-gray-400 text-sm">Comprobante capturado, control asegurado.</p>
-                    </div>
-                </button>
+  return (
+    <div
+      onClick={onClick}
+      className={`group relative h-[380px] md:h-[450px] w-full rounded-[2rem] border border-white/10 bg-surface/40 backdrop-blur-sm cursor-pointer transition-all duration-500 hover:-translate-y-2 overflow-hidden ${s.border} animate-fadeIn`}
+      style={{ animationDelay: delay }}
+    >
+      {/* Hover Background Glow */}
+      <div
+        className={`absolute inset-0 opacity-0 ${s.bg} transition-opacity duration-500`}
+      ></div>
 
-                <button onClick={() => onSelectRole(UserRole.EMPLOYER)} className="group relative bg-surface/60 backdrop-blur-md border border-white/10 p-8 rounded-3xl hover:bg-surface hover:border-blue-500/50 transition-all hover:-translate-y-2 shadow-xl text-left overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-bl-full -mr-10 -mt-10 group-hover:bg-blue-500/20 transition-colors"></div>
-                    <div className="relative z-10">
-                         <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center mb-6 text-blue-400 group-hover:scale-110 transition-transform">
-                           <BuildingOfficeIcon className="w-7 h-7" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-blue-400 mb-2 drop-shadow-[0_0_15px_rgba(59,130,246,0.6)]">Empresa</h3>
-                        <p className="text-gray-400 text-sm">La inteligencia que reduce el riesgo de fuga de tu talento.</p>
-                    </div>
-                </button>
+      {/* Top Highlight Line */}
+      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50"></div>
 
-                <button onClick={() => onSelectRole(UserRole.MERCHANT)} className="group relative bg-surface/60 backdrop-blur-md border border-white/10 p-8 rounded-3xl hover:bg-surface hover:border-purple-500/50 transition-all hover:-translate-y-2 shadow-xl text-left overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-bl-full -mr-10 -mt-10 group-hover:bg-purple-500/20 transition-colors"></div>
-                    <div className="relative z-10">
-                        <div className="w-12 h-12 bg-purple-500/20 rounded-2xl flex items-center justify-center mb-6 text-purple-400 group-hover:scale-110 transition-transform">
-                           <StarIcon className="w-7 h-7" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-purple-400 mb-2 drop-shadow-[0_0_15px_rgba(168,85,247,0.6)]">Socio</h3>
-                        <p className="text-gray-400 text-sm">De ofertas a aciertos. IA Marketing que no falla.</p>
-                    </div>
-                </button>
-            </div>
+      <div className="relative z-10 h-full flex flex-col p-6 md:p-8">
+        {/* Icon Container */}
+        <div
+          className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl ${s.iconBg} border border-white/5 flex items-center justify-center mb-6 md:mb-8 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 ${s.glow}`}
+        >
+          <Icon className="w-8 h-8 md:w-10 md:h-10" />
         </div>
-    );
+
+        {/* Titles */}
+        <div className="mb-auto">
+          <p
+            className={`text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase mb-2 ${s.text} opacity-80`}
+          >
+            {subtitle}
+          </p>
+          <h3 className="text-3xl md:text-4xl font-extrabold text-white mb-3 md:mb-4 tracking-tight">
+            {title}
+          </h3>
+          <p className="text-xs md:text-sm text-gray-400 leading-relaxed border-l-2 border-white/10 pl-4 group-hover:border-white/30 transition-colors">
+            {description}
+          </p>
+        </div>
+
+        {/* Bottom Action */}
+        <div className="mt-4 md:mt-8 flex items-center justify-between pt-4 md:pt-6 border-t border-white/5">
+          <div className="flex flex-col">
+            <span className="text-[9px] md:text-[10px] text-gray-500 uppercase tracking-widest">
+              Acceso
+            </span>
+            <span className="text-white text-[10px] md:text-xs font-bold flex items-center gap-1">
+              <FingerPrintIcon className="w-3 h-3" /> Biometric Ready
+            </span>
+          </div>
+          <button
+            className={`h-10 w-10 md:h-12 md:w-12 rounded-full ${s.btn} flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-0 rotate-[-45deg]`}
+          >
+            <ArrowLongRightIcon className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
+        </div>
+      </div>
+
+      {/* Decorative Noise */}
+      <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] pointer-events-none"></div>
+    </div>
+  );
+};
+
+const AccessPortal: React.FC<{ onSelectRole: (r: UserRole) => void }> = ({
+  onSelectRole,
+}) => {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden bg-[#0F0F11]">
+      {/* Modern Background Grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
+
+      {/* Ambient Spotlights */}
+      <div className="absolute top-[-10%] left-[20%] w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse-slow"></div>
+      <div
+        className="absolute bottom-[-10%] right-[20%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse-slow"
+        style={{ animationDelay: "2s" }}
+      ></div>
+
+      {/* Header Section */}
+      <div className="text-center mb-12 md:mb-16 animate-slideUp relative z-20 w-full max-w-4xl mx-auto flex flex-col items-center">
+        <div className="mb-4 md:mb-6 inline-block">
+          <div className="bg-white/5 border border-white/10 rounded-full px-4 md:px-6 py-1.5 md:py-2 backdrop-blur-md">
+            <p className="text-[8px] md:text-[10px] font-bold tracking-[0.3em] text-gray-300 uppercase">
+              Ecosistema Financiero v2.5
+            </p>
+          </div>
+        </div>
+
+        <div className="mb-2 md:mb-4 transform hover:scale-105 transition-transform duration-500 flex justify-center">
+          <TreevuLogo size="text-6xl md:text-9xl" />
+        </div>
+
+        <h2 className="text-lg md:text-3xl font-medium text-gray-400 tracking-tight max-w-2xl mx-auto leading-relaxed px-4 text-center">
+          Donde el{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 font-bold">
+            Bienestar
+          </span>{" "}
+          se encuentra con la{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 font-bold">
+            Data
+          </span>
+          .
+        </h2>
+      </div>
+
+      {/* Cards Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full max-w-6xl px-2 md:px-4 relative z-20">
+        <div className="animate-fadeIn" style={{ animationDelay: "0.1s" }}>
+          <RoleCard
+            role={UserRole.EMPLOYEE}
+            icon={UserCircleIcon}
+            title="Persona"
+            subtitle="B2C / Personal"
+            description="Comprobante capturado, control asegurado. Tu billetera inteligente potenciada por gamificación."
+            theme="emerald"
+            onClick={() => onSelectRole(UserRole.EMPLOYEE)}
+            delay="0.1s"
+          />
+        </div>
+
+        <div className="animate-fadeIn" style={{ animationDelay: "0.2s" }}>
+          <RoleCard
+            role={UserRole.EMPLOYER}
+            icon={BuildingOfficeIcon}
+            title="Empresa"
+            subtitle="B2B / Corporate"
+            description="La inteligencia que reduce el riesgo de fuga. Analítica predictiva para retener a tu mejor talento."
+            theme="blue"
+            onClick={() => onSelectRole(UserRole.EMPLOYER)}
+            delay="0.2s"
+          />
+        </div>
+
+        <div className="animate-fadeIn" style={{ animationDelay: "0.3s" }}>
+          <RoleCard
+            role={UserRole.MERCHANT}
+            icon={StarIcon}
+            title="Socio"
+            subtitle="B2B2C / Partner"
+            description="De ofertas a aciertos. IA Marketing que convierte visitas anónimas en ventas reales."
+            theme="purple"
+            onClick={() => onSelectRole(UserRole.MERCHANT)}
+            delay="0.3s"
+          />
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-12 md:mt-16 flex flex-col items-center gap-2 opacity-40 hover:opacity-80 transition-opacity">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <span className="text-[10px] font-mono text-white tracking-widest">
+            SYSTEM OPERATIONAL
+          </span>
+        </div>
+        <p className="text-[10px] text-gray-500 font-mono">
+          POWERED BY GEMINI 2.5 FLASH • SECURE ENCLAVE
+        </p>
+      </div>
+    </div>
+  );
 };
 
 // --- Dashboard Implementations ---
 
 const EmployerDashboard: React.FC = () => {
-    const { companyKPIs, user, togglePricingModal } = useStore();
-    const isLocked = user.subscriptionTier === SubscriptionTier.PLUS;
-    const [selectedBubble, setSelectedBubble] = useState<string | null>(null);
+  const { companyKPIs, user, togglePricingModal } = useStore();
+  const isLocked = user.subscriptionTier === SubscriptionTier.PLUS;
+  const [selectedBubble, setSelectedBubble] = useState<string | null>(null);
 
-    return (
-        <div className="p-4 max-w-7xl mx-auto space-y-4 animate-fadeIn">
-            {selectedBubble && <MatrixInsightModal isOpen={true} onClose={() => setSelectedBubble(null)} dept={selectedBubble} />}
-            
-            {/* HERO: Holographic ID Card */}
-            <TreevuCard />
+  return (
+    <div className="p-4 max-w-7xl mx-auto space-y-4 animate-fadeIn pb-20">
+      {selectedBubble && (
+        <MatrixInsightModal
+          isOpen={true}
+          onClose={() => setSelectedBubble(null)}
+          dept={selectedBubble}
+        />
+      )}
 
-            {/* AI Insight - Blue Theme */}
-            <div className="bg-gradient-to-r from-blue-900/50 to-cyan-900/50 border border-blue-500/30 rounded-xl p-4 flex items-start gap-4 relative overflow-hidden shadow-lg mb-6">
-                <SparklesIcon className="w-6 h-6 text-cyan-400 shrink-0 mt-1 animate-pulse" />
-                <div>
-                    <h4 className="font-bold text-cyan-200 text-sm mb-1 flex items-center gap-2">Insight Diario IA <span className="bg-cyan-500/20 text-[10px] px-2 py-0.5 rounded text-cyan-300 border border-cyan-500/30">Morning Brief</span></h4>
-                    <p className="text-sm text-cyan-100 italic leading-relaxed">"¡Hola! ¡Excelente día! 🌞 Ojo: El riesgo de fuga en Ventas está en 35%. Es clave actuar proactivamente para retener talento. 🚀 👉 Programa 1:1s estratégicos."</p>
-                </div>
-                <div className="absolute top-4 right-4">
-                     <Tooltip content="Insights generados por IA (Gemini 2.5). Se actualizan cada 24h." position="left" />
-                </div>
-            </div>
+      {/* HERO: Holographic ID Card */}
+      <TreevuCard />
 
-            {/* KPI Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                 <div className="bg-surface border border-blue-500/30 p-4 rounded-xl h-36 flex flex-col items-center justify-center relative hover:border-blue-400/50 transition-colors">
-                     <div className="absolute top-2 right-2"><Tooltip content="Índice 0-100 compuesto por: Salud Fiscal, Balance Vida-Trabajo y Desarrollo." /></div>
-                     <ScoreBadge label="FWI Global" value={companyKPIs.avgFWI} trend={companyKPIs.trend?.avgFWI} variant="success" size="md" />
-                 </div>
-                 <div className="bg-surface border border-blue-500/30 p-4 rounded-xl relative overflow-hidden h-36 flex flex-col items-center justify-center hover:border-blue-400/50 transition-colors">
-                     <div className="absolute top-2 right-2 z-20"><Tooltip content="Probabilidad (%) de que empleados clave renuncien en 30 días." /></div>
-                     <PremiumFeatureLock isLocked={isLocked} featureName="Riesgo de Fuga" themeColor="blue" upgradeAction={() => togglePricingModal(true)}>
-                        <ScoreBadge label="Riesgo Fuga" value={`${companyKPIs.flightRiskScore}%`} trend={companyKPIs.trend?.flightRiskScore} variant="danger" size="md" />
-                     </PremiumFeatureLock>
-                 </div>
-                 <div className="bg-surface border border-blue-500/30 rounded-xl h-36 flex flex-col items-center justify-center">
-                     {/* Strict Color: Use Cyan/Blue for money in B2B context instead of Emerald */}
-                     <FlipCard themeColor="blue" heightClass="h-full w-full" frontContent={<div className="flex flex-col items-center justify-center h-full"><div className="flex items-center gap-1"><span className="text-xs text-gray-400 uppercase font-bold">Ahorro Retención</span></div><span className="text-2xl font-bold text-cyan-400 mt-2">S/ {(companyKPIs.retentionSavings / 1000).toFixed(0)}k</span></div>} backContent="Cálculo: (Costo Reemplazo x Fugas Evitadas) - Costo Treevü." />
-                 </div>
-                 <div className="bg-surface border border-blue-500/30 p-4 rounded-xl h-36 flex flex-col items-center justify-center relative hover:border-blue-400/50 transition-colors">
-                     <div className="absolute top-2 right-2"><Tooltip content="Fórmula: (Ahorro Retención + Aumento Productividad) / Inversión Mensual." /></div>
-                     <ScoreBadge label="ROI Cult." value={`${companyKPIs.roiMultiplier}x`} variant="success" size="md" />
-                 </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                 {/* Adoption & Mood */}
-                 <div className="space-y-4">
-                     <FlipCard 
-                        themeColor="blue"
-                        heightClass="h-48" 
-                        frontContent={
-                             <div className="h-full flex flex-col justify-between">
-                                 <div className="flex justify-between items-center"><h3 className="text-sm font-bold text-gray-300 uppercase">Adopción del Equipo</h3></div>
-                                 <div className="space-y-3">
-                                     <div>
-                                         <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Activos (Daily)</span><span className="text-blue-400">{companyKPIs.adoption?.active}%</span></div>
-                                         <div className="w-full bg-gray-800 h-1.5 rounded-full"><div className="h-full bg-blue-500" style={{ width: `${companyKPIs.adoption?.active}%` }}></div></div>
-                                     </div>
-                                     <div>
-                                         <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Esporádicos</span><span className="text-cyan-400">{companyKPIs.adoption?.sporadic}%</span></div>
-                                         <div className="w-full bg-gray-800 h-1.5 rounded-full"><div className="h-full bg-cyan-500" style={{ width: `${companyKPIs.adoption?.sporadic}%` }}></div></div>
-                                     </div>
-                                     <div>
-                                         <div className="flex justify-between text-xs text-gray-400 mb-1"><span>Inactivos</span><span className="text-gray-500">{companyKPIs.adoption?.inactive}%</span></div>
-                                         <div className="w-full bg-gray-800 h-1.5 rounded-full"><div className="h-full bg-gray-500" style={{ width: `${companyKPIs.adoption?.inactive}%` }}></div></div>
-                                     </div>
-                                 </div>
-                             </div>
-                        } 
-                        backContent="Métrica de Engagement: 'Activos' usan la app +3 veces/semana. 'Esporádicos' al menos 1 vez/semana." 
-                     />
-
-                     <FlipCard 
-                        themeColor="blue"
-                        heightClass="h-48"
-                        frontContent={
-                             <div className="h-full flex flex-col justify-between">
-                                 <div className="flex justify-between items-center mb-2"><h3 className="text-sm font-bold text-gray-300 uppercase">Tendencia de Ánimo (7 Días)</h3><span className="text-xl">😐 {companyKPIs.teamMoodScore}/100</span></div>
-                                 <StreamlinedAreaChart data={companyKPIs.history?.moodHistory || []} color="text-blue-400" gradientColor="#3B82F6" height={100} />
-                             </div>
-                        }
-                        backContent="Evolución del sentimiento reportado en el 'Daily Pulse' al inicio de la app."
-                     />
-                 </div>
-
-                 {/* FWI vs Risk Matrix - Blue Theme (Adjusted Dimensions) */}
-                 <div className="bg-surface border border-blue-500/30 rounded-xl p-4 relative h-80 overflow-hidden flex flex-col hover:border-blue-400/50 transition-colors shadow-lg">
-                     <PremiumFeatureLock isLocked={isLocked} featureName="Matriz de Talento" themeColor="blue" upgradeAction={() => togglePricingModal(true)}>
-                         <div className="flex items-center justify-between mb-2 z-20 relative">
-                             <h3 className="text-sm font-bold text-white uppercase flex items-center gap-2">
-                                 <UserGroupIcon className="w-4 h-4 text-blue-400" />
-                                 Matriz: FWI vs Riesgo
-                             </h3>
-                             <div className="flex gap-2 text-[10px] font-bold">
-                                 <span className="flex items-center gap-1 text-cyan-400"><div className="w-2 h-2 rounded-full bg-cyan-500"></div> Ideal</span>
-                                 <span className="flex items-center gap-1 text-red-400"><div className="w-2 h-2 rounded-full bg-red-500"></div> Crítico</span>
-                             </div>
-                         </div>
-                         
-                         {/* Chart Area with Margins for Axes */}
-                         <div className="relative flex-1 border-l border-b border-white/20 mt-2 ml-12 mb-8">
-                             
-                             {/* Semantic Quadrants Background */}
-                             <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 pointer-events-none opacity-30">
-                                <div className="bg-cyan-500/10 border-r border-b border-white/5 flex items-center justify-center"><span className="text-[10px] font-bold text-cyan-500/50 -rotate-45">BIENESTAR</span></div>
-                                <div className="bg-yellow-500/10 border-b border-white/5 flex items-center justify-center"><span className="text-[10px] font-bold text-yellow-500/50 -rotate-45">MERCENARIOS</span></div>
-                                <div className="bg-blue-500/10 border-r border-white/5 flex items-center justify-center"><span className="text-[10px] font-bold text-blue-500/50 -rotate-45">ESTANCADOS</span></div>
-                                <div className="bg-red-500/10 flex items-center justify-center"><span className="text-[10px] font-bold text-red-500/50 -rotate-45">CRÍTICO</span></div>
-                             </div>
-
-                             {/* Grid Lines */}
-                             <div className="absolute inset-0 grid grid-cols-4 grid-rows-4 pointer-events-none">
-                                 {[...Array(4)].map((_,i) => <div key={`v-${i}`} className="border-r border-white/5 h-full"></div>)}
-                                 {[...Array(4)].map((_,i) => <div key={`h-${i}`} className="border-t border-white/5 w-full"></div>)}
-                             </div>
-                             
-                             {/* Y Axis Labels (Within safe zone) */}
-                             <div className="absolute -left-6 top-0 text-[9px] font-bold text-cyan-400">100</div>
-                             <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-[9px] font-bold text-gray-500">50</div>
-                             <div className="absolute -left-6 bottom-0 text-[9px] font-bold text-red-400">0</div>
-                             <div className="absolute -left-10 top-1/2 -translate-y-1/2 -rotate-90 text-[9px] text-blue-300 font-bold tracking-widest whitespace-nowrap">FWI Score</div>
-                             
-                             {/* X Axis Labels (Within safe zone) */}
-                             <div className="absolute left-0 -bottom-5 text-[9px] font-bold text-cyan-400">0</div>
-                             <div className="absolute left-1/2 -bottom-5 -translate-x-1/2 text-[9px] font-bold text-gray-500">50</div>
-                             <div className="absolute right-0 -bottom-5 text-[9px] font-bold text-red-400">100</div>
-                             <div className="absolute left-1/2 -bottom-8 -translate-x-1/2 text-[9px] text-red-400 font-bold tracking-widest uppercase">Riesgo Fuga &rarr;</div>
-                             
-                             {/* Bubbles */}
-                             {[
-                                 { id: 'Marketing', x: 60, y: 70, r: 40, c: 'bg-white', risk: 'Medio', fwi: 70 },
-                                 { id: 'Ventas', x: 80, y: 35, r: 55, c: 'bg-red-500', risk: 'Alto', fwi: 35 },
-                                 { id: 'IT', x: 30, y: 85, r: 45, c: 'bg-cyan-500', risk: 'Bajo', fwi: 85 },
-                                 { id: 'HR', x: 20, y: 80, r: 35, c: 'bg-blue-400', risk: 'Bajo', fwi: 80 },
-                             ].map((b) => (
-                                 <div 
-                                     key={b.id}
-                                     onClick={() => setSelectedBubble(b.id)}
-                                     className={`absolute rounded-full ${b.c} hover:scale-110 transition-all cursor-pointer shadow-xl border-2 border-white/20 flex flex-col items-center justify-center group z-10 backdrop-blur-sm bg-opacity-90`}
-                                     style={{ 
-                                        left: `${b.x}%`, 
-                                        bottom: `${b.y}%`, 
-                                        width: `${Math.max(24, b.r * 0.8)}px`, // Scale down slightly for fit
-                                        height: `${Math.max(24, b.r * 0.8)}px`,
-                                        transform: 'translate(-50%, 50%)'
-                                     }}
-                                 >
-                                     <span className={`text-[8px] font-bold ${b.c === 'bg-white' ? 'text-black' : 'text-white'} leading-tight truncate w-full text-center px-1`}>{b.id}</span>
-                                 </div>
-                             ))}
-                         </div>
-                     </PremiumFeatureLock>
-                 </div>
-            </div>
-
-             {/* Simulator Teaser - Blue Theme */}
-             <div className="bg-surface border border-blue-500/30 rounded-xl p-6 flex justify-between items-center hover:border-blue-400/50 transition-colors">
-                 <div>
-                     <h3 className="text-lg font-bold text-white">Simulador de Impacto</h3>
-                     <p className="text-sm text-gray-400">¿Qué pasa si doy un bono de S/ 500?</p>
-                 </div>
-                 <button className="px-4 py-2 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-400 shadow-lg shadow-blue-500/30">Simular Bono</button>
-                 <Tooltip content="Proyección basada en ML sobre cómo una inversión afecta el FWI." />
-             </div>
+      {/* AI Insight - Blue Theme */}
+      <div className="bg-gradient-to-r from-blue-100/50 to-cyan-100/50 dark:from-blue-900/50 dark:to-cyan-900/50 border border-blue-200 dark:border-blue-500/30 rounded-xl p-4 flex flex-col md:flex-row items-start gap-4 relative overflow-hidden shadow-lg mb-6">
+        <SparklesIcon className="w-6 h-6 text-blue-500 dark:text-cyan-400 shrink-0 mt-1 animate-pulse" />
+        <div className="flex-1">
+          <h4 className="font-bold text-blue-800 dark:text-cyan-200 text-sm mb-1 flex items-center gap-2">
+            Insight Diario IA{" "}
+            <span className="bg-cyan-500/20 text-[10px] px-2 py-0.5 rounded text-blue-700 dark:text-cyan-300 border border-cyan-500/30">
+              Morning Brief
+            </span>
+          </h4>
+          <p className="text-sm text-blue-700 dark:text-cyan-100 italic leading-relaxed">
+            "¡Hola! ¡Excelente día! 🌞 Ojo: El riesgo de fuga en Ventas está en
+            35%. Es clave actuar proactivamente para retener talento. 🚀 👉
+            Programa 1:1s estratégicos."
+          </p>
         </div>
-    );
-};
+        <div className="absolute top-4 right-4">
+          <Tooltip
+            content="Insights generados por IA (Gemini 2.5). Se actualizan cada 24h."
+            position="left"
+          />
+        </div>
+      </div>
 
-const EmployeeWallet: React.FC = () => {
-    const { 
-        expenses, 
-        user, 
-        togglePricingModal, 
-        addExpense, 
-        levelUp,
-        setLevelUp,
-        savingsGoals,
-        offers,
-        redeemOffer
-    } = useStore();
-    
-    const [showCamera, setShowCamera] = useState(false);
-    const [showFabMenu, setShowFabMenu] = useState(false);
-    const [contributeGoalId, setContributeGoalId] = useState<string | null>(null);
-    const [showBudgetModal, setShowBudgetModal] = useState(false);
-    const [fileUploadTrigger, setFileUploadTrigger] = useState(0);
-    
-    // File upload ref
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleScanComplete = (result: any) => {
-        setShowCamera(false);
-        if (result) {
-             addExpense({
-                 merchant: result.merchant,
-                 amount: parseFloat(result.total),
-                 date: result.date,
-                 category: result.category,
-                 isFormal: result.isFormal,
-                 ruc: result.ruc
-             });
-        }
-    };
-
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-             // Simulate OCR delay and success
-             setTimeout(() => {
-                addExpense({
-                    merchant: "Uploaded Receipt",
-                    amount: 45.00,
-                    isFormal: true,
-                    date: new Date().toISOString()
-                });
-                setShowFabMenu(false);
-             }, 1500);
-        }
-    };
-
-    return (
-        <div className="p-4 max-w-4xl mx-auto pb-24 animate-fadeIn">
-            {showCamera && <CameraView onCapture={handleScanComplete} onClose={() => setShowCamera(false)} />}
-            {levelUp && <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />}
-            {contributeGoalId && <ContributeGoalModal goalId={contributeGoalId} onClose={() => setContributeGoalId(null)} />}
-            {showBudgetModal && <BudgetConfigModal onClose={() => setShowBudgetModal(false)} />}
-            
-            {/* Hidden File Input */}
-            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
-
-            {/* HERO: Holographic ID Card (Now with Budget) */}
-            <div className="relative cursor-pointer" onClick={() => setShowBudgetModal(true)}>
-                <TreevuCard />
-                {/* Tooltip hinting interaction */}
-                <div className="absolute top-2 right-2 opacity-0 hover:opacity-100 transition-opacity">
-                   <Tooltip content="Toca para editar presupuesto" />
-                </div>
-            </div>
-
-            {/* Analytics Grid */}
-            <B2CAnalytics 
-                expenses={expenses} 
-                budget={user.monthlyBudget} 
-                subscriptionTier={user.subscriptionTier} 
-                onUpgrade={() => togglePricingModal(true)} 
+      {/* KPI Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="bg-surface border border-blue-200 dark:border-blue-500/30 p-4 rounded-xl h-36 flex flex-col items-center justify-center relative hover:border-blue-400/50 transition-colors">
+          <div className="absolute top-2 right-2">
+            <Tooltip content="Índice 0-100 compuesto por: Salud Fiscal, Balance Vida-Trabajo y Desarrollo." />
+          </div>
+          <ScoreBadge
+            label="FWI Global"
+            value={companyKPIs.avgFWI}
+            trend={companyKPIs.trend?.avgFWI}
+            variant="success"
+            size="md"
+          />
+        </div>
+        <div className="bg-surface border border-blue-200 dark:border-blue-500/30 p-4 rounded-xl relative overflow-hidden h-36 flex flex-col items-center justify-center hover:border-blue-400/50 transition-colors">
+          <div className="absolute top-2 right-2 z-20">
+            <Tooltip content="Probabilidad (%) de que empleados clave renuncien en 30 días." />
+          </div>
+          <PremiumFeatureLock
+            isLocked={isLocked}
+            featureName="Riesgo de Fuga"
+            themeColor="blue"
+            upgradeAction={() => togglePricingModal(true)}
+          >
+            <ScoreBadge
+              label="Riesgo Fuga"
+              value={`${companyKPIs.flightRiskScore}%`}
+              trend={companyKPIs.trend?.flightRiskScore}
+              variant="danger"
+              size="md"
             />
-
-            {/* Savings Goals Teaser */}
-            <div className="mt-8">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-white font-bold text-lg">Mis Metas</h3>
-                    <button className="text-emerald-400 text-xs font-bold">+ Nueva</button>
-                </div>
-                <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-                    {savingsGoals.map(goal => (
-                        <div key={goal.id} className="min-w-[200px] bg-surface border border-white/10 rounded-xl p-4 relative overflow-hidden group cursor-pointer hover:border-emerald-500/50 transition-colors" onClick={() => setContributeGoalId(goal.id)}>
-                             <div className={`absolute top-0 right-0 w-16 h-16 ${goal.color} opacity-10 rounded-bl-full`}></div>
-                             <div className="relative z-10">
-                                 <p className="font-bold text-white">{goal.title}</p>
-                                 <p className="text-xs text-gray-400 mb-3">Faltan S/ {goal.targetAmount - goal.currentAmount}</p>
-                                 <div className="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
-                                     <div className={`h-full ${goal.color.replace('bg-', 'bg-')}`} style={{ width: `${(goal.currentAmount / goal.targetAmount) * 100}%` }}></div>
-                                 </div>
-                                 <div className="mt-3 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                                     <span className="text-[10px] bg-white/10 px-2 py-1 rounded text-white hover:bg-white/20">Aportar +</span>
-                                 </div>
-                             </div>
-                             <div className="absolute top-2 right-2"><Tooltip content="Ahorra formalizando gastos para completar esta meta." /></div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* MARKETPLACE & BENEFITS SECTION */}
-            <div className="mt-8">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-white font-bold text-lg flex items-center gap-2">
-                        <ShoppingBagIcon className="w-5 h-5 text-emerald-400" /> Marketplace & Beneficios
-                    </h3>
-                    <span className="text-xs text-gray-400">Ver todo</span>
-                </div>
-                <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-                    {offers.map((offer) => (
-                        <div 
-                            key={offer.id} 
-                            className={`min-w-[240px] bg-surface border rounded-xl p-4 flex flex-col justify-between relative group transition-all duration-300
-                            ${offer.isCashback 
-                                ? 'border-yellow-400/60 shadow-[0_0_20px_rgba(250,204,21,0.15)]' 
-                                : 'border-white/10 hover:border-emerald-500/50'
-                            }`}
-                        >
-                            {offer.isCashback && (
-                                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-amber-500 text-black text-[9px] font-extrabold px-3 py-1 rounded-full shadow-lg z-20 flex items-center gap-1 whitespace-nowrap">
-                                    <SparklesIcon className="w-3 h-3 animate-pulse" /> CASHBACK
-                                </span>
-                            )}
-                            {offer.type === OfferType.COMPANY && (
-                                <span className="absolute top-2 right-2 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg z-10">Exclusivo Empresa</span>
-                            )}
-                            {offer.isFlash && (
-                                <span className="absolute top-2 left-2 bg-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg z-10 animate-pulse">FLASH ⚡</span>
-                            )}
-                            
-                            <div className="flex items-start gap-3 mb-3">
-                                <img src={offer.image} className="w-12 h-12 rounded-lg object-cover bg-gray-800" />
-                                <div>
-                                    <h4 className="font-bold text-white text-sm leading-tight">{offer.title}</h4>
-                                    <p className="text-xs text-gray-400">{offer.merchantName}</p>
-                                </div>
-                            </div>
-                            
-                            <div className="flex items-center justify-between mt-2">
-                                <div className="flex items-center gap-1">
-                                    <span className="text-lg">🌳</span>
-                                    <span className="font-bold text-emerald-400">{offer.costTreevus}</span>
-                                </div>
-                                <button 
-                                    onClick={() => redeemOffer(offer.id)}
-                                    className="px-3 py-1.5 bg-white/10 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-colors"
-                                >
-                                    Canjear
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Recent Transactions List */}
-            <div className="mt-8">
-                <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
-                    Movimientos Recientes <Tooltip content="Tus últimos registros." />
-                </h3>
-                <div className="space-y-3">
-                    {expenses.slice(0, 5).map((expense) => (
-                        <div key={expense.id} className="bg-surface border border-white/5 p-4 rounded-xl flex justify-between items-center hover:bg-white/5 transition-colors">
-                            <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-full ${expense.isFormal ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-700/50 text-gray-400'}`}>
-                                    {expense.isFormal ? <CheckCircleIcon className="w-5 h-5" /> : <InformationCircleIcon className="w-5 h-5" />}
-                                </div>
-                                <div>
-                                    <p className="text-white font-medium text-sm">{expense.merchant}</p>
-                                    <p className="text-xs text-gray-400">{expense.category} • {new Date(expense.date).toLocaleDateString()}</p>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-white font-bold">- S/ {expense.amount.toFixed(2)}</p>
-                                {expense.treevusEarned > 0 && (
-                                    <p className="text-[10px] text-emerald-400 font-bold">+{expense.treevusEarned} pts</p>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-            
-            {/* Squad Zone */}
-            <SquadZone />
-
-            {/* FAB Speed Dial */}
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-4">
-                {/* Speed Dial Options */}
-                {showFabMenu && (
-                    <div className="flex flex-col gap-3 mb-2 animate-slideUp">
-                        <button onClick={() => { setShowCamera(true); setShowFabMenu(false); }} className="flex items-center gap-3 px-4 py-2 bg-surface border border-white/10 rounded-full shadow-xl hover:bg-white/10 transition-colors">
-                             <span className="text-white text-xs font-bold">Cámara</span>
-                             <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-black">
-                                 <CameraIcon className="w-5 h-5" />
-                             </div>
-                        </button>
-                        <button className="flex items-center gap-3 px-4 py-2 bg-surface border border-white/10 rounded-full shadow-xl hover:bg-white/10 transition-colors">
-                             <span className="text-white text-xs font-bold">Manual</span>
-                             <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-black">
-                                 <PencilIcon className="w-5 h-5" />
-                             </div>
-                        </button>
-                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-3 px-4 py-2 bg-surface border border-white/10 rounded-full shadow-xl hover:bg-white/10 transition-colors">
-                             <span className="text-white text-xs font-bold">Subir</span>
-                             <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-white">
-                                 <PhotoIcon className="w-5 h-5" />
-                             </div>
-                        </button>
-                    </div>
-                )}
-                
-                {/* Main Trigger Button */}
-                <button 
-                    onClick={() => setShowFabMenu(!showFabMenu)}
-                    className={`w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-[0_0_20px_rgba(52,211,153,0.6)] transition-transform duration-300 ${showFabMenu ? 'rotate-45' : ''}`}
-                >
-                    <PlusIcon className="w-8 h-8 text-black" />
-                </button>
-            </div>
+          </PremiumFeatureLock>
         </div>
-    );
+        <div className="bg-surface border border-blue-200 dark:border-blue-500/30 rounded-xl h-36 flex flex-col items-center justify-center">
+          {/* Strict Color: Use Cyan/Blue for money in B2B context instead of Emerald */}
+          <FlipCard
+            themeColor="blue"
+            heightClass="h-full w-full"
+            frontContent={
+              <div className="flex flex-col items-center justify-center h-full">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">
+                    Ahorro Retención
+                  </span>
+                </div>
+                <span className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 mt-2">
+                  S/ {(companyKPIs.retentionSavings / 1000).toFixed(0)}k
+                </span>
+              </div>
+            }
+            backContent="Cálculo: (Costo Reemplazo x Fugas Evitadas) - Costo Treevü."
+          />
+        </div>
+        <div className="bg-surface border border-blue-200 dark:border-blue-500/30 p-4 rounded-xl h-36 flex flex-col items-center justify-center relative hover:border-blue-400/50 transition-colors">
+          <div className="absolute top-2 right-2">
+            <Tooltip content="Fórmula: (Ahorro Retención + Aumento Productividad) / Inversión Mensual." />
+          </div>
+          <ScoreBadge
+            label="ROI Cult."
+            value={`${companyKPIs.roiMultiplier}x`}
+            variant="success"
+            size="md"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Adoption & Mood */}
+        <div className="space-y-4">
+          <FlipCard
+            themeColor="blue"
+            heightClass="h-48"
+            frontContent={
+              <div className="h-full flex flex-col justify-between">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-bold text-gray-600 dark:text-gray-300 uppercase">
+                    Adopción del Equipo
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      <span>Activos (Daily)</span>
+                      <span className="text-blue-600 dark:text-blue-400">
+                        {companyKPIs.adoption?.active}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-800 h-1.5 rounded-full">
+                      <div
+                        className="h-full bg-blue-500"
+                        style={{ width: `${companyKPIs.adoption?.active}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      <span>Esporádicos</span>
+                      <span className="text-cyan-600 dark:text-cyan-400">
+                        {companyKPIs.adoption?.sporadic}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-800 h-1.5 rounded-full">
+                      <div
+                        className="h-full bg-cyan-500"
+                        style={{ width: `${companyKPIs.adoption?.sporadic}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      <span>Inactivos</span>
+                      <span className="text-gray-500">
+                        {companyKPIs.adoption?.inactive}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-800 h-1.5 rounded-full">
+                      <div
+                        className="h-full bg-gray-400 dark:bg-gray-500"
+                        style={{ width: `${companyKPIs.adoption?.inactive}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+            backContent="Clasifica a los empleados según su frecuencia de interacción con la plataforma: Daily (>3 veces/sem), Esporádicos (1 vez/sem), Inactivos (<1 vez/mes)."
+          />
+
+          <FlipCard
+            themeColor="blue"
+            heightClass="h-48"
+            frontContent={
+              <div className="h-full flex flex-col">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-sm font-bold text-gray-600 dark:text-gray-300 uppercase">
+                    Tendencia de Ánimo (7 días)
+                  </h3>
+                  <span className="text-lg font-bold text-yellow-500">
+                    😐 {companyKPIs.teamMoodScore}/100
+                  </span>
+                </div>
+                <div className="flex-1 pt-4">
+                  <StreamlinedAreaChart
+                    data={companyKPIs.history?.moodHistory || []}
+                    color="text-blue-400"
+                    gradientColor="#60A5FA"
+                    height={80}
+                  />
+                </div>
+              </div>
+            }
+            backContent="Media móvil del 'Pulse Check' diario reportado por los colaboradores. Detecta bajones de moral antes de que se conviertan en renuncias."
+          />
+        </div>
+
+        {/* Matrix */}
+        <div className="bg-surface border border-blue-200 dark:border-blue-500/30 p-4 rounded-xl h-80 lg:h-[400px] relative overflow-hidden group">
+          <div className="absolute top-4 right-4 z-10">
+            <Tooltip
+              content="Matriz de Correlación: Eje Y = Bienestar (FWI), Eje X = Riesgo de Fuga."
+              position="left"
+            />
+          </div>
+          <PremiumFeatureLock
+            isLocked={isLocked}
+            featureName="Matriz de Retención"
+            themeColor="blue"
+            upgradeAction={() => togglePricingModal(true)}
+          >
+            <h3 className="text-sm font-bold text-gray-600 dark:text-gray-300 uppercase mb-2 relative z-10">
+              Matriz: FWI vs Riesgo
+            </h3>
+            <div className="relative w-full h-full pb-8 ml-12 mb-8">
+              {/* Zones Background */}
+              <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 opacity-20">
+                <div className="bg-emerald-500/20 rounded-tl-lg border-r border-b border-white/10 flex items-start justify-start p-2">
+                  <span className="text-[10px] font-bold text-emerald-300">
+                    Zona Ideal
+                  </span>
+                </div>
+                <div className="bg-yellow-500/20 rounded-tr-lg border-b border-white/10 flex items-start justify-end p-2">
+                  <span className="text-[10px] font-bold text-yellow-300">
+                    Riesgo Latente
+                  </span>
+                </div>
+                <div className="bg-blue-500/20 rounded-bl-lg border-r border-white/10 flex items-end justify-start p-2">
+                  <span className="text-[10px] font-bold text-blue-300">
+                    Estancamiento
+                  </span>
+                </div>
+                <div className="bg-red-500/20 rounded-br-lg flex items-end justify-end p-2">
+                  <span className="text-[10px] font-bold text-red-300">
+                    Zona Crítica
+                  </span>
+                </div>
+              </div>
+
+              {/* Grid Lines */}
+              <div className="absolute inset-0 grid grid-cols-4 grid-rows-4 pointer-events-none">
+                {[...Array(4)].map((_, i) => (
+                  <div
+                    key={`v-${i}`}
+                    className="border-r border-white/5 h-full"
+                  ></div>
+                ))}
+                {[...Array(4)].map((_, i) => (
+                  <div
+                    key={`h-${i}`}
+                    className="border-b border-white/5 w-full col-span-4"
+                  ></div>
+                ))}
+              </div>
+
+              {/* Axes Labels */}
+              <span className="absolute bottom-0 right-0 text-[10px] text-gray-400 font-bold">
+                Riesgo Fuga →
+              </span>
+              <span className="absolute top-0 -left-10 text-[10px] text-gray-400 font-bold -rotate-90 origin-right">
+                FWI Score
+              </span>
+
+              <span className="absolute bottom-0 left-0 text-[9px] text-gray-500">
+                0
+              </span>
+              <span className="absolute bottom-0 left-1/2 text-[9px] text-gray-500">
+                50
+              </span>
+              <span className="absolute bottom-0 right-2 text-[9px] text-gray-500">
+                100
+              </span>
+
+              <span className="absolute bottom-0 -left-4 text-[9px] text-gray-500">
+                0
+              </span>
+              <span className="absolute top-1/2 -left-5 text-[9px] text-gray-500">
+                50
+              </span>
+              <span className="absolute top-0 -left-6 text-[9px] text-gray-500">
+                100
+              </span>
+
+              {/* Bubbles */}
+              <div
+                className="absolute left-[20%] bottom-[70%] w-10 h-10 bg-emerald-500/80 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30 cursor-pointer hover:scale-125 transition-transform z-20 border border-white/20 group/bubble"
+                onClick={() => setSelectedBubble("Tecnología")}
+              >
+                <span className="text-[8px] font-bold text-white">IT</span>
+                <div className="absolute -top-8 opacity-0 group-hover/bubble:opacity-100 bg-black/80 text-white text-[9px] px-2 py-1 rounded whitespace-nowrap transition-opacity pointer-events-none">
+                  Ver Análisis IT
+                </div>
+              </div>
+              <div
+                className="absolute left-[15%] bottom-[65%] w-8 h-8 bg-emerald-600/80 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-125 transition-transform z-20 border border-white/20 group/bubble"
+                onClick={() => setSelectedBubble("RRHH")}
+              >
+                <span className="text-[8px] font-bold text-white">HR</span>
+                <div className="absolute -top-8 opacity-0 group-hover/bubble:opacity-100 bg-black/80 text-white text-[9px] px-2 py-1 rounded whitespace-nowrap transition-opacity pointer-events-none">
+                  Ver Análisis HR
+                </div>
+              </div>
+              <div
+                className="absolute left-[45%] bottom-[50%] w-12 h-12 bg-yellow-500/80 rounded-full flex items-center justify-center shadow-lg shadow-yellow-500/30 cursor-pointer hover:scale-125 transition-transform z-20 border border-white/20 group/bubble"
+                onClick={() => setSelectedBubble("Marketing")}
+              >
+                <span className="text-[8px] font-bold text-black">MKT</span>
+                <div className="absolute -top-8 opacity-0 group-hover/bubble:opacity-100 bg-black/80 text-white text-[9px] px-2 py-1 rounded whitespace-nowrap transition-opacity pointer-events-none">
+                  Ver Análisis MKT
+                </div>
+              </div>
+              <div
+                className="absolute left-[70%] bottom-[35%] w-14 h-14 bg-red-500/80 rounded-full flex items-center justify-center shadow-lg shadow-red-500/30 animate-pulse cursor-pointer hover:scale-125 transition-transform z-20 border border-white/20 group/bubble"
+                onClick={() => setSelectedBubble("Ventas")}
+              >
+                <span className="text-[8px] font-bold text-white">Ventas</span>
+                <div className="absolute -top-8 opacity-0 group-hover/bubble:opacity-100 bg-black/80 text-white text-[9px] px-2 py-1 rounded whitespace-nowrap transition-opacity pointer-events-none">
+                  Ver Análisis Ventas
+                </div>
+              </div>
+            </div>
+          </PremiumFeatureLock>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const MerchantDashboard: React.FC = () => {
-    const { hourlyTraffic, sectorHourlyTraffic, offers, user, togglePricingModal } = useStore();
-    const isLocked = user.subscriptionTier === SubscriptionTier.FREE;
-    const [showCreateOffer, setShowCreateOffer] = useState(false);
-    
-    // Calculate totals
-    const totalRevenue = offers.reduce((sum, o) => sum + (o.revenueGenerated || 0), 0);
-    const totalRedemptions = offers.reduce((sum, o) => sum + o.redemptions, 0);
+  const {
+    hourlyTraffic,
+    sectorHourlyTraffic,
+    sectorStats,
+    offers,
+    user,
+    togglePricingModal,
+  } = useStore();
+  const isLocked = user.subscriptionTier === SubscriptionTier.FREE;
+  const [isCreateOfferOpen, setIsCreateOfferOpen] = useState(false);
 
-    return (
-        <div className="p-4 max-w-7xl mx-auto space-y-4 animate-fadeIn">
-             {showCreateOffer && <CreateOfferModal onClose={() => setShowCreateOffer(false)} />}
+  const totalRevenue = offers.reduce(
+    (acc, o) => acc + (o.revenueGenerated || 0),
+    0
+  );
+  const totalRedemptions = offers.reduce((acc, o) => acc + o.redemptions, 0);
+  const ticketAvg = totalRevenue / (totalRedemptions || 1);
+  const trafficTotal = hourlyTraffic.reduce((acc, h) => acc + h.volume, 0);
 
-             {/* HERO: Holographic ID Card */}
-             <TreevuCard />
+  return (
+    <div className="p-4 max-w-7xl mx-auto space-y-6 animate-fadeIn pb-20">
+      {isCreateOfferOpen && (
+        <CreateOfferModal onClose={() => setIsCreateOfferOpen(false)} />
+      )}
+      <TreevuCard />
 
-             {/* Header with Actions */}
-             <div className="flex justify-end items-center mb-4">
-                <button onClick={() => setShowCreateOffer(true)} className="px-4 py-2 bg-purple-500 text-white font-bold rounded-lg hover:bg-purple-400 shadow-lg shadow-purple-500/30 text-sm flex items-center gap-2">
-                    <PlusIcon className="w-4 h-4" /> Crear Oferta
-                </button>
-            </div>
-
-            {/* KPI Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                 <div className="bg-surface border border-purple-500/30 p-4 rounded-xl hover:border-purple-500/50 transition-colors relative">
-                     <div className="absolute top-2 right-2"><Tooltip content="Ventas totales generadas a través de ofertas Treevü." /></div>
-                     <ScoreBadge label="Ingresos" value={`S/ ${totalRevenue}`} trend={12.5} variant="success" />
-                 </div>
-                 <div className="bg-surface border border-purple-500/30 p-4 rounded-xl hover:border-purple-500/50 transition-colors relative">
-                     <div className="absolute top-2 right-2"><Tooltip content="Cantidad de cupones canjeados en tienda." /></div>
-                     <ScoreBadge label="Redenciones" value={totalRedemptions} trend={5.2} variant="neutral" />
-                 </div>
-                 <div className="bg-surface border border-purple-500/30 p-4 rounded-xl hover:border-purple-500/50 transition-colors relative overflow-hidden">
-                     <div className="absolute top-2 right-2 z-20"><Tooltip content="Gasto promedio por cliente captado." /></div>
-                     <PremiumFeatureLock isLocked={isLocked} featureName="Ticket Promedio" themeColor="purple" upgradeAction={() => togglePricingModal(true)}>
-                        <ScoreBadge label="Ticket Prom." value="S/ 42.50" trend={-2.1} variant="warning" />
-                        <p className="text-[10px] text-gray-500 mt-1">vs S/ 38.00 Sector</p>
-                     </PremiumFeatureLock>
-                 </div>
-                 <div className="bg-surface border border-purple-500/30 p-4 rounded-xl hover:border-purple-500/50 transition-colors relative overflow-hidden">
-                     <div className="absolute top-2 right-2 z-20"><Tooltip content="Retorno sobre Inversión en Publicidad." /></div>
-                     <PremiumFeatureLock isLocked={isLocked} featureName="ROI Marketing" themeColor="purple" upgradeAction={() => togglePricingModal(true)}>
-                        <ScoreBadge label="ROAS" value="8.4x" variant="success" />
-                     </PremiumFeatureLock>
-                 </div>
-            </div>
-
-            {/* Traffic Analysis Chart - PURPLE THEME STRICT */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2 bg-surface border border-purple-500/30 rounded-xl p-4 h-80 flex flex-col hover:border-purple-500/50 transition-colors shadow-lg relative">
-                     <div className="flex justify-between items-center mb-4">
-                         <h3 className="text-white font-bold text-sm uppercase flex items-center gap-2">
-                             <ChartBarIcon className="w-4 h-4 text-purple-400" /> Ritmo del Negocio <Tooltip content="Comparativa de afluencia por hora: Tu Negocio vs Sector." />
-                         </h3>
-                         <div className="flex gap-3 text-[10px]">
-                             <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-purple-500"></div> Tu Tráfico</span>
-                             <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-gray-600"></div> Sector</span>
-                         </div>
-                     </div>
-                     
-                     {/* Bar Chart - Corrected to Purple */}
-                     <div className="flex-1 flex items-end gap-2">
-                         {hourlyTraffic.map((data, i) => {
-                             const sectorData = sectorHourlyTraffic[i];
-                             return (
-                                 <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end group">
-                                     <div className="w-full flex gap-0.5 items-end h-[80%] relative">
-                                         {/* Sector Bar (Background) */}
-                                          <div 
-                                            className="w-1/2 bg-gray-700 rounded-t-sm transition-all group-hover:bg-gray-600 absolute right-0 bottom-0" 
-                                            style={{ height: isLocked ? '0%' : `${sectorData.volume}%`, opacity: isLocked ? 0 : 1 }}
-                                          ></div>
-                                          {/* My Bar (Foreground - PURPLE) */}
-                                          <div 
-                                            className={`w-full bg-purple-500 rounded-t-sm transition-all group-hover:bg-purple-400 z-10 ${data.isPeak ? 'shadow-[0_0_10px_rgba(168,85,247,0.4)]' : ''}`} 
-                                            style={{ height: `${data.volume}%` }}
-                                          ></div>
-                                     </div>
-                                     <span className="text-[9px] text-gray-500 rotate-0">{data.hour}</span>
-                                 </div>
-                             );
-                         })}
-                     </div>
-                     
-                     {/* Premium Overlay for Sector Data */}
-                     {isLocked && (
-                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                              <div className="bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full border border-purple-500/30 pointer-events-auto flex items-center gap-2">
-                                  <LockClosedIcon className="w-4 h-4 text-purple-400" />
-                                  <span className="text-xs text-white font-bold">Desbloquear Benchmark Sectorial</span>
-                                  <button onClick={() => togglePricingModal(true)} className="text-[10px] bg-purple-500 text-white px-2 py-1 rounded font-bold hover:bg-purple-400">Upgrade</button>
-                              </div>
-                         </div>
-                     )}
-                </div>
-
-                {/* Funnel - PURPLE THEME STRICT */}
-                <div className="bg-surface border border-purple-500/30 rounded-xl p-4 h-80 flex flex-col hover:border-purple-500/50 transition-colors relative">
-                     <div className="absolute top-2 right-2"><Tooltip content="Conversión de visualizaciones a ventas reales." /></div>
-                     <h3 className="text-white font-bold text-sm uppercase mb-4 flex items-center gap-2"><CursorArrowRaysIcon className="w-4 h-4 text-purple-400" /> Embudo de Conversión</h3>
-                     
-                     <div className="flex-1 flex flex-col justify-center gap-1 relative">
-                         {/* Connecting Line Animation (Purple) */}
-                         <div className="absolute top-4 bottom-4 left-1/2 w-0.5 bg-gradient-to-b from-purple-500/20 via-purple-500 to-purple-500/50 -translate-x-1/2 z-0 animate-pulse"></div>
-
-                         {/* Step 1: Views */}
-                         <div className="w-full bg-gray-800/50 p-3 rounded-lg border border-white/5 relative z-10 hover:border-purple-500/30 transition-colors group">
-                             <div className="flex justify-between items-center mb-1">
-                                 <span className="text-xs text-gray-400 font-bold uppercase group-hover:text-white"><EyeIcon className="w-3 h-3 inline mr-1"/> Vistas</span>
-                                 <span className="text-white font-bold">1,240</span>
-                             </div>
-                             <div className="w-full bg-gray-700 h-1 rounded-full"><div className="w-full bg-purple-500 h-full rounded-full"></div></div>
-                         </div>
-
-                         {/* Connector Metric */}
-                         <div className="self-center bg-black/50 text-[10px] text-gray-400 px-2 py-0.5 rounded-full border border-white/10 z-20 my-1">
-                             CTR: <span className="text-yellow-400 font-bold">12%</span>
-                         </div>
-
-                         {/* Step 2: Clicks */}
-                         <div className="w-[80%] self-center bg-gray-800/50 p-3 rounded-lg border border-white/5 relative z-10 hover:border-purple-500/30 transition-colors group">
-                             <div className="flex justify-between items-center mb-1">
-                                 <span className="text-xs text-gray-400 font-bold uppercase group-hover:text-white">Clics</span>
-                                 <span className="text-white font-bold">148</span>
-                             </div>
-                             <div className="w-full bg-gray-700 h-1 rounded-full"><div className="w-full bg-purple-400 h-full rounded-full"></div></div>
-                         </div>
-
-                         {/* Connector Metric */}
-                         <div className="self-center bg-black/50 text-[10px] text-gray-400 px-2 py-0.5 rounded-full border border-white/10 z-20 my-1">
-                             Conv: <span className="text-purple-300 font-bold">35%</span>
-                         </div>
-
-                         {/* Step 3: Sales - Corrected to Purple/Fuchsia */}
-                         <div className="w-[60%] self-center bg-purple-900/20 p-3 rounded-lg border border-purple-500/30 relative z-10 hover:bg-purple-900/30 transition-colors group shadow-[0_0_15px_rgba(168,85,247,0.1)]">
-                             <div className="flex justify-between items-center mb-1">
-                                 <span className="text-xs text-purple-400 font-bold uppercase group-hover:text-purple-300">Canjes</span>
-                                 <span className="text-white font-bold text-lg">52</span>
-                             </div>
-                             <div className="w-full bg-gray-700 h-1 rounded-full"><div className="w-full bg-fuchsia-500 h-full rounded-full"></div></div>
-                         </div>
-                     </div>
-                </div>
-            </div>
-            
-            {/* Active Offers Management */}
-            <div className="mt-8">
-                <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">Mis Ofertas Activas <Tooltip content="Gestiona tus promociones vigentes." /></h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {offers.map(offer => (
-                        <div key={offer.id} className="bg-surface border border-white/10 p-4 rounded-xl flex gap-4 items-center group hover:bg-white/5 transition-colors">
-                            <img src={offer.image} className="w-16 h-16 rounded-lg object-cover opacity-80 group-hover:opacity-100" />
-                            <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                    <h4 className="font-bold text-white">{offer.title}</h4>
-                                    {offer.isFlash && <span className="text-[10px] bg-purple-500 text-white px-2 py-0.5 rounded-full animate-pulse">FLASH ⚡</span>}
-                                </div>
-                                <p className="text-xs text-gray-400 mb-2">{offer.description}</p>
-                                <div className="flex gap-3 text-xs">
-                                    <span className="text-purple-300 font-bold">{offer.redemptions} canjes</span>
-                                    <span className="text-gray-500">•</span>
-                                    <span className="text-gray-400">Generado: S/ {offer.revenueGenerated}</span>
-                                </div>
-                            </div>
-                            <button className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white">
-                                <PencilIcon className="w-4 h-4" />
-                            </button>
-                        </div>
-                    ))}
-                    
-                    {/* Add New Card Placeholder */}
-                    <button onClick={() => setShowCreateOffer(true)} className="border border-dashed border-white/20 rounded-xl flex flex-col items-center justify-center p-4 text-gray-500 hover:text-purple-400 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all min-h-[100px]">
-                        <PlusIcon className="w-8 h-8 mb-2" />
-                        <span className="text-sm font-bold">Crear Nueva Oferta</span>
-                    </button>
-                </div>
-            </div>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="bg-surface border border-purple-500/30 p-4 rounded-xl relative group">
+          <div className="absolute top-2 right-2">
+            <Tooltip content="Ingresos totales generados por canjes en la app." />
+          </div>
+          <h3 className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">
+            Ingresos App
+          </h3>
+          <p className="text-xl md:text-2xl font-bold text-purple-500 dark:text-purple-400">
+            S/ {totalRevenue.toFixed(2)}
+          </p>
         </div>
-    );
+        <div className="bg-surface border border-purple-500/30 p-4 rounded-xl relative group">
+          <div className="absolute top-2 right-2">
+            <Tooltip content="Cantidad de ofertas canjeadas exitosamente." />
+          </div>
+          <h3 className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">
+            Redenciones
+          </h3>
+          <p className="text-xl md:text-2xl font-bold text-purple-500 dark:text-purple-400">
+            {totalRedemptions}
+          </p>
+        </div>
+        <div className="bg-surface border border-purple-500/30 p-4 rounded-xl relative overflow-hidden group">
+          <div className="absolute top-2 right-2 z-20">
+            <Tooltip content="Gasto promedio por cliente vs Sector." />
+          </div>
+          <h3 className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">
+            Ticket Promedio
+          </h3>
+          <div className="flex items-baseline gap-2">
+            <p className="text-xl md:text-2xl font-bold text-purple-500 dark:text-purple-400">
+              S/ {ticketAvg.toFixed(2)}
+            </p>
+            <span
+              className={`text-xs font-bold ${
+                ticketAvg >= sectorStats.avgTicket
+                  ? "text-emerald-400"
+                  : "text-red-400"
+              } blur-[0.5px] lg:blur-none`}
+            >
+              vs S/ {sectorStats.avgTicket}
+            </span>
+          </div>
+          {/* Upsell overlay for sector comparison if locked */}
+          <div
+            className={`absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none ${
+              !isLocked ? "hidden" : ""
+            }`}
+          >
+            <span className="text-[10px] bg-yellow-400 text-black px-2 py-1 rounded font-bold">
+              Plan Amplify
+            </span>
+          </div>
+        </div>
+        <div className="bg-surface border border-purple-500/30 p-4 rounded-xl relative group">
+          <div className="absolute top-2 right-2">
+            <Tooltip content="Retorno sobre Inversión en Marketing." />
+          </div>
+          <h3 className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">
+            ROAS (Est.)
+          </h3>
+          <p className="text-xl md:text-2xl font-bold text-purple-500 dark:text-purple-400">
+            3.5x
+          </p>
+        </div>
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Comparative Traffic Analysis */}
+        <div className="bg-surface border border-purple-500/30 rounded-xl p-6 relative overflow-hidden">
+          <div className="flex justify-between items-center mb-6 relative z-10">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <ChartBarIcon className="w-5 h-5 text-purple-400" /> Ritmo del
+              Negocio
+              <Tooltip content="Afluencia por hora: Tu Negocio vs Promedio del Sector." />
+            </h3>
+            <PremiumFeatureLock
+              isLocked={isLocked}
+              featureName="Benchmark Sector"
+              themeColor="purple"
+              upgradeAction={() => togglePricingModal(true)}
+            >
+              <div className="flex items-center gap-3 text-[10px]">
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <span className="text-gray-300">Tu Negocio</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
+                  <span className="text-gray-500">Sector</span>
+                </div>
+              </div>
+            </PremiumFeatureLock>
+          </div>
+
+          <div className="h-48 flex items-end gap-2 relative z-0">
+            {hourlyTraffic.map((data, idx) => {
+              const sectorVal = sectorHourlyTraffic[idx]?.volume || 0;
+              const height = (data.volume / 100) * 100;
+              const sectorHeight = (sectorVal / 100) * 100;
+
+              return (
+                <div
+                  key={idx}
+                  className="flex-1 flex flex-col justify-end h-full group relative"
+                >
+                  {/* Tooltip on Hover */}
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
+                    {data.hour}: {data.volume} vs {sectorVal}
+                  </div>
+
+                  {/* Sector Bar (Background) */}
+                  <div
+                    className={`w-full bg-gray-700/30 rounded-t-sm absolute bottom-0 transition-all duration-500 ${
+                      isLocked ? "blur-sm opacity-50" : ""
+                    }`}
+                    style={{ height: `${sectorHeight}%` }}
+                  />
+
+                  {/* Merchant Bar (Foreground) - PURPLE THEME */}
+                  <div
+                    className={`w-full bg-purple-500 dark:bg-purple-600 rounded-t-sm relative z-10 transition-all duration-500 hover:bg-purple-400 ${
+                      data.isPeak
+                        ? "shadow-[0_0_10px_rgba(192,132,252,0.5)]"
+                        : ""
+                    }`}
+                    style={{ height: `${height}%` }}
+                  />
+
+                  <span className="text-[9px] text-gray-500 mt-2 text-center hidden md:block">
+                    {data.hour}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Enhanced Conversion Funnel - PURPLE THEME */}
+        <FlipCard
+          themeColor="purple"
+          heightClass="h-80"
+          frontContent={
+            <div className="h-full flex flex-col">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <ArrowRightOnRectangleIcon className="w-5 h-5 text-purple-400" />{" "}
+                  Embudo de Conversión
+                  <Tooltip content="Customer Journey: Desde que ven tu oferta hasta que compran." />
+                </h3>
+              </div>
+              <div className="flex-1 flex flex-col justify-center gap-1 px-4">
+                {/* Step 1: Impressions */}
+                <div className="w-full bg-gray-800/50 rounded-lg p-3 flex justify-between items-center border border-white/5 group hover:border-purple-500/30 transition-colors relative">
+                  <div className="flex items-center gap-3">
+                    <EyeIcon className="w-4 h-4 text-gray-400 group-hover:text-white" />
+                    <span className="text-xs text-gray-400 font-bold uppercase">
+                      Vistas de Oferta
+                    </span>
+                  </div>
+                  <span className="font-mono font-bold text-white">12,450</span>
+                  {/* Connector Line */}
+                  <div className="absolute left-1/2 -bottom-4 w-0.5 h-4 bg-gray-700 z-0 group-hover:bg-purple-500/50 transition-colors"></div>
+                </div>
+
+                {/* Conversion Rate Pill */}
+                <div
+                  className="mx-auto z-10 bg-gray-900 border border-gray-700 rounded-full px-2 py-0.5 text-[9px] font-bold text-gray-400 hover:text-white hover:border-purple-500 transition-colors cursor-help"
+                  title="CTR: Click Through Rate"
+                >
+                  4.2% CTR
+                </div>
+
+                {/* Step 2: Clicks/Interactions */}
+                <div className="w-[80%] mx-auto bg-gray-800/50 rounded-lg p-3 flex justify-between items-center border border-white/5 group hover:border-purple-500/30 transition-colors relative">
+                  <div className="flex items-center gap-3">
+                    <CursorArrowRaysIcon className="w-4 h-4 text-gray-400 group-hover:text-white" />
+                    <span className="text-xs text-gray-400 font-bold uppercase">
+                      Clics / Interés
+                    </span>
+                  </div>
+                  <span className="font-mono font-bold text-white">523</span>
+                  <div className="absolute left-1/2 -bottom-4 w-0.5 h-4 bg-gray-700 z-0 group-hover:bg-purple-500/50 transition-colors"></div>
+                </div>
+
+                {/* Conversion Rate Pill */}
+                <div
+                  className="mx-auto z-10 bg-gray-900 border border-gray-700 rounded-full px-2 py-0.5 text-[9px] font-bold text-emerald-400 hover:border-emerald-500 transition-colors cursor-help"
+                  title="Tasa de Canje"
+                >
+                  24% Conv.
+                </div>
+
+                {/* Step 3: Redemptions (Sales) - PURPLE/FUCHSIA */}
+                <div className="w-[60%] mx-auto bg-gradient-to-r from-purple-900/40 to-fuchsia-900/40 rounded-lg p-3 flex justify-between items-center border border-purple-500/30 group hover:shadow-[0_0_15px_rgba(192,132,252,0.2)] transition-all">
+                  <div className="flex items-center gap-3">
+                    <ShoppingBagIcon className="w-4 h-4 text-purple-400 group-hover:text-white" />
+                    <span className="text-xs text-purple-200 font-bold uppercase">
+                      Canjes (Ventas)
+                    </span>
+                  </div>
+                  <span className="font-mono font-bold text-white text-lg">
+                    125
+                  </span>
+                </div>
+              </div>
+            </div>
+          }
+          backContent={
+            <div className="text-left space-y-2">
+              <p className="text-xs">
+                <strong className="text-white">Vistas:</strong> Usuarios que
+                vieron tu oferta en el feed.
+              </p>
+              <p className="text-xs">
+                <strong className="text-white">Clics:</strong> Usuarios que
+                abrieron el detalle.
+              </p>
+              <p className="text-xs">
+                <strong className="text-purple-400">Canjes:</strong> Ventas
+                reales verificadas en caja.
+              </p>
+              <div className="mt-4 p-2 bg-white/5 rounded border border-white/10">
+                <p className="text-[10px] text-gray-400">
+                  💡 Tip: Tu tasa de clic es buena, pero la conversión final
+                  podría mejorar con ofertas más agresivas.
+                </p>
+              </div>
+            </div>
+          }
+        />
+      </div>
+
+      {/* Active Offers List */}
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-white">Mis Ofertas Activas</h3>
+          <button
+            onClick={() => setIsCreateOfferOpen(true)}
+            className="flex items-center gap-2 bg-purple-500 hover:bg-purple-400 text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors shadow-lg shadow-purple-500/20"
+          >
+            <PlusIcon className="w-4 h-4" /> Crear Oferta
+          </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {offers.slice(0, 3).map((offer) => (
+            <div
+              key={offer.id}
+              className="bg-surface border border-white/10 rounded-xl p-4 flex gap-4 group hover:border-purple-500/50 transition-colors"
+            >
+              <img
+                src={offer.image}
+                className="w-16 h-16 rounded-lg object-cover bg-gray-800"
+              />
+              <div className="flex-1">
+                <div className="flex justify-between items-start">
+                  <h4 className="font-bold text-white text-sm">
+                    {offer.title}
+                  </h4>
+                  {offer.isFlash && (
+                    <SparklesIcon className="w-4 h-4 text-purple-400 animate-pulse" />
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 line-clamp-1">
+                  {offer.description}
+                </p>
+                <div className="flex justify-between items-end mt-2">
+                  <span className="text-xs font-bold text-purple-400">
+                    {offer.redemptions} canjes
+                  </span>
+                  <span className="text-[10px] bg-white/10 px-2 py-1 rounded text-gray-300">
+                    {offer.costTreevus} pts
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Live Feed */}
+      <div className="bg-surface border border-white/10 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+          <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+            Actividad en Vivo{" "}
+            <Tooltip content="Log de transacciones en tiempo real." />
+          </h3>
+        </div>
+        <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors border border-gray-100 dark:border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xs font-bold">
+                MC
+              </div>
+              <div>
+                <p className="text-xs text-gray-900 dark:text-white">
+                  Canjeó <span className="font-bold">"20% Dscto Menú"</span>
+                </p>
+                <p className="text-[10px] text-gray-500">Hace 2 min</p>
+              </div>
+            </div>
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+              +S/ 25.00
+            </span>
+          </div>
+          {/* Mock Item 2 */}
+          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors border border-gray-100 dark:border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300 flex items-center justify-center text-xs font-bold">
+                JP
+              </div>
+              <div>
+                <p className="text-xs text-gray-900 dark:text-white">
+                  Vio oferta <span className="font-bold">"Cena para Dos"</span>
+                </p>
+                <p className="text-[10px] text-gray-500">Hace 15 min</p>
+              </div>
+            </div>
+            <span className="text-gray-400 font-bold text-xs">--</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-// --- Main Dashboard View ---
+const EmployeeWallet: React.FC = () => {
+  const {
+    user,
+    expenses,
+    addExpense,
+    savingsGoals,
+    offers,
+    togglePricingModal,
+    contributeToGoal,
+    redeemOffer,
+    isBudgetModalOpen,
+    toggleBudgetModal,
+    addNotification,
+  } = useStore();
+
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [isManualOpen, setIsManualOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // --- AUTO-TRIGGER BUDGET SETUP ---
+  useEffect(() => {
+    if (user.monthlyBudget === 0) {
+      // If budget is 0, open config modal automatically via global trigger
+      toggleBudgetModal(true);
+    }
+  }, [user.monthlyBudget]);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper to sanitize IA Category to Enum
+  const mapCategory = (raw: string): ExpenseCategory => {
+    if (!raw) return ExpenseCategory.OTHER;
+    const values = Object.values(ExpenseCategory);
+    const match = values.find((v) => v.toLowerCase() === raw.toLowerCase());
+    if (match) return match;
+    // Heuristic mapping
+    if (raw.match(/food|comida|restaurante/i)) return ExpenseCategory.FOOD;
+    if (raw.match(/transport|taxi|uber/i)) return ExpenseCategory.TRANSPORT;
+    return ExpenseCategory.OTHER;
+  };
+
+  // Centralized Receipt Processor
+  const handleProcessReceipt = async (imageBase64: string) => {
+    setIsProcessing(true);
+    addNotification("Procesando recibo con IA...", "info");
+
+    try {
+      const result = await scanReceipt(imageBase64);
+
+      if (result.merchant.includes("Error")) {
+        throw new Error(result.merchant);
+      }
+
+      addExpense({
+        merchant: result.merchant,
+        amount: result.total, // Corrected from result.amount if API returns total
+        date: result.date,
+        category: mapCategory(result.category),
+        isFormal: result.isFormal,
+        ruc: result.ruc,
+      });
+
+      addNotification("Gasto analizado y guardado.", "success");
+    } catch (error) {
+      console.error("Receipt Processing Error:", error);
+      addNotification("Error al procesar el recibo. Intenta manual.", "error");
+    } finally {
+      setIsProcessing(false);
+      setIsCameraOpen(false);
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          const base64 = (event.target.result as string).split(",")[1];
+          handleProcessReceipt(base64);
+        }
+      };
+
+      reader.readAsDataURL(file);
+      setIsMenuOpen(false);
+    }
+  };
+
+  return (
+    <div className="pb-24 p-4 max-w-lg mx-auto animate-fadeIn relative min-h-screen">
+      {isCameraOpen && (
+        <CameraView
+          onCapture={handleProcessReceipt}
+          onClose={() => setIsCameraOpen(false)}
+        />
+      )}
+      {isGoalModalOpen && (
+        <ContributeGoalModal
+          goalId={isGoalModalOpen}
+          onClose={() => setIsGoalModalOpen(null)}
+        />
+      )}
+      {isBudgetModalOpen && (
+        <BudgetConfigModal onClose={() => toggleBudgetModal(false)} />
+      )}
+      {isManualOpen && (
+        <ManualExpenseModal onClose={() => setIsManualOpen(false)} />
+      )}
+
+      {/* Loading Overlay */}
+      {isProcessing && (
+        <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center">
+          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-white font-bold animate-pulse">
+            Analizando Comprobante...
+          </p>
+        </div>
+      )}
+
+      {/* Hidden File Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={handleFileUpload}
+      />
+
+      {/* Header: Now handled by main layout, but we keep spacing */}
+      <div className="h-4" />
+
+      {/* Hero Card */}
+      <TreevuCard />
+
+      {/* Analytics Section */}
+      <B2CAnalytics
+        expenses={expenses}
+        budget={user.monthlyBudget}
+        subscriptionTier={user.subscriptionTier}
+        onUpgrade={() => togglePricingModal(true)}
+      />
+
+      {/* Goals Section */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold text-white flex items-center gap-2">
+            <FlagIcon className="w-5 h-5 text-emerald-400" /> Mis Metas
+            <Tooltip content="Ahorros para objetivos específicos. Aporta desde tu saldo disponible." />
+          </h3>
+        </div>
+        <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x">
+          {savingsGoals.map((goal) => {
+            const percent = Math.min(
+              100,
+              Math.round((goal.currentAmount / goal.targetAmount) * 100)
+            );
+            return (
+              <div
+                key={goal.id}
+                className="min-w-[200px] bg-surface border border-white/10 rounded-2xl p-4 relative overflow-hidden snap-center group transition-transform hover:scale-[1.02]"
+              >
+                <div
+                  className={`absolute top-0 left-0 w-1 h-full ${goal.color}`}
+                ></div>
+
+                {/* Header with Image and Percent Badge */}
+                <div className="flex justify-between items-start mb-6">
+                  <div
+                    className={`p-1 rounded-xl bg-white/5 text-white relative`}
+                  >
+                    <img
+                      src={goal.image}
+                      className="w-10 h-10 rounded-lg object-cover opacity-90"
+                    />
+                    <div className="absolute -bottom-2 -right-2 bg-black/80 border border-white/10 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">
+                      {percent}%
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsGoalModalOpen(goal.id)}
+                    className="bg-white/10 hover:bg-white/20 text-emerald-400 p-2 rounded-full transition-colors"
+                  >
+                    <PlusIcon className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Content */}
+                <p className="text-xs text-gray-400 font-bold uppercase mb-1 truncate">
+                  {goal.title}
+                </p>
+                <div className="flex items-end gap-1 mb-2">
+                  <p className="text-lg font-bold text-white">
+                    S/ {goal.currentAmount}
+                  </p>
+                  <span className="text-[10px] text-gray-500 mb-1">
+                    de {goal.targetAmount}
+                  </span>
+                </div>
+
+                {/* Enhanced Progress Bar */}
+                <div className="w-full bg-gray-700/50 h-2 mt-2 rounded-full overflow-hidden border border-white/5">
+                  <div
+                    className={`h-full ${goal.color} transition-all duration-1000`}
+                    style={{ width: `${percent}%` }}
+                  ></div>
+                </div>
+              </div>
+            );
+          })}
+          {/* Add Goal Placeholder */}
+          <div className="min-w-[100px] bg-white/5 border border-dashed border-white/20 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-500 hover:bg-white/10 hover:text-white transition-colors cursor-pointer snap-center">
+            <PlusIcon className="w-6 h-6" />
+            <span className="text-xs font-bold">Nueva Meta</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Marketplace & Benefits Section */}
+      <div className="mt-8 mb-20">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold text-white flex items-center gap-2">
+            <ShoppingBagIcon className="w-5 h-5 text-yellow-400" /> Marketplace
+            & Beneficios
+          </h3>
+          <span className="text-xs text-emerald-400 font-bold cursor-pointer hover:underline">
+            Ver Todo
+          </span>
+        </div>
+
+        <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar snap-x">
+          {offers.map((offer) => (
+            <div
+              key={offer.id}
+              className={`min-w-[240px] bg-surface border rounded-2xl overflow-hidden snap-center relative group ${
+                offer.isCashback
+                  ? "border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.15)]"
+                  : "border-white/10"
+              }`}
+            >
+              {/* Badges */}
+              <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                {offer.type === OfferType.COMPANY && (
+                  <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-md border border-blue-400">
+                    Exclusivo
+                  </span>
+                )}
+                {offer.isFlash && (
+                  <span className="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-md flex items-center gap-1 border border-purple-400 animate-pulse">
+                    <BoltIcon className="w-3 h-3" /> Flash
+                  </span>
+                )}
+                {offer.isCashback && (
+                  <span className="bg-yellow-400 text-black text-[10px] font-bold px-2 py-0.5 rounded shadow-md flex items-center gap-1 border border-yellow-200">
+                    <CurrencyDollarIcon className="w-3 h-3" /> Cashback
+                  </span>
+                )}
+              </div>
+
+              <div className="h-28 bg-gray-800 relative">
+                <img
+                  src={offer.image}
+                  className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                />
+                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-3">
+                  <p className="text-white font-bold text-sm truncate">
+                    {offer.merchantName}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3">
+                <h4 className="text-white font-bold text-sm mb-1 truncate">
+                  {offer.title}
+                </h4>
+                <p className="text-[10px] text-gray-400 line-clamp-2 h-8">
+                  {offer.description}
+                </p>
+
+                <div className="mt-3 flex justify-between items-center">
+                  <div className="flex items-center gap-1">
+                    <span className="text-yellow-400 font-bold text-sm">
+                      {offer.costTreevus}
+                    </span>
+                    <span className="text-[10px] text-gray-500">pts</span>
+                  </div>
+                  <button
+                    onClick={() => redeemOffer(offer.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      user.treevus >= offer.costTreevus
+                        ? "bg-emerald-500 text-black hover:scale-105 shadow-lg"
+                        : "bg-white/10 text-gray-500 cursor-not-allowed"
+                    }`}
+                  >
+                    Canjear
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* FAB Speed Dial (Center Bottom) */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-4">
+        {/* Speed Dial Options */}
+        {isMenuOpen && (
+          <div className="flex flex-col gap-3 mb-2 animate-slideUp">
+            {/* Upload Option */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-12 h-12 rounded-full bg-surface border border-white/10 flex items-center justify-center text-white hover:bg-white/10 shadow-lg transition-transform hover:scale-110"
+            >
+              <PhotoIcon className="w-5 h-5" />
+            </button>
+            <span className="absolute right-16 bottom-[116px] text-xs font-bold text-white bg-black/80 px-2 py-1 rounded pointer-events-none">
+              Subir
+            </span>
+
+            {/* Manual Option */}
+            <button
+              onClick={() => {
+                setIsManualOpen(true);
+                setIsMenuOpen(false);
+              }}
+              className="w-12 h-12 rounded-full bg-surface border border-white/10 flex items-center justify-center text-white hover:bg-white/10 shadow-lg transition-transform hover:scale-110"
+            >
+              <PencilIcon className="w-5 h-5" />
+            </button>
+            <span className="absolute right-16 bottom-[60px] text-xs font-bold text-white bg-black/80 px-2 py-1 rounded pointer-events-none">
+              Manual
+            </span>
+
+            {/* Camera Option (Primary in Menu) */}
+            <button
+              onClick={() => {
+                setIsCameraOpen(true);
+                setIsMenuOpen(false);
+              }}
+              className="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center text-black shadow-[0_0_20px_rgba(52,211,153,0.5)] transition-transform hover:scale-110"
+            >
+              <CameraIcon className="w-6 h-6" />
+            </button>
+            <span className="absolute right-16 bottom-2 text-xs font-bold text-emerald-400 bg-black/80 px-2 py-1 rounded pointer-events-none">
+              Escanear
+            </span>
+          </div>
+        )}
+
+        {/* Main Trigger Button */}
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className={`w-16 h-16 rounded-full bg-gradient-to-r from-primary to-emerald-600 text-black shadow-[0_0_30px_rgba(52,211,153,0.4)] flex items-center justify-center transition-all duration-300 ${
+            isMenuOpen ? "rotate-45 scale-90" : "hover:scale-105"
+          }`}
+        >
+          <PlusIcon className="w-8 h-8" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Wrapper to manage Profile Menu State locally
+const ProfileMenuWrapper = () => {
+  const {
+    user,
+    switchRole,
+    togglePricingModal,
+    switchRole: signOut,
+  } = useStore(); // SignOut acts as role switch to GUEST
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      ></button>
+      <ProfileMenu
+        user={user}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onSwitchRole={switchRole}
+        onOpenPricing={() => togglePricingModal(true)}
+        onSignOut={() => switchRole(UserRole.GUEST)}
+      />
+    </>
+  );
+};
+
+// --- MAIN DASHBOARD VIEW ---
 
 const DashboardView: React.FC = () => {
-    const { role, user, switchRole, togglePricingModal, isChatOpen, toggleChat, currentView, goBack } = useStore();
-    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const {
+    role,
+    switchRole,
+    user,
+    isPricingOpen,
+    isChatOpen,
+    levelUp,
+    setLevelUp,
+    currentView,
+    goBack,
+  } = useStore();
 
-    if (role === UserRole.GUEST) {
-        return <AccessPortal onSelectRole={switchRole} />;
-    }
+  if (role === UserRole.GUEST) {
+    return <AccessPortal onSelectRole={switchRole} />;
+  }
 
-    const renderContent = () => {
-        if (currentView === AppView.PROFILE_DETAILS) return <ProfileDetailsView />;
-        if (currentView === AppView.SECURITY) return <SecurityView />;
-        if (currentView === AppView.SETTINGS) return <GeneralSettingsView />;
-        if (currentView === AppView.HELP) return <HelpView />;
-        
-        // Default Dashboard Views
-        switch (role) {
-            case UserRole.EMPLOYEE: return <EmployeeWallet />;
-            case UserRole.EMPLOYER: return <EmployerDashboard />;
-            case UserRole.MERCHANT: return <MerchantDashboard />;
-            default: return <div className="p-8 text-center text-gray-500">Role not found</div>;
-        }
-    };
+  // --- MAIN LAYOUT (Authenticated) ---
+  return (
+    <div className="min-h-screen bg-base text-gray-900 dark:text-white transition-colors duration-300 font-sans">
+      <PricingModal />
+      <OnboardingTour />
 
-    return (
-        <div className="min-h-screen flex flex-col relative">
-            <ToastContainer />
-            <PricingModal />
-            {isChatOpen && <AIChatOverlay />}
-
-            {/* Header */}
-            <header className="sticky top-0 z-50 bg-base/80 backdrop-blur-xl border-b border-white/10 px-4 py-3">
-                <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        {currentView !== AppView.DASHBOARD && (
-                            <button onClick={goBack} className="p-2 -ml-2 text-gray-400 hover:text-white transition-colors">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                            </button>
-                        )}
-                        <div onClick={() => switchRole(UserRole.GUEST)} className="cursor-pointer">
-                            <TreevuLogo />
-                        </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                        {/* Treevü Points Counter Pill */}
-                        <div className="hidden md:flex items-center gap-2 bg-black/20 border border-white/10 rounded-full px-3 py-1.5">
-                            <span className="text-lg">🌳</span>
-                            <span className="font-bold text-emerald-400 text-sm">{user.treevus.toLocaleString()}</span>
-                        </div>
-
-                        {/* AI Chat Trigger */}
-                        <button 
-                            onClick={() => toggleChat(!isChatOpen)}
-                            className={`p-2 rounded-full transition-all duration-300 ${isChatOpen ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]' : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'}`}
-                        >
-                            <SparklesIcon className="w-5 h-5" />
-                        </button>
-
-                        {/* Profile Menu Trigger */}
-                        <div className="relative">
-                            <button 
-                                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                                className="w-9 h-9 rounded-full border border-white/20 overflow-hidden hover:border-emerald-500 transition-colors"
-                            >
-                                <img src={user.avatarUrl} className="w-full h-full object-cover" />
-                            </button>
-                            <ProfileMenu 
-                                user={user} 
-                                isOpen={isProfileMenuOpen} 
-                                onClose={() => setIsProfileMenuOpen(false)}
-                                onSwitchRole={switchRole}
-                                onOpenPricing={() => togglePricingModal(true)}
-                                onSignOut={() => switchRole(UserRole.GUEST)}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            {/* Main Content Area */}
-            <main className="flex-1 relative">
-                {renderContent()}
-            </main>
+      {/* Header */}
+      <header className="sticky top-0 z-30 bg-base/80 backdrop-blur-lg border-b border-gray-200 dark:border-white/5 px-4 py-3 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          {currentView !== AppView.DASHBOARD && (
+            <button
+              onClick={goBack}
+              className="p-2 -ml-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+                />
+              </svg>
+            </button>
+          )}
+          <TreevuLogo />
         </div>
-    );
+
+        <div className="flex items-center gap-3">
+          {/* Treevüs Counter (Visible for everyone but Guest) */}
+          {role !== UserRole.GUEST && (
+            <div className="flex items-center gap-1.5 bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-full border border-gray-200 dark:border-white/10">
+              <span className="text-sm">🌳</span>
+              <span className="font-mono font-bold text-sm text-gray-900 dark:text-white">
+                {user.treevus}
+              </span>
+            </div>
+          )}
+
+          {/* AI Chat Trigger */}
+          <button
+            onClick={() => useStore().toggleChat(!isChatOpen)}
+            className="p-2 rounded-full bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 transition-colors relative"
+          >
+            <SparklesIcon className="w-5 h-5" />
+            {/* Dot indicator */}
+            <span className="absolute top-1.5 right-2 w-2 h-2 bg-indigo-500 rounded-full border border-white dark:border-black"></span>
+          </button>
+
+          {/* Profile */}
+          <div className="relative group">
+            <button className="w-9 h-9 rounded-full overflow-hidden border border-gray-200 dark:border-white/20 hover:border-primary transition-colors">
+              <img
+                src={user.avatarUrl}
+                className="w-full h-full object-cover"
+              />
+            </button>
+            <ProfileMenuWrapper />
+          </div>
+        </div>
+      </header>
+
+      {/* View Router */}
+      <main className="relative">
+        {currentView === AppView.DASHBOARD && (
+          <>
+            {role === UserRole.EMPLOYEE && <EmployeeWallet />}
+            {role === UserRole.EMPLOYER && <EmployerDashboard />}
+            {role === UserRole.MERCHANT && <MerchantDashboard />}
+          </>
+        )}
+
+        {/* Settings Views */}
+        {currentView === AppView.PROFILE_DETAILS && <ProfileDetailsView />}
+        {currentView === AppView.SECURITY && <SecurityView />}
+        {currentView === AppView.SETTINGS && <GeneralSettingsView />}
+        {currentView === AppView.HELP && <HelpView />}
+      </main>
+
+      {/* Global Overlays */}
+      <ToastContainer />
+      {isChatOpen && <AIChatOverlay />}
+      {levelUp && (
+        <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />
+      )}
+    </div>
+  );
 };
 
 export default DashboardView;

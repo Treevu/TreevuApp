@@ -75,7 +75,7 @@ export const scanReceipt = async (imageBase64: string): Promise<ReceiptScanResul
     // Fallback mock for demo stability if AI fails
     return {
       total: 0,
-      merchant: "Error de Lectura",
+      merchant: "Error de Lectura (IA)",
       ruc: "",
       date: new Date().toISOString(),
       category: "Otros",

@@ -5,7 +5,7 @@ import { UserRole } from '../types';
 import { QrCodeIcon, WifiIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 
 const TreevuCard: React.FC = () => {
-  const { user, role, companyKPIs, offers, hourlyTraffic, expenses } = useStore();
+  const { user, role, companyKPIs, offers, hourlyTraffic, expenses, toggleBudgetModal } = useStore();
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
   const [isFlipped, setIsFlipped] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -59,8 +59,9 @@ const TreevuCard: React.FC = () => {
         // Calculate Budget Dynamics for B2C Card
         const totalSpent = expenses.reduce((acc, curr) => acc + curr.amount, 0);
         const remaining = user.monthlyBudget - totalSpent;
-        const usagePct = (totalSpent / user.monthlyBudget) * 100;
+        const usagePct = user.monthlyBudget > 0 ? (totalSpent / user.monthlyBudget) * 100 : 0;
         const isOverBudget = remaining < 0;
+        const isZeroBudget = user.monthlyBudget === 0;
         
         // Strategy: "Dinero Inmediato" - Mock retrieved value from offers
         const mockSavings = 45.00; 
@@ -82,10 +83,11 @@ const TreevuCard: React.FC = () => {
           backData: [
             { 
                 l: 'DISPONIBLE (PPT)', 
-                v: `S/ ${remaining.toFixed(2)}`, 
+                v: isZeroBudget ? 'DEFINIR LÍMITE' : `S/ ${remaining.toFixed(2)}`, 
                 size: 'text-2xl', 
-                color: isOverBudget ? 'text-red-400' : 'text-emerald-400',
-                subText: `${usagePct.toFixed(0)}% Usado`
+                color: isZeroBudget ? 'text-yellow-400 animate-pulse' : (isOverBudget ? 'text-red-400' : 'text-emerald-400'),
+                subText: isZeroBudget ? 'Toca para configurar' : `${usagePct.toFixed(0)}% Usado`,
+                action: () => toggleBudgetModal(true)
             },
             { 
                 l: 'AHORRO RECUPERADO', 
@@ -212,7 +214,16 @@ const TreevuCard: React.FC = () => {
                      <div className="p-6 mt-0 flex justify-between items-center h-48">
                          <div className="flex-1 space-y-3">
                              {config.backData.map((item: any, idx) => (
-                                 <div key={idx} className="flex justify-between items-end border-b border-white/5 pb-1">
+                                 <div 
+                                    key={idx} 
+                                    className={`flex justify-between items-end border-b border-white/5 pb-1 ${item.action ? 'cursor-pointer hover:bg-white/5 rounded px-1 -mx-1 transition-colors' : ''}`}
+                                    onClick={(e) => {
+                                        if (item.action) {
+                                            e.stopPropagation();
+                                            item.action();
+                                        }
+                                    }}
+                                 >
                                      <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{item.l}</span>
                                      <div className="text-right">
                                          <div className={`font-mono font-bold ${item.color || 'text-white'} ${item.size || 'text-sm'}`}>{item.v}</div>

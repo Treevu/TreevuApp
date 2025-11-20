@@ -221,11 +221,9 @@ export const HelpView = () => {
             <div className="bg-gradient-to-r from-primary/20 to-accent/20 border border-white/10 rounded-2xl p-6 text-center mt-8">
                 <h3 className="text-xl font-bold text-white mb-2">¿Aún necesitas ayuda?</h3>
                 <p className="text-sm text-gray-300 mb-4">Nuestro equipo de soporte responde en menos de 24 horas.</p>
-                <a href="mailto:contacto@treevu.app">
-                    <button className="bg-white text-black font-bold py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors shadow-lg">
-                        Contactar Soporte
-                    </button>
-                </a>
+                <button className="bg-white text-black font-bold py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors shadow-lg">
+                    Contactar Soporte
+                </button>
             </div>
         </div>
     );

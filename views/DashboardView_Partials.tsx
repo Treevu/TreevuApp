@@ -1,8 +1,10 @@
 
-import React, { useState } from 'react';
-import { XMarkIcon, CheckCircleIcon, SparklesIcon, UserGroupIcon, PlusIcon, BanknotesIcon, TagIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
-import { TreevuLevel, OfferType } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { XMarkIcon, CheckCircleIcon, SparklesIcon, UserGroupIcon, PlusIcon, BanknotesIcon, TagIcon, CurrencyDollarIcon, PencilIcon, CalendarDaysIcon, BuildingStorefrontIcon, ArrowRightIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
+import { TreevuLevel, OfferType, UserRole, ExpenseCategory } from '../types';
 import { useStore } from '../contexts/Store';
+
+// ... (Previous exports: CreateOfferModal, ManualExpenseModal, ContributeGoalModal, BudgetConfigModal, RedemptionModal, FileImportModal, SquadSelectionModal, SquadZone, LevelUpModal, OnboardingTour) ...
 
 export const CreateOfferModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const { addOffer } = useStore();
@@ -22,7 +24,7 @@ export const CreateOfferModal: React.FC<{ onClose: () => void }> = ({ onClose })
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fadeIn" onClick={onClose}>
-            <div className="bg-surface p-6 rounded-2xl border border-white/10 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="bg-surface p-6 rounded-2xl border border-white/10 w-[95%] max-w-md shadow-2xl m-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-white font-bold text-xl flex items-center gap-2"><TagIcon className="w-6 h-6 text-purple-400" /> Crear Oferta</h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-white"><XMarkIcon className="w-6 h-6" /></button>
@@ -82,6 +84,127 @@ export const CreateOfferModal: React.FC<{ onClose: () => void }> = ({ onClose })
     );
 };
 
+export const ManualExpenseModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+    const { addExpense } = useStore();
+    const [amount, setAmount] = useState('');
+    const [merchant, setMerchant] = useState('');
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [isFormal, setIsFormal] = useState(false);
+    const [category, setCategory] = useState<ExpenseCategory>(ExpenseCategory.OTHER);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = () => {
+        if (!amount || !merchant) return;
+        const numAmount = parseFloat(amount);
+        if (numAmount <= 0) return;
+
+        setIsSubmitting(true);
+
+        // Simulate API latency
+        setTimeout(() => {
+            addExpense({
+                merchant,
+                amount: numAmount,
+                date,
+                category,
+                isFormal,
+                ruc: isFormal ? 'MANUAL_ENTRY' : undefined
+            });
+            setIsSubmitting(false);
+            onClose();
+        }, 600);
+    };
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fadeIn" onClick={onClose}>
+            <div className="bg-surface p-6 rounded-2xl border border-white/10 w-[95%] max-w-sm shadow-2xl m-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-white font-bold text-xl flex items-center gap-2">
+                        <PencilIcon className="w-6 h-6 text-emerald-400" /> Registro Manual
+                    </h3>
+                    <button onClick={onClose} className="text-gray-400 hover:text-white"><XMarkIcon className="w-6 h-6" /></button>
+                </div>
+
+                <div className="space-y-4">
+                    {/* Amount */}
+                    <div className="relative">
+                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">S/</span>
+                         <input 
+                            type="number" 
+                            className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-10 pr-4 text-white text-3xl font-bold focus:border-emerald-500 outline-none transition-colors text-center" 
+                            placeholder="0.00"
+                            value={amount}
+                            onChange={e => setAmount(e.target.value)}
+                            autoFocus
+                            min="0.1"
+                            step="0.1"
+                         />
+                    </div>
+
+                    {/* Merchant */}
+                    <div>
+                        <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Comercio</label>
+                        <div className="relative">
+                            <BuildingStorefrontIcon className="w-4 h-4 absolute left-3 top-3 text-gray-500" />
+                            <input 
+                                className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 pl-9 pr-3 text-white text-sm focus:border-emerald-500 outline-none" 
+                                placeholder="Ej. Bodega Pepe" 
+                                value={merchant}
+                                onChange={e => setMerchant(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Date & Category */}
+                    <div className="flex gap-3">
+                         <div className="flex-1">
+                            <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Fecha</label>
+                            <input 
+                                type="date"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-3 text-white text-sm focus:border-emerald-500 outline-none" 
+                                value={date}
+                                onChange={e => setDate(e.target.value)}
+                            />
+                         </div>
+                         <div className="flex-1">
+                            <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Categoría</label>
+                            <select 
+                                className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-3 text-white text-sm focus:border-emerald-500 outline-none appearance-none"
+                                value={category}
+                                onChange={e => setCategory(e.target.value as ExpenseCategory)}
+                            >
+                                {Object.values(ExpenseCategory).map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                         </div>
+                    </div>
+
+                    {/* Formal Toggle */}
+                    <div 
+                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${isFormal ? 'bg-emerald-500/20 border-emerald-500' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                        onClick={() => setIsFormal(!isFormal)}
+                    >
+                        <div className={`w-10 h-5 rounded-full p-0.5 transition-colors ${isFormal ? 'bg-emerald-500' : 'bg-gray-600'}`}>
+                             <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${isFormal ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                        </div>
+                        <div>
+                            <span className={`text-sm font-bold ${isFormal ? 'text-emerald-300' : 'text-gray-300'}`}>Gasto Formal</span>
+                            <p className="text-[10px] text-gray-500">Tengo boleta con DNI/RUC.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button 
+                    onClick={handleSubmit} 
+                    disabled={!amount || !merchant || isSubmitting || parseFloat(amount) <= 0}
+                    className="w-full mt-6 bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-3 rounded-xl hover:bg-emerald-400 shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02] flex items-center justify-center"
+                >
+                    {isSubmitting ? <span className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></span> : 'Guardar Gasto'}
+                </button>
+            </div>
+        </div>
+    );
+};
+
 export const ContributeGoalModal: React.FC<{ goalId: string | null; onClose: () => void }> = ({ goalId, onClose }) => {
     const { contributeToGoal, savingsGoals } = useStore();
     const goal = savingsGoals.find(g => g.id === goalId);
@@ -91,7 +214,7 @@ export const ContributeGoalModal: React.FC<{ goalId: string | null; onClose: () 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fadeIn" onClick={onClose}>
-            <div className="bg-surface p-6 rounded-2xl border border-white/10 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="bg-surface p-6 rounded-2xl border border-white/10 w-[95%] max-w-sm shadow-2xl m-4" onClick={e => e.stopPropagation()}>
                 <div className="text-center mb-6">
                     <div className="w-16 h-16 mx-auto bg-blue-500/20 rounded-full flex items-center justify-center mb-3">
                         <BanknotesIcon className="w-8 h-8 text-blue-400" />
@@ -133,7 +256,7 @@ export const BudgetConfigModal: React.FC<{ onClose: () => void }> = ({ onClose }
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fadeIn" onClick={onClose}>
-            <div className="bg-surface p-6 rounded-2xl border border-white/10 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="bg-surface p-6 rounded-2xl border border-white/10 w-[95%] max-w-sm shadow-2xl m-4" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-white font-bold text-lg flex items-center gap-2">
                         <CurrencyDollarIcon className="w-6 h-6 text-emerald-400" /> Configurar Presupuesto
@@ -166,7 +289,7 @@ export const BudgetConfigModal: React.FC<{ onClose: () => void }> = ({ onClose }
 
 export const RedemptionModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
-    <div className="bg-surface p-6 rounded-xl border border-white/10 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+    <div className="bg-surface p-6 rounded-xl border border-white/10 w-[95%] max-w-sm shadow-2xl m-4" onClick={e => e.stopPropagation()}>
       <h3 className="text-white font-bold text-center">Canje Exitoso</h3>
       <div className="flex justify-center my-4"><CheckCircleIcon className="w-12 h-12 text-emerald-500" /></div>
       <button onClick={onClose} className="mt-4 w-full bg-gray-700 text-white font-bold py-2 rounded-lg">Cerrar</button>
@@ -181,7 +304,7 @@ const SquadSelectionModal: React.FC<{ onClose: () => void }> = ({ onClose }) => 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fadeIn" onClick={onClose}>
-             <div className="bg-surface p-6 rounded-2xl border border-white/10 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+             <div className="bg-surface p-6 rounded-2xl border border-white/10 w-[95%] max-w-md shadow-2xl m-4" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-white font-bold text-xl">Únete a un Squad</h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-white"><XMarkIcon className="w-6 h-6" /></button>
@@ -281,9 +404,8 @@ export const SquadZone: React.FC = () => {
 
 export const LevelUpModal: React.FC<{ level: TreevuLevel; onClose: () => void }> = ({ level, onClose }) => (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md" onClick={onClose}>
-        <div className="relative w-full max-w-sm bg-surface border border-accent rounded-3xl p-8 text-center overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="relative w-full max-w-sm bg-surface border border-accent rounded-3xl p-8 text-center overflow-hidden m-4" onClick={e => e.stopPropagation()}>
             <div className="absolute inset-0 bg-gradient-to-b from-accent/20 to-transparent"></div>
-            {/* Confetti Element */}
             <div className="confetti" style={{ left: '20%' }}></div>
             <div className="confetti" style={{ left: '50%', animationDelay: '1s' }}></div>
             <div className="confetti" style={{ left: '80%', animationDelay: '0.5s' }}></div>
@@ -303,11 +425,31 @@ export const LevelUpModal: React.FC<{ level: TreevuLevel; onClose: () => void }>
 );
 
 export const AIChatOverlay: React.FC = () => {
-  const { toggleChat } = useStore();
-  
+  const { toggleChat, chatMessages, sendAIChatMessage, isAiThinking, role } = useStore();
+  const [input, setInput] = useState('');
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (input.trim()) {
+          sendAIChatMessage(input);
+          setInput('');
+      }
+  };
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, isAiThinking]);
+
+  // Determine Theme Color based on Role
+  const headerColor = role === UserRole.EMPLOYEE ? 'bg-gradient-to-r from-emerald-600 to-teal-600' :
+                      role === UserRole.EMPLOYER ? 'bg-gradient-to-r from-blue-600 to-cyan-600' :
+                      'bg-gradient-to-r from-purple-600 to-fuchsia-600';
+
   return (
-    <div className="fixed bottom-24 right-4 w-80 h-96 bg-surface/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden animate-slideUp">
-        <div className="p-4 bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-between">
+    <div className="fixed bottom-24 right-4 w-[90%] md:w-80 h-96 bg-surface/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col z-[150] overflow-hidden animate-slideUp mx-auto left-0 right-0 md:mx-0 md:left-auto">
+        <div className={`p-4 ${headerColor} flex items-center justify-between`}>
             <div className="flex items-center gap-2">
                 <SparklesIcon className="w-5 h-5 text-white" />
                 <h3 className="text-white font-bold text-sm">Asistente Treevü</h3>
@@ -316,18 +458,99 @@ export const AIChatOverlay: React.FC = () => {
                 <XMarkIcon className="w-5 h-5" />
             </button>
         </div>
-        <div className="flex-1 p-4 overflow-y-auto">
-            <div className="flex gap-2 mb-4">
-                <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300 text-xs">AI</div>
-                <div className="bg-white/10 rounded-r-xl rounded-bl-xl p-3 text-xs text-gray-200 max-w-[80%]">
-                    Hola, soy tu copiloto financiero. ¿En qué te ayudo hoy?
+
+        <div className="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-3">
+            {chatMessages.map((msg) => (
+                <div key={msg.id} className={`flex gap-2 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0 ${msg.sender === 'ai' ? 'bg-white/10 text-white' : 'bg-emerald-500 text-black'}`}>
+                        {msg.sender === 'ai' ? 'AI' : 'Yo'}
+                    </div>
+                    <div className={`rounded-2xl p-3 text-xs max-w-[80%] ${msg.sender === 'ai' ? 'bg-white/5 text-gray-200 rounded-tl-none' : 'bg-emerald-500/20 text-emerald-100 border border-emerald-500/30 rounded-tr-none'}`}>
+                        {msg.text}
+                    </div>
                 </div>
-            </div>
+            ))}
+            {isAiThinking && (
+                <div className="flex gap-2">
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs shrink-0 text-white">AI</div>
+                    <div className="bg-white/5 rounded-2xl rounded-tl-none p-3 flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-75"></div>
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-150"></div>
+                    </div>
+                </div>
+            )}
+            <div ref={chatEndRef} />
         </div>
-        <div className="p-3 border-t border-white/10">
-            <input type="text" placeholder="Escribe algo..." className="w-full bg-black/20 border border-white/10 rounded-full px-4 py-2 text-xs text-white outline-none focus:border-indigo-500" />
-        </div>
+
+        <form onSubmit={handleSubmit} className="p-3 border-t border-white/10 flex gap-2">
+            <input 
+                type="text" 
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Escribe algo..." 
+                className="flex-1 bg-black/20 border border-white/10 rounded-full px-4 py-2 text-xs text-white outline-none focus:border-white/30" 
+            />
+            <button type="submit" disabled={!input.trim() || isAiThinking} className="p-2 bg-white/10 rounded-full text-white hover:bg-white/20 disabled:opacity-50 transition-colors">
+                <PaperAirplaneIcon className="w-4 h-4" />
+            </button>
+        </form>
     </div>
   );
 };
-    
+
+export const OnboardingTour: React.FC = () => {
+  const { showTour, closeTour, role } = useStore();
+  const [step, setStep] = useState(0);
+
+  if (!showTour) return null;
+
+  const steps = role === UserRole.EMPLOYEE ? [
+    { title: 'Bienvenido a Treevü', desc: 'Tu pasaporte al bienestar financiero.', target: '' },
+    { title: 'Registra Gastos', desc: 'Usa el botón central para escanear recibos o ingresar gastos manuales.', target: '' },
+    { title: 'Sube de Nivel', desc: 'Acumula Treevüs para desbloquear mejores beneficios fiscales.', target: '' },
+  ] : role === UserRole.EMPLOYER ? [
+    { title: 'Panel de Control', desc: 'Monitorea el bienestar financiero de tu equipo en tiempo real.', target: '' },
+    { title: 'Reduce Riesgos', desc: 'Identifica áreas con alto riesgo de fuga de talento.', target: '' },
+  ] : [
+    { title: 'Panel de Socios', desc: 'Gestiona tus ofertas y atrae más clientes.', target: '' },
+    { title: 'Analítica', desc: 'Visualiza el impacto de tus campañas.', target: '' },
+  ];
+
+  const currentStep = steps[step] || steps[0];
+
+  const nextStep = () => {
+    if (step < steps.length - 1) {
+      setStep(step + 1);
+    } else {
+      closeTour();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-surface p-8 rounded-2xl border border-white/10 w-[95%] max-w-md text-center shadow-2xl relative overflow-hidden m-4" onClick={(e) => e.stopPropagation()}>
+         {/* Decorative BG */}
+         <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl"></div>
+         <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl"></div>
+
+         <h3 className="text-2xl font-bold text-white mb-2 relative z-10">{currentStep.title}</h3>
+         <p className="text-gray-400 mb-8 relative z-10">{currentStep.desc}</p>
+         
+         <div className="flex gap-2 justify-center mb-6 relative z-10">
+             {steps.map((_, i) => (
+                 <div key={i} className={`w-2 h-2 rounded-full transition-colors ${i === step ? 'bg-emerald-500' : 'bg-white/10'}`}></div>
+             ))}
+         </div>
+
+         <button onClick={nextStep} className="bg-emerald-500 text-black font-bold py-3 px-8 rounded-xl hover:scale-105 transition-transform shadow-lg relative z-10">
+             {step === steps.length - 1 ? '¡Comenzar!' : 'Siguiente'}
+         </button>
+
+         <button onClick={closeTour} className="absolute top-4 right-4 text-gray-500 hover:text-white z-20">
+             <XMarkIcon className="w-6 h-6" />
+         </button>
+      </div>
+    </div>
+  );
+};

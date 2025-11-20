@@ -3,7 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
 interface CameraViewProps {
-  onCapture: (result: any) => void;
+  onCapture: (imageBase64: string) => void;
   onClose: () => void;
 }
 
@@ -51,17 +51,8 @@ export const CameraView: React.FC<CameraViewProps> = ({ onCapture, onClose }) =>
         
         context.drawImage(videoRef.current, 0, 0, videoWidth, videoHeight);
         
-        // Mock AI Processing Logic
-        const mockResult = {
-            merchant: "Starbucks Coffee",
-            total: (Math.random() * 50 + 10).toFixed(2),
-            date: new Date().toISOString().split('T')[0],
-            category: "Food & Dining",
-            isFormal: Math.random() > 0.5,
-            ruc: Math.random() > 0.5 ? "20123456789" : undefined
-        };
-
-        onCapture(mockResult);
+        const imageBase64 = canvasRef.current.toDataURL('image/jpeg', 0.8).split(',')[1];
+        onCapture(imageBase64);
       }
     }
   };
