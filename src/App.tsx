@@ -1,7 +1,7 @@
 import React from 'react';
-import { StoreProvider } from './contexts/Store';
-import GlobalNetworkBackground from './components/Background';
-import DashboardView from './views/DashboardView';
+import { StoreProvider } from '@/contexts/Store';
+import GlobalNetworkBackground from '@/components/Background';
+import DashboardView from '@/views/DashboardView';
 
 function App() {
   return (

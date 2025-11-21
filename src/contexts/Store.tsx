@@ -1,8 +1,8 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { UserRole, UserProfile, Expense, Offer, TreevuLevel, ExpenseCategory, CompanyKPIs, SavingsGoal, Squad, SubscriptionTier, PlanConfig, MissionType, MissionStatus, OfferType, Kudo, AppTheme, Department, SafeToSpendGranularity, DashboardSummaryResponse, ProjectionFocusResponse, AppView, MerchantActivityLog, HourlyTrafficData, AppNotification, AIQueryResponse } from '../types';
-import { calculateLevel, calculateStreak, calculateExpensePoints } from '../services/gamificationService';
-import { queryFinancialAgent } from '../services/geminiService';
+import { UserRole, UserProfile, Expense, Offer, TreevuLevel, ExpenseCategory, CompanyKPIs, SavingsGoal, Squad, SubscriptionTier, PlanConfig, MissionType, MissionStatus, OfferType, Kudo, AppTheme, Department, SafeToSpendGranularity, DashboardSummaryResponse, ProjectionFocusResponse, AppView, MerchantActivityLog, HourlyTrafficData, AppNotification, AIQueryResponse } from '@/types';
+import { calculateLevel, calculateStreak, calculateExpensePoints } from '@/services/gamificationService';
+import { queryFinancialAgent } from '@/services/geminiService';
 
 // --- PRICING MATRIX CONFIGURATION (USD) ---
 export const PLANS: Record<UserRole, PlanConfig[]> = {
