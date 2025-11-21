@@ -23,7 +23,7 @@ import {
   StarIcon,
   UserCircleIcon,
   BoltIcon,
-  ArrowRightOnRectangleIcon,
+  ArrowRightStartOnRectangleIcon,
   TagIcon,
   UserGroupIcon,
   CurrencyDollarIcon,
@@ -494,8 +494,8 @@ const EmployerDashboard: React.FC = () => {
             size="md"
           />
         </div>
-        <div className="bg-surface border border-blue-200 dark:border-blue-500/30 p-4 rounded-xl relative overflow-hidden h-36 flex flex-col items-center justify-center hover:border-blue-400/50 transition-colors">
-          <div className="absolute top-2 right-2 z-20">
+        <div className="bg-surface border border-blue-200 dark:border-blue-500/30 p-4 rounded-xl relative h-36 flex flex-col items-center justify-center hover:border-blue-400/50 transition-colors">
+          <div className="absolute top-2 right-2 z-30">
             <Tooltip content="Probabilidad (%) de que empleados clave renuncien en 30 días." />
           </div>
           <PremiumFeatureLock
@@ -636,12 +636,9 @@ const EmployerDashboard: React.FC = () => {
         </div>
 
         {/* Matrix */}
-        <div className="bg-surface border border-blue-200 dark:border-blue-500/30 p-4 rounded-xl h-80 lg:h-[400px] relative overflow-hidden group">
-          <div className="absolute top-4 right-4 z-10">
-            <Tooltip
-              content="Matriz de Correlación: Eje Y = Bienestar (FWI), Eje X = Riesgo de Fuga."
-              position="left"
-            />
+        <div className="bg-surface border border-blue-200 dark:border-blue-500/30 p-4 rounded-xl h-80 lg:h-[400px] relative group">
+          <div className="absolute top-4 right-4 z-30">
+            <Tooltip content="Matriz de Correlación: Eje Y = Bienestar (FWI), Eje X = Riesgo de Fuga." />
           </div>
           <PremiumFeatureLock
             isLocked={isLocked}
@@ -817,8 +814,8 @@ const MerchantDashboard: React.FC = () => {
             {totalRedemptions}
           </p>
         </div>
-        <div className="bg-surface border border-purple-500/30 p-4 rounded-xl relative overflow-hidden group">
-          <div className="absolute top-2 right-2 z-20">
+        <div className="bg-surface border border-purple-500/30 p-4 rounded-xl relative group">
+          <div className="absolute top-2 right-2 z-30">
             <Tooltip content="Gasto promedio por cliente vs Sector." />
           </div>
           <h3 className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">
@@ -840,7 +837,7 @@ const MerchantDashboard: React.FC = () => {
           </div>
           {/* Upsell overlay for sector comparison if locked */}
           <div
-            className={`absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none ${
+            className={`absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-xl ${
               !isLocked ? "hidden" : ""
             }`}
           >
@@ -865,12 +862,15 @@ const MerchantDashboard: React.FC = () => {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Comparative Traffic Analysis */}
-        <div className="bg-surface border border-purple-500/30 rounded-xl p-6 relative overflow-hidden">
+        <div className="bg-surface border border-purple-500/30 rounded-xl p-6 relative">
           <div className="flex justify-between items-center mb-6 relative z-10">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
               <ChartBarIcon className="w-5 h-5 text-purple-400" /> Ritmo del
               Negocio
-              <Tooltip content="Afluencia por hora: Tu Negocio vs Promedio del Sector." />
+              <Tooltip
+                content="Afluencia por hora: Tu Negocio vs Promedio del Sector."
+                position="bottom"
+              />
             </h3>
             <PremiumFeatureLock
               isLocked={isLocked}
@@ -942,9 +942,12 @@ const MerchantDashboard: React.FC = () => {
             <div className="h-full flex flex-col">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <ArrowRightOnRectangleIcon className="w-5 h-5 text-purple-400" />{" "}
+                  <ArrowRightStartOnRectangleIcon className="w-5 h-5 text-purple-400" />{" "}
                   Embudo de Conversión
-                  <Tooltip content="Customer Journey: Desde que ven tu oferta hasta que compran." />
+                  <Tooltip
+                    content="Customer Journey: Desde que ven tu oferta hasta que compran."
+                    position="bottom"
+                  />
                 </h3>
               </div>
               <div className="flex-1 flex flex-col justify-center gap-1 px-4">
@@ -952,11 +955,13 @@ const MerchantDashboard: React.FC = () => {
                 <div className="w-full bg-gray-800/50 rounded-lg p-3 flex justify-between items-center border border-white/5 group hover:border-purple-500/30 transition-colors relative">
                   <div className="flex items-center gap-3">
                     <EyeIcon className="w-4 h-4 text-gray-400 group-hover:text-white" />
-                    <span className="text-xs text-gray-400 font-bold uppercase">
+                    <span className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase">
                       Vistas de Oferta
                     </span>
                   </div>
-                  <span className="font-mono font-bold text-white">12,450</span>
+                  <span className="text-[10px] sm:text-xs font-mono font-bold text-white">
+                    12,450
+                  </span>
                   {/* Connector Line */}
                   <div className="absolute left-1/2 -bottom-4 w-0.5 h-4 bg-gray-700 z-0 group-hover:bg-purple-500/50 transition-colors"></div>
                 </div>
@@ -973,11 +978,13 @@ const MerchantDashboard: React.FC = () => {
                 <div className="w-[80%] mx-auto bg-gray-800/50 rounded-lg p-3 flex justify-between items-center border border-white/5 group hover:border-purple-500/30 transition-colors relative">
                   <div className="flex items-center gap-3">
                     <CursorArrowRaysIcon className="w-4 h-4 text-gray-400 group-hover:text-white" />
-                    <span className="text-xs text-gray-400 font-bold uppercase">
+                    <span className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase">
                       Clics / Interés
                     </span>
                   </div>
-                  <span className="font-mono font-bold text-white">523</span>
+                  <span className="text-[10px] sm:text-xs font-mono font-bold text-white">
+                    523
+                  </span>
                   <div className="absolute left-1/2 -bottom-4 w-0.5 h-4 bg-gray-700 z-0 group-hover:bg-purple-500/50 transition-colors"></div>
                 </div>
 
@@ -993,11 +1000,11 @@ const MerchantDashboard: React.FC = () => {
                 <div className="w-[60%] mx-auto bg-gradient-to-r from-purple-900/40 to-fuchsia-900/40 rounded-lg p-3 flex justify-between items-center border border-purple-500/30 group hover:shadow-[0_0_15px_rgba(192,132,252,0.2)] transition-all">
                   <div className="flex items-center gap-3">
                     <ShoppingBagIcon className="w-4 h-4 text-purple-400 group-hover:text-white" />
-                    <span className="text-xs text-purple-200 font-bold uppercase">
+                    <span className="text-[10px] sm:text-xs text-purple-200 font-bold uppercase">
                       Canjes (Ventas)
                     </span>
                   </div>
-                  <span className="font-mono font-bold text-white text-lg">
+                  <span className="text-[10px] sm:text-xs font-mono font-bold text-white text-lg">
                     125
                   </span>
                 </div>
