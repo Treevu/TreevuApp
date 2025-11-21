@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useStore } from '../contexts/Store';
+import { useStore } from '@/contexts/Store';
 import { UserCircleIcon, ShieldCheckIcon, KeyIcon, DevicePhoneMobileIcon, BellIcon, EyeIcon, LockClosedIcon, EnvelopeIcon, ChevronDownIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 // --- PROFILE DETAILS VIEW ---

@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
-import { useStore } from "../contexts/Store";
-import { UserRole } from "../types";
+import { useStore } from "@/contexts/Store";
+import { UserRole } from "@/types";
 import {
   QrCodeIcon,
   WifiIcon,

@@ -1,8 +1,8 @@
 
 
 import React, { useState } from 'react';
-import { useStore } from '../contexts/Store';
-import { UserProfile, UserRole, SubscriptionTier, AppTheme, AppView } from '../types';
+import { useStore } from '@/contexts/Store';
+import { UserProfile, UserRole, SubscriptionTier, AppTheme, AppView } from '@/types';
 import { 
   UserCircleIcon, 
   Cog6ToothIcon, 

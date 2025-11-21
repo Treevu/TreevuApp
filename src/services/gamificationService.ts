@@ -1,5 +1,5 @@
 
-import { TreevuLevel } from "../types";
+import { TreevuLevel } from "@/types";
 
 // Level Thresholds
 const LEVEL_THRESHOLDS = {

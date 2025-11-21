@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useStore } from "../contexts/Store";
-import { scanReceipt } from "../services/geminiService";
+import { useStore } from "@/contexts/Store";
+import { scanReceipt } from "@/services/geminiService";
 import {
   UserRole,
   SubscriptionTier,
   AppView,
   OfferType,
   ExpenseCategory,
-} from "../types";
+} from "@/types";
 import {
   BuildingOfficeIcon,
   SparklesIcon,
@@ -35,19 +35,19 @@ import {
   ArrowLongRightIcon,
   FingerPrintIcon,
 } from "@heroicons/react/24/outline";
-import Tooltip from "../components/Tooltip";
-import { ScoreBadge, EmptyState } from "../components/UIAtoms";
-import FlipCard from "../components/FlipCard";
-import { StreamlinedAreaChart } from "../components/ModernCharts";
-import B2CAnalytics from "../components/B2CAnalytics";
-import PricingModal from "../components/PricingModal";
-import ProfileMenu from "../components/ProfileMenu";
+import Tooltip from "@/components/Tooltip";
+import { ScoreBadge, EmptyState } from "@/components/UIAtoms";
+import FlipCard from "@/components/FlipCard";
+import { StreamlinedAreaChart } from "@/components/ModernCharts";
+import B2CAnalytics from "@/components/B2CAnalytics";
+import PricingModal from "@/components/PricingModal";
+import ProfileMenu from "@/components/ProfileMenu";
 import {
   ProfileDetailsView,
   SecurityView,
   GeneralSettingsView,
   HelpView,
-} from "../components/SettingsViews";
+} from "@/components/SettingsViews";
 import { CameraView } from "../components/Camera";
 import TreevuCard from "../components/TreevuCard";
 import {

@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { ReceiptScanResult, CompanyKPIs, Expense, SavingsGoal, UserProfile, Offer, AIQueryResponse } from "../types";
+import { ReceiptScanResult, CompanyKPIs, Expense, SavingsGoal, UserProfile, Offer, AIQueryResponse } from "@/types";
 
 const API_KEY = process.env.API_KEY || '';
 

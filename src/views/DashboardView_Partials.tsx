@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { XMarkIcon, CheckCircleIcon, SparklesIcon, UserGroupIcon, PlusIcon, BanknotesIcon, TagIcon, CurrencyDollarIcon, PencilIcon, CalendarDaysIcon, BuildingStorefrontIcon, ArrowRightIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
-import { TreevuLevel, OfferType, UserRole, ExpenseCategory } from '../types';
-import { useStore } from '../contexts/Store';
+import { TreevuLevel, OfferType, UserRole, ExpenseCategory } from '@/types';
+import { useStore } from '@/contexts/Store';
 
 // ... (Previous exports: CreateOfferModal, ManualExpenseModal, ContributeGoalModal, BudgetConfigModal, RedemptionModal, FileImportModal, SquadSelectionModal, SquadZone, LevelUpModal, OnboardingTour) ...
 

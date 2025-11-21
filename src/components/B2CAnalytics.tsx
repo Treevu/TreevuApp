@@ -1,10 +1,10 @@
 
 import React, { useMemo } from 'react';
-import { Expense, SubscriptionTier } from '../types';
+import { Expense, SubscriptionTier } from '@/types';
 import { ChartPieIcon, ExclamationTriangleIcon, BoltIcon, CalendarDaysIcon, ScaleIcon, DocumentMagnifyingGlassIcon, SparklesIcon } from '@heroicons/react/24/outline';
-import FlipCard from './FlipCard';
-import { ScoreBadge } from './UIAtoms';
-import Tooltip from './Tooltip';
+import FlipCard from '@/components/FlipCard';
+import { ScoreBadge } from '@/components/UIAtoms';
+import Tooltip from '@/components/Tooltip';
 
 interface Props {
   expenses: Expense[];

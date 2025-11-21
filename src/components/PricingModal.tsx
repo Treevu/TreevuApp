@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { useStore, PLANS } from '../contexts/Store';
+import { useStore, PLANS } from '@/contexts/Store';
 import { XMarkIcon, CheckIcon, StarIcon } from '@heroicons/react/24/outline';
-import { UserRole } from '../types';
+import { UserRole } from '@/types';
 
 const PricingModal: React.FC = () => {
   const { isPricingOpen, togglePricingModal, role, user, upgradeSubscription } = useStore();
