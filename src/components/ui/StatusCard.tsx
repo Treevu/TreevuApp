@@ -7,6 +7,7 @@ import { useModal } from '@/hooks/useZustandCompat';
 import { generateMockTreevuId, getMemberSinceYear } from '@/utils';
 import TreevuLogoText from '@/components/ui/TreevuLogoText.tsx';
 import { User, BadgeType } from '@/types/user';
+import Logo from '@/components/ui/Logo';
 
 interface StatusCardProps { }
 
@@ -75,75 +76,50 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
     
     
     
-    let textColorClass = 'text-white';
-    let subTextColorClass = 'text-gray-300';
+    let textColorClass = 'text-black';
+    let subTextColorClass = 'text-gray-800';
 
     return (
         <div className="status-card-container w-full max-w-sm mx-auto aspect-[1.586/1]">
             <button
                 ref={ref}
-                className="w-full h-full p-0 border-0 bg-transparent text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary rounded-3xl"
+                className="w-full h-full status-card-btn p-0 border-0 text-left"
                 onClick={handleFlip}
                 aria-label="Voltear tarjeta para ver detalles"
             >
-                <div className={`status-card-inner ${isFlipped ? 'is-flipped' : ''}`}>
+                <div className={`status-card-inner card-material-brushed-metal rounded-3xl shadow-lg relative dark:ring-1 dark:ring-white/10   ${isFlipped ? 'is-flipped' : ''}`}>
                     {/* FRONT FACE */}
                     <div className={`status-card-face status-card-front shadow-lg`}>
-                        <div
-                            onClick={(e) => {
-                                e.stopPropagation();
-                            }}
-                            className={`absolute top-3 right-3 z-10 p-1.5 rounded-full transition-colors ${subTextColorClass} hover:bg-black/20`}
-                            aria-label="Personalizar tarjeta"
-                        >
-                            <PencilIcon className="w-4 h-4" />
-                        </div>
-                        <div className="flex justify-between items-start">
+                        <Logo className="absolute inset-0 m-auto w-2/3 h-2/3 text-black/5" />
+                        <div className="flex flex-row-reverse justify-between items-start">
                              <h2 className={`status-card-logo text-2xl font-bold `}>
-                                <TreevuLogoText middleColorClass={'text-white'} />
+                                <TreevuLogoText className="text-2xl font-bold text-emboss-light" colorClass={'text-gray-800'} />
                             </h2>
                             <div className="status-card-chip"></div>
                         </div>
                         
-                        <div>
+                        <div className='flex flex-col'>
                             <p className={`font-sans text-xl md:text-2xl tracking-widest ${textColorClass}`}>
+                                9883 3284829
                             </p>
-                            <div className={`flex items-center mt-2 ${subTextColorClass}`}>
-                                <span className="text-[8px] font-semibold leading-none mr-1.5 text-center">MIEMBRO<br/>DESDE</span>
-                                <span className={`font-mono text-base font-semibold ${textColorClass}`}>
-                                    ' {getMemberSinceYear()}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div className="flex justify-between items-end">
-                            <div className="flex-1 min-w-0">
-                                <p className={`text-lg font-semibold truncate ${textColorClass} `}></p>
-                                <div className="leading-tight">
-                                    <p className={`text-xs ${subTextColorClass}`}>Nivel: </p>
+                            <div className='flex flex-row justify-between items-end'>
+                                <div className={`flex items-center mt-2 ${subTextColorClass}`}>
+                                    <span className="text-[8px] font-semibold leading-none mr-1.5 text-center">MIEMBRO<br/>DESDE</span>
+                                    <span className={`font-mono text-base font-semibold ${textColorClass}`}>
+                                        {getMemberSinceYear()}
+                                    </span>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {(Object.keys(badgeData) as BadgeType[]).map(key => {
-                                    const badge = badgeData[key];
-                                    const Icon = badge.icon;
-                                    return (
-                                        <div key={key} className="tooltip-container">
-                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 'bg-black/20'`}>
-                                                <Icon className={`w-4 h-4 ${textColorClass}`} />
-                                            </div>
-                                            <div className="tooltip-box !w-36 text-center -translate-y-2">
-                                                <p className="font-bold">{badge.title}</p>
-                                                <p className="text-xs mt-1">¡Desbloqueado!</p>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
+                                <span>Mateo Rojas</span>
+                                <p className='flex flex-col items-end justify-center'>
+                                    <span className='text-2xl font-bold text-emboss-light'>1250 <i className="fa-solid fa-dollar-sign"></i></span>
+                                    <TreevuLogoText className="" isTreevus={true} colorClass={'text-gray-800'} />
+                                </p>
                             </div>
                         </div>
                     </div>
                      {/* BACK FACE */}
                     <div className={`status-card-face status-card-back shadow-lg !p-0 !justify-start`}>
+                        <Logo className="absolute inset-0 m-auto w-2/3 h-2/3 text-black/5" />
                         <div className="w-full h-full flex flex-col">
                             {/* Magnetic Strip */}
                             <div className="magnetic-strip mt-5"></div>
@@ -151,10 +127,10 @@ const StatusCard = forwardRef<HTMLButtonElement, StatusCardProps>((props, ref) =
                             <div className="p-4 flex-grow flex flex-col justify-between">
                                 <div>
                                     <h4 className={`font-bold ${textColorClass} mb-1 flex items-center gap-1.5`}>
-                                        ¿Qué es un <TreevuLogoText isTreevus={false} middleColorClass='text-gray-800'/>?
+                                        ¿Qué es un <TreevuLogoText isTreevus={false} colorClass='text-gray-800'/>?
                                     </h4>
                                     <p className={`text-xs ${subTextColorClass}`}>
-                                        Un treevü es más que una moneda; es el símbolo de tu crecimiento. Cada uno que cosechas es un paso adelante en tu maestría financiera, una prueba de que estás construyendo un futuro más fuerte. ¡Es el poder de tus hábitos en tus manos!
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed finibus scelerisque metus vitae volutpat. Sed ut sagittis nisi, eget molestie sem.
                                     </p>
                                 </div>
                                 <div className="flex items-end justify-between">

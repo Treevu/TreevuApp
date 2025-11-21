@@ -1,0 +1,151 @@
+.status-card-btn{
+  background-color: transparent;
+  .status-card-face{
+    color: black;
+  }
+}
+/* Card Flip & Material Styles */
+.status-card-container {
+  perspective: 1000px;
+}
+
+.status-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  transform-style: preserve-3d;
+}
+
+.status-card-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.status-card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.25rem;
+  overflow: hidden;
+}
+
+.status-card-back {
+  transform: rotateY(180deg);
+}
+
+.magnetic-strip {
+  min-height: 3rem;
+  width: 100%;
+  background-color: #333;
+}
+
+.status-card-inner{
+  .status-card-front, .status-card-back{
+    transition: opacity 0.6s ease;
+  }
+}
+
+.status-card-inner{
+  .status-card-front {
+    opacity: 1;
+  }
+}
+.status-card-inner.is-flipped{
+  .status-card-front {
+    opacity: 0;
+  }
+  .status-card-back {
+    opacity: 1;
+  }
+}
+
+
+.status-card-chip {
+  width: 48px;
+  height: 38px;
+  background: linear-gradient(135deg, #d4af37, #b48811);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.status-card-chip::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80%;
+  height: 60%;
+  border: 1px solid #e0c268;
+  border-radius: 2px;
+  transform: translate(-50%, -50%);
+}
+
+.status-card-chip::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 45%;
+  width: 1px;
+  height: 100%;
+  background-color: #e0c268;
+}
+
+/* Card Material Presets */
+.card-material-carbon-fiber {
+  background-color: #2a2a2a;
+  background-image: linear-gradient(45deg, rgba(0, 0, 0, 0.2) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.2) 75%, transparent 75%, transparent);
+  background-size: 20px 20px;
+  border: 1px solid #444;
+}
+
+.card-material-brushed-metal {
+  background-color: #c0c0c0;
+  background-image: linear-gradient(to right, #d3d3d3, #a9a9a9, #d3d3d3);
+}
+
+.card-material-holographic {
+  background-image: linear-gradient(115deg, #4fcf70, #fad648, #a767e5, #12bcfe, #44ce7b);
+  background-size: 500% 500%;
+  animation: holographic-bg 15s ease infinite;
+}
+
+@keyframes holographic-bg {
+  0% {
+    background-position: 0% 50%
+  }
+
+  50% {
+    background-position: 100% 50%
+  }
+
+  100% {
+    background-position: 0% 50%
+  }
+}
+
+.card-material-matte-black {
+  background-color: #1c1c1e;
+  border: 1px solid #3a3a3c;
+}
+
+.card-material-wood {
+  background-color: #855E42;
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><g fill="%23654321" fill-opacity="0.4"><path d="M0 0h40v40H0zM40 40h40v40H40z"/></g></svg>');
+}
+
+.card-material-marble {
+  background-color: #fdfdfd;
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><g fill-rule="evenodd"><g fill="%23dedede" fill-opacity="0.4"><path d="M0 50A50 50 0 0 1 50 0h50v50a50 50 0 0 1-50 50H0V50zm100 0V0h-50a50 50 0 0 1 50 50z"/></g></g></svg>');
+}
+
+.card-material-pearl {
+  background: #f0f0f0;
+  background: radial-gradient(circle, #ffffff 0%, #e8e8e8 100%);
+}

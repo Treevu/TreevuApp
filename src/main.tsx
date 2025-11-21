@@ -2,6 +2,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
+// tailwind CSS imports
+import '@/assets/scss/tailwind.css';
 // SCSS imports
 import '@/assets/scss/main.scss';
 

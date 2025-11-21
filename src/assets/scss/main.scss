@@ -1,5 +1,10 @@
+// ===================================
+// SASS @use directives (must be first)
+// ===================================
 
 @use './components/nav-tabs';
+@use './components/status-card';
+
 
 // ===================================
 // PrimeReact & PrimeIcons Imports
@@ -13,13 +18,5 @@
 
 // PrimeIcons
 @import 'primeicons/primeicons.css';
-
-// ===================================
-// Custom Component Styles
-// ===================================
-
-:root{
-  --background : rgb(15 23 42 / var(--tw-bg-opacity, 1));
-}
 
 

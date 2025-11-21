@@ -14,12 +14,12 @@ interface SubNavBarProps<T extends string> {
 
 const SubNavBar = <T extends string>({ tabs, activeTab, onTabClick }: SubNavBarProps<T>): React.ReactElement => {
     return (
-        <div className="flex p-1 bg-background rounded-full mb-4">
+        <div className="bg-background mb-2 grid grid-flow-col grid-rows-2 gap-4">
             {tabs.map(({ id, label, Icon }) => (
                 <button
                     key={id as string}
                     onClick={() => onTabClick(id)}
-                    className={`flex-1 text-center py-2 px-4 rounded-full font-bold text-sm transition-colors flex items-center justify-center gap-2 ${activeTab === id ? 'bg-surface text-on-surface shadow-sm' : 'text-on-surface-secondary hover:text-on-surface'}`}
+                    className={`flex-1 text-center py-2 px-4 rounded-full font-bold text-sm transition-colors flex items-center justify-center gap-2 border ${activeTab === id ? 'bg-surface border-surface text-on-surface shadow-sm' : 'text-on-surface-secondary border-transparent hover:border-white hover:text-on-surface'}`}
                     aria-pressed={activeTab === id}
                 >
                     {Icon && <Icon className="w-5 h-5" />}
