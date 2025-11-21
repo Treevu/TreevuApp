@@ -1,16 +1,19 @@
 import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
 import { StoreProvider } from '@/contexts/Store';
 import GlobalNetworkBackground from '@/components/Background';
-import DashboardView from '@/views/DashboardView';
+import AppRoutes from '@/routes';
 
 function App() {
   return (
-    <StoreProvider>
-      <GlobalNetworkBackground />
-      <div className="relative min-h-screen text-white font-sans selection:bg-primary selection:text-black">
-        <DashboardView />
-      </div>
-    </StoreProvider>
+    <BrowserRouter>
+      <StoreProvider>
+        <GlobalNetworkBackground />
+        <div className="relative min-h-screen text-white font-sans selection:bg-primary selection:text-black">
+          <AppRoutes />
+        </div>
+      </StoreProvider>
+    </BrowserRouter>
   );
 }
 

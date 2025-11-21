@@ -448,7 +448,7 @@ export const AIChatOverlay: React.FC = () => {
                       'bg-gradient-to-r from-purple-600 to-fuchsia-600';
 
   return (
-    <div className="fixed bottom-24 right-4 w-[90%] md:w-80 h-96 bg-surface/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col z-[150] overflow-hidden animate-slideUp mx-auto left-0 right-0 md:mx-0 md:left-auto">
+    <div className="fixed bottom-24 w-[90%] md:w-80 h-96 bg-surface/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col z-[150] overflow-hidden animate-slideUp mx-auto left-0 right-0 md:mx-0 md:left-auto">
         <div className={`p-4 ${headerColor} flex items-center justify-between`}>
             <div className="flex items-center gap-2">
                 <SparklesIcon className="w-5 h-5 text-white" />
