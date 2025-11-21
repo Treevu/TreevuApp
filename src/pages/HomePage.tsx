@@ -58,7 +58,7 @@ const AccessPortal: React.FC<{ onSelectRole: (r: UserRole) => void }> = ({
             icon={UserCircleIcon}
             title="Persona"
             subtitle="People"
-            description="Comprobante capturado, control asegurado. Tu billetera inteligente potenciada por gamificación."
+            description="Gestiona tus gastos y beneficios Personales. Obtén control financiero detallado y accede a beneficios exclusivos."
             theme="emerald"
             onClick={() => onSelectRole(UserRole.EMPLOYEE)}
             delay="0.1s"
@@ -71,7 +71,7 @@ const AccessPortal: React.FC<{ onSelectRole: (r: UserRole) => void }> = ({
             icon={BuildingOfficeIcon}
             title="Empresa"
             subtitle="Corporate"
-            description="La inteligencia que reduce el riesgo de fuga. Analítica predictiva para retener a tu mejor talento."
+            description="Mitiga el riesgo de fuga con analisis predictivos y asegura la retención de tu mejor talento humano."
             theme="blue"
             onClick={() => onSelectRole(UserRole.EMPLOYER)}
             delay="0.2s"
@@ -84,7 +84,7 @@ const AccessPortal: React.FC<{ onSelectRole: (r: UserRole) => void }> = ({
             icon={StarIcon}
             title="Socio"
             subtitle="Partner"
-            description="De ofertas a aciertos. IA Marketing que convierte visitas anónimas en ventas reales."
+            description="Transformar datos de navegación anónimos en perfiles de potenciales clientes"
             theme="purple"
             onClick={() => onSelectRole(UserRole.MERCHANT)}
             delay="0.3s"

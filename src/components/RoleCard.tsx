@@ -15,7 +15,7 @@ const RoleCard: React.FC<{
 }> = ({ role, icon: Icon, title, subtitle, description, theme, onClick, delay }) => {
   const themeStyles = {
     emerald: {
-      bg: "group-hover:bg-emerald-900/20",
+      bg: "hover:bg-emerald-900/20",
       border: "group-hover:border-emerald-500/50",
       iconBg: "bg-emerald-500/10 text-emerald-400",
       glow: "shadow-[0_0_50px_-12px_rgba(52,211,153,0.3)]",
@@ -23,7 +23,7 @@ const RoleCard: React.FC<{
       btn: "bg-emerald-500 text-black hover:bg-emerald-400",
     },
     blue: {
-      bg: "group-hover:bg-blue-900/20",
+      bg: "hover:bg-blue-900/20",
       border: "group-hover:border-blue-500/50",
       iconBg: "bg-blue-500/10 text-blue-400",
       glow: "shadow-[0_0_50px_-12px_rgba(96,165,250,0.3)]",
@@ -31,7 +31,7 @@ const RoleCard: React.FC<{
       btn: "bg-blue-500 text-white hover:bg-blue-400",
     },
     purple: {
-      bg: "group-hover:bg-purple-900/20",
+      bg: "hover:bg-purple-900/20",
       border: "group-hover:border-purple-500/50",
       iconBg: "bg-purple-500/10 text-purple-400",
       glow: "shadow-[0_0_50px_-12px_rgba(192,132,252,0.3)]",
@@ -45,15 +45,10 @@ const RoleCard: React.FC<{
   return (
     <div
       onClick={onClick}
-      className={`group relative w-full rounded-[2rem] border border-white/10 bg-surface/40 backdrop-blur-sm cursor-pointer transition-all duration-500 hover:-translate-y-2 overflow-hidden ${s.border} animate-fadeIn`}
+      className={`group relative w-full rounded-[2rem] min-h-[170px] lg:min-h-[255px] border border-white/10 bg-surface/40 backdrop-blur-sm cursor-pointer transition-all duration-500 hover:-translate-y-2 ${s.bg} overflow-hidden animate-fadeIn`}
       style={{ animationDelay: delay }}>
-      {/* Hover Background Glow */}
-      <div className={`absolute inset-0 opacity-0 ${s.bg} transition-opacity duration-500`}></div>
 
-      {/* Top Highlight Line */}
-      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50"></div>
-
-      <div className="relative z-10 h-full flex flex-col p-6">
+      <div className={`relative z-10 h-full flex flex-col p-6`}>
         {/* Icon Container */}
         <div className="flex flex-row justify-start items-center">
           <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl ${s.iconBg} border border-white/5 flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 ${s.glow}`}>
@@ -67,7 +62,7 @@ const RoleCard: React.FC<{
 
         {/* Bottom Action */}
         <div className="mt-4 flex items-center justify-between pt-4 md:pt-6 border-t border-white/5">
-          <p className="max-w-[80%] text-xs md:text-sm text-gray-400 leading-relaxed pl-4 group-hover:border-white/30 transition-colors">{description}</p>
+          <p className="text-start max-w-[80%] text-xs md:text-sm text-gray-400 leading-relaxed pl-0 group-hover:border-white/30 transition-colors">{description}</p>
           <button className={`h-10 w-10 md:h-12 md:w-12 rounded-full ${s.btn} flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110`}>
             <ArrowLongRightIcon className="w-5 h-5 md:w-6 md:h-6" />
           </button>
