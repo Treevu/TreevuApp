@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useStore } from "../contexts/Store";
-import { scanReceipt } from "../services/geminiService";
+import { useStore } from "@/contexts/Store";
+import { scanReceipt } from "@/services/geminiService";
 import {
   UserRole,
   SubscriptionTier,
   AppView,
   OfferType,
   ExpenseCategory,
-} from "../types";
+} from "@/types";
 import {
   BuildingOfficeIcon,
   SparklesIcon,
@@ -35,21 +35,21 @@ import {
   ArrowLongRightIcon,
   FingerPrintIcon,
 } from "@heroicons/react/24/outline";
-import Tooltip from "../components/Tooltip";
-import { ScoreBadge, EmptyState } from "../components/UIAtoms";
-import FlipCard from "../components/FlipCard";
-import { StreamlinedAreaChart } from "../components/ModernCharts";
-import B2CAnalytics from "../components/B2CAnalytics";
-import PricingModal from "../components/PricingModal";
-import ProfileMenu from "../components/ProfileMenu";
+import Tooltip from "@/components/Tooltip";
+import { ScoreBadge, EmptyState } from "@/components/UIAtoms";
+import FlipCard from "@/components/FlipCard";
+import { StreamlinedAreaChart } from "@/components/ModernCharts";
+import B2CAnalytics from "@/components/B2CAnalytics";
+import PricingModal from "@/components/PricingModal";
+import ProfileMenu from "@/components/ProfileMenu";
 import {
   ProfileDetailsView,
   SecurityView,
   GeneralSettingsView,
   HelpView,
-} from "../components/SettingsViews";
-import { CameraView } from "../components/Camera";
-import TreevuCard from "../components/TreevuCard";
+} from "@/components/SettingsViews";
+import { CameraView } from "@/components/Camera";
+import TreevuCard from "@/components/TreevuCard";
 import {
   CreateOfferModal,
   ContributeGoalModal,
@@ -61,19 +61,13 @@ import {
   AIChatOverlay,
   OnboardingTour,
   ManualExpenseModal,
-} from "./DashboardView_Partials";
+} from "@/views/DashboardView_Partials";
 
+import TreevuLogo from "@/components/TreevuLogo";
+import RoleCard from "@/components/RoleCard";
 // --- Local Components ---
 
-const TreevuLogo: React.FC<{ size?: string }> = ({ size = "text-xl" }) => (
-  <span
-    className={`font-sans font-bold tracking-tight flex items-baseline justify-center ${size}`}
-  >
-    <span className="text-emerald-500">tree</span>
-    <span className="text-red-500">v</span>
-    <span className="text-emerald-500">ü</span>
-  </span>
-);
+
 
 const ToastContainer: React.FC = () => {
   const { notifications, removeNotification } = useStore();
@@ -221,216 +215,6 @@ const MatrixInsightModal: React.FC<{
             <li>Activar beneficios de "Salario On-Demand".</li>
           </ul>
         </div>
-      </div>
-    </div>
-  );
-};
-
-// --- MODERN ROLE CARD ---
-const RoleCard: React.FC<{
-  role: UserRole;
-  icon: React.ElementType;
-  title: string;
-  subtitle: string;
-  description: string;
-  theme: "emerald" | "blue" | "purple";
-  onClick: () => void;
-  delay: string;
-}> = ({
-  role,
-  icon: Icon,
-  title,
-  subtitle,
-  description,
-  theme,
-  onClick,
-  delay,
-}) => {
-  const themeStyles = {
-    emerald: {
-      bg: "group-hover:bg-emerald-900/20",
-      border: "group-hover:border-emerald-500/50",
-      iconBg: "bg-emerald-500/10 text-emerald-400",
-      glow: "shadow-[0_0_50px_-12px_rgba(52,211,153,0.3)]",
-      text: "text-emerald-400",
-      btn: "bg-emerald-500 text-black hover:bg-emerald-400",
-    },
-    blue: {
-      bg: "group-hover:bg-blue-900/20",
-      border: "group-hover:border-blue-500/50",
-      iconBg: "bg-blue-500/10 text-blue-400",
-      glow: "shadow-[0_0_50px_-12px_rgba(96,165,250,0.3)]",
-      text: "text-blue-400",
-      btn: "bg-blue-500 text-white hover:bg-blue-400",
-    },
-    purple: {
-      bg: "group-hover:bg-purple-900/20",
-      border: "group-hover:border-purple-500/50",
-      iconBg: "bg-purple-500/10 text-purple-400",
-      glow: "shadow-[0_0_50px_-12px_rgba(192,132,252,0.3)]",
-      text: "text-purple-400",
-      btn: "bg-purple-500 text-white hover:bg-purple-400",
-    },
-  };
-
-  const s = themeStyles[theme];
-
-  return (
-    <div
-      onClick={onClick}
-      className={`group relative h-[380px] md:h-[450px] w-full rounded-[2rem] border border-white/10 bg-surface/40 backdrop-blur-sm cursor-pointer transition-all duration-500 hover:-translate-y-2 overflow-hidden ${s.border} animate-fadeIn`}
-      style={{ animationDelay: delay }}
-    >
-      {/* Hover Background Glow */}
-      <div
-        className={`absolute inset-0 opacity-0 ${s.bg} transition-opacity duration-500`}
-      ></div>
-
-      {/* Top Highlight Line */}
-      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50"></div>
-
-      <div className="relative z-10 h-full flex flex-col p-6 md:p-8">
-        {/* Icon Container */}
-        <div
-          className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl ${s.iconBg} border border-white/5 flex items-center justify-center mb-6 md:mb-8 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 ${s.glow}`}
-        >
-          <Icon className="w-8 h-8 md:w-10 md:h-10" />
-        </div>
-
-        {/* Titles */}
-        <div className="mb-auto">
-          <p
-            className={`text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase mb-2 ${s.text} opacity-80`}
-          >
-            {subtitle}
-          </p>
-          <h3 className="text-3xl md:text-4xl font-extrabold text-white mb-3 md:mb-4 tracking-tight">
-            {title}
-          </h3>
-          <p className="text-xs md:text-sm text-gray-400 leading-relaxed border-l-2 border-white/10 pl-4 group-hover:border-white/30 transition-colors">
-            {description}
-          </p>
-        </div>
-
-        {/* Bottom Action */}
-        <div className="mt-4 md:mt-8 flex items-center justify-between pt-4 md:pt-6 border-t border-white/5">
-          <div className="flex flex-col">
-            <span className="text-[9px] md:text-[10px] text-gray-500 uppercase tracking-widest">
-              Acceso
-            </span>
-            <span className="text-white text-[10px] md:text-xs font-bold flex items-center gap-1">
-              <FingerPrintIcon className="w-3 h-3" /> Biometric Ready
-            </span>
-          </div>
-          <button
-            className={`h-10 w-10 md:h-12 md:w-12 rounded-full ${s.btn} flex items-center justify-center shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-0 rotate-[-45deg]`}
-          >
-            <ArrowLongRightIcon className="w-5 h-5 md:w-6 md:h-6" />
-          </button>
-        </div>
-      </div>
-
-      {/* Decorative Noise */}
-      <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] pointer-events-none"></div>
-    </div>
-  );
-};
-
-const AccessPortal: React.FC<{ onSelectRole: (r: UserRole) => void }> = ({
-  onSelectRole,
-}) => {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden bg-[#0F0F11]">
-      {/* Modern Background Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
-
-      {/* Ambient Spotlights */}
-      <div className="absolute top-[-10%] left-[20%] w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse-slow"></div>
-      <div
-        className="absolute bottom-[-10%] right-[20%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse-slow"
-        style={{ animationDelay: "2s" }}
-      ></div>
-
-      {/* Header Section */}
-      <div className="text-center mb-12 md:mb-16 animate-slideUp relative z-20 w-full max-w-4xl mx-auto flex flex-col items-center">
-        <div className="mb-4 md:mb-6 inline-block">
-          <div className="bg-white/5 border border-white/10 rounded-full px-4 md:px-6 py-1.5 md:py-2 backdrop-blur-md">
-            <p className="text-[8px] md:text-[10px] font-bold tracking-[0.3em] text-gray-300 uppercase">
-              Ecosistema Financiero v2.5
-            </p>
-          </div>
-        </div>
-
-        <div className="mb-2 md:mb-4 transform hover:scale-105 transition-transform duration-500 flex justify-center">
-          <TreevuLogo size="text-6xl md:text-9xl" />
-        </div>
-
-        <h2 className="text-lg md:text-3xl font-medium text-gray-400 tracking-tight max-w-2xl mx-auto leading-relaxed px-4 text-center">
-          Donde el{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 font-bold">
-            Bienestar
-          </span>{" "}
-          se encuentra con la{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 font-bold">
-            Data
-          </span>
-          .
-        </h2>
-      </div>
-
-      {/* Cards Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full max-w-6xl px-2 md:px-4 relative z-20">
-        <div className="animate-fadeIn" style={{ animationDelay: "0.1s" }}>
-          <RoleCard
-            role={UserRole.EMPLOYEE}
-            icon={UserCircleIcon}
-            title="Persona"
-            subtitle="B2C / Personal"
-            description="Comprobante capturado, control asegurado. Tu billetera inteligente potenciada por gamificación."
-            theme="emerald"
-            onClick={() => onSelectRole(UserRole.EMPLOYEE)}
-            delay="0.1s"
-          />
-        </div>
-
-        <div className="animate-fadeIn" style={{ animationDelay: "0.2s" }}>
-          <RoleCard
-            role={UserRole.EMPLOYER}
-            icon={BuildingOfficeIcon}
-            title="Empresa"
-            subtitle="B2B / Corporate"
-            description="La inteligencia que reduce el riesgo de fuga. Analítica predictiva para retener a tu mejor talento."
-            theme="blue"
-            onClick={() => onSelectRole(UserRole.EMPLOYER)}
-            delay="0.2s"
-          />
-        </div>
-
-        <div className="animate-fadeIn" style={{ animationDelay: "0.3s" }}>
-          <RoleCard
-            role={UserRole.MERCHANT}
-            icon={StarIcon}
-            title="Socio"
-            subtitle="B2B2C / Partner"
-            description="De ofertas a aciertos. IA Marketing que convierte visitas anónimas en ventas reales."
-            theme="purple"
-            onClick={() => onSelectRole(UserRole.MERCHANT)}
-            delay="0.3s"
-          />
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="mt-12 md:mt-16 flex flex-col items-center gap-2 opacity-40 hover:opacity-80 transition-opacity">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span className="text-[10px] font-mono text-white tracking-widest">
-            SYSTEM OPERATIONAL
-          </span>
-        </div>
-        <p className="text-[10px] text-gray-500 font-mono">
-          POWERED BY GEMINI 2.5 FLASH • SECURE ENCLAVE
-        </p>
       </div>
     </div>
   );
@@ -1235,12 +1019,12 @@ const EmployeeWallet: React.FC = () => {
           onClose={() => setIsGoalModalOpen(null)}
         />
       )}
-      {isBudgetModalOpen && (
+      {/* {isBudgetModalOpen && (
         <BudgetConfigModal onClose={() => toggleBudgetModal(false)} />
       )}
       {isManualOpen && (
         <ManualExpenseModal onClose={() => setIsManualOpen(false)} />
-      )}
+      )} */}
 
       {/* Loading Overlay */}
       {isProcessing && (
@@ -1539,40 +1323,24 @@ const DashboardView: React.FC = () => {
   } = useStore();
 
   if (role === UserRole.GUEST) {
-    return <AccessPortal onSelectRole={switchRole} />;
+    // return <AccessPortal onSelectRole={switchRole} />;
   }
 
   // --- MAIN LAYOUT (Authenticated) ---
   return (
     <div className="min-h-screen bg-base text-gray-900 dark:text-white transition-colors duration-300 font-sans">
       <PricingModal />
-      <OnboardingTour />
+      {/* <OnboardingTour /> */}
 
       {/* Header */}
       <header className="sticky top-0 z-30 bg-base/80 backdrop-blur-lg border-b border-gray-200 dark:border-white/5 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          {currentView !== AppView.DASHBOARD && (
             <button
               onClick={goBack}
-              className="p-2 -ml-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400"
+              className="p-2 -ml-2 rounded-full"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-5 h-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-                />
-              </svg>
+              <TreevuLogo size="text-3xl" />
             </button>
-          )}
-          <TreevuLogo />
         </div>
 
         <div className="flex items-center gap-3">
