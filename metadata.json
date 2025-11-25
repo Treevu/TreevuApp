@@ -1,8 +1,5 @@
 {
-  "name": "MVP treevü ",
-  "description": "High-fidelity Financial Wellness PWA integrating B2C, B2B, and Merchant ecosystems with AI-driven insights.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ]
+  "name": "Treevü Proactive",
+  "description": "A collective intelligence platform for financial wellness, featuring predictive liquidity alerts, AI-powered expense tracking, and B2B risk analytics.",
+  "requestFramePermissions": []
 }
