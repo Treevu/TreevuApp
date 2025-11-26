@@ -4,10 +4,20 @@ import { ExpenseAnalysis } from "../types";
 
 // Initialize the client using the environment variable directly as per guidelines.
 // This allows the bundler to replace process.env.API_KEY inline without needing a process polyfill.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let ai: GoogleGenAI | null = null;
+try {
+  if (process.env.API_KEY) {
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  } else {
+    console.warn("API_KEY is missing. Gemini features will use fallback mocks.");
+  }
+} catch (e) {
+  console.warn("Failed to initialize GoogleGenAI. Using fallback mocks.", e);
+}
 
 export const classifyExpense = async (inputText: string): Promise<ExpenseAnalysis> => {
   try {
+    if (!ai) throw new Error("AI not initialized");
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Actúa como el motor financiero de Treevü. Analiza este gasto: "${inputText}". 
@@ -94,6 +104,7 @@ export const classifyExpense = async (inputText: string): Promise<ExpenseAnalysi
 
 export const getFinancialAdvice = async (fwiScore: number, recentTransactions: any[]) => {
    try {
+    if (!ai) throw new Error("AI not initialized");
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `El usuario tiene un Puntaje de Bienestar Financiero de ${fwiScore}/100. Transacciones recientes: ${JSON.stringify(recentTransactions.slice(0, 3))}. Dame una sola frase corta (Nudge) de recomendación o aliento en español latino neutro.`,
@@ -106,6 +117,7 @@ export const getFinancialAdvice = async (fwiScore: number, recentTransactions: a
 
 export const getOfferPitch = async (offerTitle: string, fwiScore: number) => {
   try {
+    if (!ai) throw new Error("AI not initialized");
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Escribe un pitch de venta muy corto y persuasivo (máximo 10 palabras) en español para una oferta titulada "${offerTitle}". El usuario tiene un Score Financiero de ${fwiScore}/100. Si es bajo, enfócate en seguridad/ahorro. Si es alto, enfócate en crecimiento/recompensa.`,
@@ -118,6 +130,7 @@ export const getOfferPitch = async (offerTitle: string, fwiScore: number) => {
 
 export const chatWithFinancialAdvisor = async (userMessage: string, fwiScore: number, income: number, transactions: any[]) => {
   try {
+    if (!ai) throw new Error("AI not initialized");
     const context = `
       Eres "Treevü Brain", un asistente financiero experto y empático.
       PERFIL DEL USUARIO:

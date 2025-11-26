@@ -1,1620 +1,877 @@
 
 import React, { useState, useMemo } from 'react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  ScatterChart,
-  Scatter,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis
-} from 'recharts';
-import { 
-  Store, 
-  ArrowUpRight, 
-  ToggleLeft, 
-  ToggleRight, 
-  Plus, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock,
-  X,
-  Filter,
-  PieChart as PieChartIcon,
-  BarChart2,
-  Settings,
-  LogOut,
-  FileBarChart,
-  Database,
-  Shield,
-  Server,
-  Layers,
-  ShieldCheck,
-  MousePointer,
-  Maximize2,
-  Link,
-  TrendingUp,
-  DollarSign,
-  Inbox,
-  ClipboardCheck,
-  Download,
-  FileText,
-  UserCheck,
-  XCircle,
-  RefreshCw,
-  Briefcase,
-  Users
-} from 'lucide-react';
-import { EmployeeRisk } from '../types';
-
-// --- MOCK DATA FOR B2B ANALYTICS ---
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter, LineChart, Line, PieChart, Pie, Cell, Legend, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area } from 'recharts';
+import { Store, ArrowUpRight, ToggleLeft, ToggleRight, Plus, AlertTriangle, CheckCircle, Clock, X, Filter, PieChart as PieChartIcon, BarChart2, Settings, LogOut, FileBarChart, Database, Shield, Server, Layers, ShieldCheck, MousePointer, Maximize2, Link, TrendingUp, DollarSign, Inbox, ClipboardCheck, Download, FileText, UserCheck, XCircle, RefreshCw, Briefcase, Users, ChevronDown, Info, Award, Leaf, Gift } from 'lucide-react';
+import { EmployeeRisk, RiskCluster, TreePointStats, TreePointHeatmap, TreePointIssuance } from '../types';
 
 const EMPLOYEES_DB: EmployeeRisk[] = [
-  // High Risk (Low FWI, High Absenteeism)
-  { id: 'e1', name: 'Sarah Connor', department: 'Ventas', fwiScore: 35, absenteeismRisk: 'Critical', ewaFrequency: 8, workModality: 'On-site', age: 29 },
-  { id: 'e2', name: 'John Doe', department: 'Logística', fwiScore: 42, absenteeismRisk: 'High', ewaFrequency: 6, workModality: 'On-site', age: 34 },
-  { id: 'e3', name: 'Mike Ross', department: 'Ventas', fwiScore: 38, absenteeismRisk: 'Critical', ewaFrequency: 7, workModality: 'Hybrid', age: 26 },
-  { id: 'e4', name: 'Rachel Zane', department: 'Legal', fwiScore: 45, absenteeismRisk: 'Medium', ewaFrequency: 3, workModality: 'Remote', age: 31 },
-  
-  // Mid Range
-  { id: 'e5', name: 'Harvey Specter', department: 'Legal', fwiScore: 65, absenteeismRisk: 'Low', ewaFrequency: 1, workModality: 'On-site', age: 42 },
-  { id: 'e6', name: 'Donna Paulsen', department: 'Admin', fwiScore: 58, absenteeismRisk: 'Low', ewaFrequency: 2, workModality: 'Hybrid', age: 38 },
-  { id: 'e7', name: 'Louis Litt', department: 'Legal', fwiScore: 52, absenteeismRisk: 'Medium', ewaFrequency: 4, workModality: 'On-site', age: 45 },
-
-  // High FWI (Low Risk)
-  { id: 'e8', name: 'Jessica Pearson', department: 'Dirección', fwiScore: 88, absenteeismRisk: 'Low', ewaFrequency: 0, workModality: 'Hybrid', age: 50 },
-  { id: 'e9', name: 'Alex Williams', department: 'IT', fwiScore: 76, absenteeismRisk: 'Low', ewaFrequency: 0, workModality: 'Remote', age: 28 },
-  { id: 'e10', name: 'Samantha Wheeler', department: 'Ventas', fwiScore: 72, absenteeismRisk: 'Low', ewaFrequency: 1, workModality: 'On-site', age: 33 },
-  { id: 'e11', name: 'Robert Zane', department: 'Logística', fwiScore: 30, absenteeismRisk: 'Critical', ewaFrequency: 9, workModality: 'On-site', age: 55 },
-  { id: 'e12', name: 'Katrina Bennett', department: 'IT', fwiScore: 82, absenteeismRisk: 'Low', ewaFrequency: 0, workModality: 'Remote', age: 29 },
+  { id: 'e1', name: 'Sarah Connor', department: 'Ventas', fwiScore: 35, absenteeismRisk: 'Critical', ewaFrequency: 8, workModality: 'On-site', age: 29, tenure: 2, turnoverPropensity: 85 },
+  { id: 'e2', name: 'John Doe', department: 'Logística', fwiScore: 42, absenteeismRisk: 'High', ewaFrequency: 6, workModality: 'On-site', age: 34, tenure: 5, turnoverPropensity: 72 },
+  { id: 'e3', name: 'Jane Smith', department: 'IT', fwiScore: 78, absenteeismRisk: 'Low', ewaFrequency: 1, workModality: 'Remote', age: 27, tenure: 1, turnoverPropensity: 15 },
+  { id: 'e4', name: 'Mike Ross', department: 'Legal', fwiScore: 65, absenteeismRisk: 'Medium', ewaFrequency: 3, workModality: 'Hybrid', age: 31, tenure: 3, turnoverPropensity: 30 },
+  { id: 'e5', name: 'Rachel Zane', department: 'Legal', fwiScore: 70, absenteeismRisk: 'Low', ewaFrequency: 2, workModality: 'Hybrid', age: 28, tenure: 2, turnoverPropensity: 20 },
+  { id: 'e6', name: 'Harvey Specter', department: 'Dirección', fwiScore: 92, absenteeismRisk: 'Low', ewaFrequency: 0, workModality: 'On-site', age: 45, tenure: 10, turnoverPropensity: 2 },
+  { id: 'e7', name: 'Donna Paulsen', department: 'Dirección', fwiScore: 85, absenteeismRisk: 'Low', ewaFrequency: 1, workModality: 'On-site', age: 40, tenure: 12, turnoverPropensity: 5 },
+  { id: 'e8', name: 'Jessica Pearson', department: 'Dirección', fwiScore: 88, absenteeismRisk: 'Low', ewaFrequency: 0, workModality: 'Hybrid', age: 50, tenure: 15, turnoverPropensity: 5 },
+  { id: 'e9', name: 'Louis Litt', department: 'Finanzas', fwiScore: 60, absenteeismRisk: 'Medium', ewaFrequency: 4, workModality: 'On-site', age: 42, tenure: 8, turnoverPropensity: 40 },
+  { id: 'e10', name: 'Katrina Bennett', department: 'Finanzas', fwiScore: 75, absenteeismRisk: 'Low', ewaFrequency: 1, workModality: 'Hybrid', age: 30, tenure: 4, turnoverPropensity: 10 },
 ];
 
-const PARTNER_OFFERS = [
-  { id: 1, name: 'Seguro de Mascotas', provider: 'Mapfre', status: 'Active', adoption: '12%', cost: '$5/user' },
-  { id: 2, name: 'Gimnasio Corporativo', provider: 'SmartFit', status: 'Active', adoption: '35%', cost: '$15/user' },
-  { id: 3, name: 'Terapia Psicológica', provider: 'Terapify', status: 'Inactive', adoption: '0%', cost: '$8/user' },
-  { id: 4, name: 'Adelanto Nómina (EWA)', provider: 'Treevü Internal', status: 'Active', adoption: '68%', cost: 'Subsidiado' },
-];
-
-// --- MOCK DATA FOR REQUESTS (OPERATIONAL INBOX) ---
 const INITIAL_REQUESTS = [
     { id: 'REQ-8821', empName: 'Sarah Connor', empId: 'EMP-001', amount: 150.00, purpose: 'General', date: 'Hoy, 09:15 AM', bank: 'Chase ****4492', status: 'pending' },
     { id: 'REQ-8822', empName: 'Mike Ross', empId: 'EMP-042', amount: 20.00, purpose: 'Aporte Ahorro', date: 'Hoy, 09:45 AM', bank: 'Internal Savings', status: 'pending' },
-    { id: 'REQ-8823', empName: 'John Doe', empId: 'EMP-012', amount: 75.50, purpose: 'Emergencia', date: 'Hoy, 10:00 AM', bank: 'Wells ****1234', status: 'pending' },
-    { id: 'REQ-8824', empName: 'Rachel Zane', empId: 'EMP-009', amount: 200.00, purpose: 'General', date: 'Ayer, 16:30 PM', bank: 'Citi ****9988', status: 'pending' },
 ];
 
-// --- MOCK DATA FOR RECONCILIATION (FINANCE) ---
-const RECONCILIATION_DATA = [
-    { id: 'EMP-001', name: 'Sarah Connor', dept: 'Ventas', totalDisbursed: 350.00, fee: 7.50, status: 'Pending Deduction' },
-    { id: 'EMP-042', name: 'Mike Ross', dept: 'Ventas', totalDisbursed: 60.00, fee: 0.00, status: 'Pending Deduction' },
-    { id: 'EMP-012', name: 'John Doe', dept: 'Logística', totalDisbursed: 125.50, fee: 5.00, status: 'Pending Deduction' },
-    { id: 'EMP-099', name: 'Robert Zane', dept: 'Logística', totalDisbursed: 450.00, fee: 12.50, status: 'Pending Deduction' },
-    { id: 'EMP-102', name: 'Louis Litt', dept: 'Legal', totalDisbursed: 100.00, fee: 2.50, status: 'Pending Deduction' },
-];
+// Mock Data for Finance Modals
+const AGING_DATA = [ { range: '1-3 Días', amount: 850 }, { range: '4-7 Días', amount: 120 }, { range: '8+ Días', amount: 15.5 } ];
+const PURPOSE_BREAKDOWN = [ { name: 'Emergencia', value: 60, color: '#EF4444' }, { name: 'General', value: 30, color: '#1C81F2' }, { name: 'Ahorro', value: 10, color: '#10B981' } ];
+const DEDUCTION_COMPOSITION = [ { name: 'Principal', value: 985.50, color: '#1C81F2' }, { name: 'Tarifas EWA', value: 27.50, color: '#F59E0B' } ];
+const FEE_BREAKDOWN = [ { type: 'Retiro Estándar', count: 12, total: 24.00 }, { type: 'Retiro Express', count: 1, total: 3.50 }, { type: 'Promo (Absorbida)', count: 5, total: 0.00 } ];
 
-// --- MOCK DATA FOR FINANCE MODALS ---
-const AGING_DATA = [
-    { range: '1-3 días', amount: 650 },
-    { range: '4-7 días', amount: 280 },
-    { range: '8+ días', amount: 55.5 },
-];
-
-const PURPOSE_BREAKDOWN = [
-    { name: 'Emergencia', value: 70, color: '#EF4444' },
-    { name: 'Aporte Ahorro', value: 30, color: '#10B981' },
-];
-
-const DEDUCTION_COMPOSITION = [
-    { name: 'Principal (Activo)', value: 985.50, color: '#1C81F2' },
-    { name: 'Tarifas EWA', value: 27.50, color: '#F59E0B' },
-];
-
-const FEE_BREAKDOWN = [
-    { type: 'Retiro Estándar', count: 12, amount: 22.50 },
-    { type: 'Retiro Emergencia', count: 2, amount: 5.00 },
-    { type: 'Subsidio Empresa', count: 5, amount: 0.00 },
-];
-
-// --- DETAILED MODAL DATA ---
-
-const FWI_TREND_DATA = [
-  { month: 'May', score: 58 },
-  { month: 'Jun', score: 59 },
-  { month: 'Jul', score: 57 },
-  { month: 'Ago', score: 60 },
-  { month: 'Sep', score: 61 },
-  { month: 'Oct', score: 62 },
-];
-
-const FWI_BY_SEGMENT = [
-  { department: 'IT', score: 78, ewaUsage: 'Bajo' },
-  { department: 'Admin', score: 65, ewaUsage: 'Medio' },
-  { department: 'Ventas', score: 52, ewaUsage: 'Alto' },
-  { department: 'Logística', score: 45, ewaUsage: 'Crítico' },
-];
-
-const SAVINGS_DISTRIBUTION = [
-  { name: 'Aporte a Metas (EWA)', value: 60, color: '#3CB7A9' }, // "Potencia tu Ahorro"
-  { name: 'Gasto Hormiga (Autolimitación)', value: 40, color: '#F59E0B' }, // "Compromiso"
-];
-
-const EWA_FREQUENCY_DATA = [
-  { usage: '1 vez/mes', count: 45 },
-  { usage: '2 veces/mes', count: 30 },
-  { usage: '3+ veces/mes', count: 15 },
-  { usage: 'Emergencia Única', count: 10 },
-];
-
-const ENGAGEMENT_RADAR = [
-  { subject: 'EWA (Pago)', A: 85, fullMark: 100 },
-  { subject: 'Gastos (Ops)', A: 65, fullMark: 100 },
-  { subject: 'FWI (Score)', A: 75, fullMark: 100 },
-  { subject: 'Marketplace', A: 50, fullMark: 100 },
-  { subject: 'Metas', A: 60, fullMark: 100 },
-];
-
-// --- MOCK DATA FOR CONFIG ---
 const MOCK_DEPT_MAPPING = [
-    { source: 'CC_SALES_001', treevu: 'Ventas', status: 'mapped' },
-    { source: 'CC_OPS_WAREHOUSE_A', treevu: 'Logística', status: 'mapped' },
-    { source: 'CC_IT_DEV_TEAM', treevu: 'IT', status: 'mapped' },
-    { source: 'TEMP_STAFF_Q3', treevu: 'Unassigned', status: 'warning' },
-    { source: 'CORP_LEGAL_NY', treevu: 'Legal', status: 'mapped' },
+    { hrisCode: 'CC-101', hrisName: 'Sales_North', treevuMapping: 'Ventas', status: 'ok' },
+    { hrisCode: 'CC-102', hrisName: 'Logistics_Wh', treevuMapping: 'Logística', status: 'ok' },
+    { hrisCode: 'CC-205', hrisName: 'Corp_HQ_Dir', treevuMapping: 'Dirección', status: 'ok' },
+    { hrisCode: 'CC-999', hrisName: 'Temp_Staff_B', treevuMapping: 'Sin Asignar', status: 'warning' },
 ];
 
-// Helper to convert categorical risk to numeric days for Scatter Plot
-const getAbsenteeismDays = (risk: string) => {
-  switch(risk) {
-    case 'Critical': return Math.floor(Math.random() * 5) + 15; // 15-20 days
-    case 'High': return Math.floor(Math.random() * 5) + 10; // 10-15 days
-    case 'Medium': return Math.floor(Math.random() * 5) + 5; // 5-10 days
-    case 'Low': return Math.floor(Math.random() * 4); // 0-4 days
-    default: return 0;
-  }
+// TreePoints Mock Data
+const MOCK_TP_STATS: TreePointStats = {
+    totalIssued: 125000,
+    redemptionRate: 68,
+    fwiImpact: 5.2,
+    budgetUtilization: 45
 };
 
-// --- MATH ENGINE: PEARSON CORRELATION ---
+const MOCK_TP_HEATMAP: TreePointHeatmap[] = [
+    { department: 'Ventas', pointsIssued: 45000, redemptionRate: 85, avgFwi: 52, impactLabel: 'High' },
+    { department: 'Logística', pointsIssued: 30000, redemptionRate: 70, avgFwi: 48, impactLabel: 'High' },
+    { department: 'IT', pointsIssued: 15000, redemptionRate: 40, avgFwi: 78, impactLabel: 'Low' },
+    { department: 'Dirección', pointsIssued: 5000, redemptionRate: 20, avgFwi: 88, impactLabel: 'Low' },
+    { department: 'Legal', pointsIssued: 10000, redemptionRate: 55, avgFwi: 68, impactLabel: 'Medium' },
+    { department: 'Finanzas', pointsIssued: 20000, redemptionRate: 60, avgFwi: 62, impactLabel: 'Medium' }
+];
+
+// TreePoints Drill Down Data
+const TP_ISSUANCE_TREND = [
+    { month: 'Jul', issued: 15000, target: 12000 },
+    { month: 'Ago', issued: 22000, target: 15000 },
+    { month: 'Sep', issued: 35000, target: 30000 },
+    { month: 'Oct', issued: 53000, target: 45000 },
+];
+
+const TP_REDEMPTION_CATS = [
+    { name: 'Marketplace (Cupones)', value: 45, color: '#3CB7A9' },
+    { name: 'Reducción Tarifa EWA', value: 30, color: '#1C81F2' },
+    { name: 'Donaciones', value: 10, color: '#F59E0B' },
+    { name: 'Sin Canjear', value: 15, color: '#94A3B8' }
+];
+
+const TP_BUDGET_USAGE = [
+    { month: 'Q1', budget: 50000, used: 45000 },
+    { month: 'Q2', budget: 50000, used: 38000 },
+    { month: 'Q3', budget: 60000, used: 58000 },
+    { month: 'Q4', budget: 100000, used: 45000 }, // Current
+];
+
+const getAbsenteeismDays = (risk: string) => {
+  switch(risk) { case 'Critical': return 18; case 'High': return 12; case 'Medium': return 7; default: return 2; }
+};
+
 const calculateCorrelation = (xArray: number[], yArray: number[]) => {
-  const n = xArray.length;
-  if (n === 0) return 0;
-  
+  const n = xArray.length; if (n === 0) return 0;
   const sumX = xArray.reduce((a, b) => a + b, 0);
   const sumY = yArray.reduce((a, b) => a + b, 0);
   const sumXY = xArray.reduce((sum, x, i) => sum + x * yArray[i], 0);
   const sumX2 = xArray.reduce((sum, x) => sum + x * x, 0);
   const sumY2 = yArray.reduce((sum, y) => sum + y * y, 0);
-
   const numerator = (n * sumXY) - (sumX * sumY);
   const denominator = Math.sqrt(((n * sumX2) - (sumX * sumX)) * ((n * sumY2) - (sumY * sumY)));
-
   return denominator === 0 ? 0 : numerator / denominator;
 };
 
+const checkTenure = (years: number, filter: string) => {
+    if (filter === 'All') return true;
+    if (filter === '0-2') return years < 2;
+    if (filter === '2-5') return years >= 2 && years <= 5;
+    if (filter === '5+') return years > 5;
+    return true;
+};
+
 export const DashboardB2B: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'reports' | 'requests' | 'reconciliation' | 'partners' | 'config'>('reports');
+  const [activeTab, setActiveTab] = useState<'reports' | 'requests' | 'reconciliation' | 'partners' | 'config' | 'treepoints'>('reports');
   
-  // FILTERS STATE
-  const [filterDept, setFilterDept] = useState<string>('All');
+  // Advanced Filters State
+  const [filterArea, setFilterArea] = useState<string>('All');
   const [filterModality, setFilterModality] = useState<string>('All');
-  const [filterAge, setFilterAge] = useState<string>('All');
-  
-  const [showInterventionModal, setShowInterventionModal] = useState(false);
-  const [selectedCluster, setSelectedCluster] = useState<any>(null);
+  const [filterTenure, setFilterTenure] = useState<string>('All');
 
-  // MODAL STATE FOR KPIS
-  const [activeKpiModal, setActiveKpiModal] = useState<'fwi' | 'savings' | 'adoption' | 'engagement' | null>(null);
-
-  // MODAL STATE FOR CONFIG (DATA BRIDGE)
-  const [activeConfigModal, setActiveConfigModal] = useState<'mapping' | 'payroll' | null>(null);
-
-  // MODAL STATE FOR FINANCE (DRILL-DOWN)
-  const [activeFinanceModal, setActiveFinanceModal] = useState<'receivable' | 'deduction' | null>(null);
-
-  // STATE FOR REQUESTS MANAGEMENT
   const [pendingRequests, setPendingRequests] = useState(INITIAL_REQUESTS);
-
-  // ONBOARDING STATE
+  const [activeKpiModal, setActiveKpiModal] = useState<string | null>(null);
+  const [activeFinanceModal, setActiveFinanceModal] = useState<string | null>(null);
+  const [activeConfigModal, setActiveConfigModal] = useState<'mapping' | 'payroll' | null>(null);
+  const [activeTpModal, setActiveTpModal] = useState<'issuance' | 'redemption' | 'budget' | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(true);
 
-  // --- FILTER LOGIC ---
-  const filteredEmployees = useMemo(() => {
-    return EMPLOYEES_DB.filter(emp => {
-      if (filterDept !== 'All' && emp.department !== filterDept) return false;
-      if (filterModality !== 'All' && emp.workModality !== filterModality) return false;
-      if (filterAge !== 'All') {
-        if (filterAge === '18-25' && (emp.age < 18 || emp.age > 25)) return false;
-        if (filterAge === '26-35' && (emp.age < 26 || emp.age > 35)) return false;
-        if (filterAge === '36-45' && (emp.age < 36 || emp.age > 45)) return false;
-        if (filterAge === '46+' && emp.age < 46) return false;
-      }
-      return true;
-    });
-  }, [filterDept, filterModality, filterAge]);
+  // TreePoints State
+  const [showIssueModal, setShowIssueModal] = useState(false);
+  const [issueForm, setIssueForm] = useState<TreePointIssuance>({ targetType: 'Department', targetId: 'Ventas', amount: 100, reason: 'Bono Productividad' });
+  const [issueStep, setIssueStep] = useState<'form' | 'processing' | 'success'>('form');
 
-  // --- KPI STATS CALCULATION ---
+  // Filter Logic
+  const filteredEmployees = useMemo(() => {
+      return EMPLOYEES_DB.filter(emp => 
+          (filterArea === 'All' || emp.department === filterArea) &&
+          (filterModality === 'All' || emp.workModality === filterModality) &&
+          (filterTenure === 'All' || checkTenure(emp.tenure, filterTenure))
+      );
+  }, [filterArea, filterModality, filterTenure]);
+  
+  // Dynamic Stats based on filtered employees
   const kpiStats = useMemo(() => {
     const count = filteredEmployees.length;
     if (count === 0) return { fwi: 0, savings: '0', adoption: 0, engagement: 0 };
-
-    // Average FWI
-    const totalFWI = filteredEmployees.reduce((sum, emp) => sum + emp.fwiScore, 0);
-    const avgFWI = Math.round(totalFWI / count);
-
-    // Projected Savings (Mock Logic: Based on headcount in selection)
-    // Assuming approx $3,750 potential savings per employee per year if optimized
-    const savingsValue = count * 3750;
-    const savings = savingsValue >= 1000 ? (savingsValue / 1000).toFixed(1) + 'k' : savingsValue.toString();
-
-    // EWA Adoption %
-    const activeEwaUsers = filteredEmployees.filter(e => e.ewaFrequency > 0).length;
-    const adoption = Math.round((activeEwaUsers / count) * 100);
-
-    // Engagement Score (Mock Logic: Correlated with FWI for demo purposes)
-    const engagement = Math.min(Math.round(avgFWI * 1.2), 98);
-
-    return { fwi: avgFWI, savings, adoption, engagement };
-  }, [filteredEmployees]);
-
-
-  // --- DYNAMIC SCATTER DATA & CORRELATION ---
-  const scatterData = useMemo(() => {
-    return filteredEmployees.map(emp => ({
-      x: emp.fwiScore,
-      y: getAbsenteeismDays(emp.absenteeismRisk),
-      z: 100, // Bubble size
-      name: emp.name,
-      dept: emp.department
-    }));
-  }, [filteredEmployees]);
-
-  const correlation = useMemo(() => {
-    const fwiScores = scatterData.map(d => d.x);
-    const absentDays = scatterData.map(d => d.y);
-    return calculateCorrelation(fwiScores, absentDays);
-  }, [scatterData]);
-
-  // --- RISK CLUSTERING LOGIC ---
-  const riskClusters = useMemo(() => {
-    const clusters: Record<string, { count: number, riskSum: number, employees: EmployeeRisk[] }> = {};
     
-    filteredEmployees.forEach(emp => {
-      if (emp.fwiScore < 50) {
-        if (!clusters[emp.department]) {
-          clusters[emp.department] = { count: 0, riskSum: 0, employees: [] };
-        }
-        clusters[emp.department].count += 1;
-        clusters[emp.department].riskSum += (100 - emp.fwiScore); // simplistic risk magnitude
-        clusters[emp.department].employees.push(emp);
-      }
-    });
+    const avgFWI = Math.round(filteredEmployees.reduce((sum, emp) => sum + emp.fwiScore, 0) / count);
+    const totalSavings = (count * 3.75).toFixed(1); // Mock calculation
+    
+    // Calculate Adoption based on ewaFrequency > 0
+    const activeEwaUsers = filteredEmployees.filter(e => e.ewaFrequency > 0).length;
+    const adoptionRate = Math.round((activeEwaUsers / count) * 100);
+    
+    // Mock Engagement calc
+    const engagementScore = Math.min(100, Math.round(avgFWI * 1.1 + (adoptionRate * 0.2)));
 
-    return Object.entries(clusters).map(([dept, data]) => ({
-      department: dept,
-      count: data.count,
-      severity: data.riskSum / data.count > 60 ? 'Critical' : 'High',
-      projectedLoss: data.count * 3500 // Mock cost per risky employee
-    })).sort((a, b) => b.projectedLoss - a.projectedLoss);
+    return { fwi: avgFWI, savings: totalSavings + 'k', adoption: adoptionRate, engagement: engagementScore };
   }, [filteredEmployees]);
 
-  const handleDisburseRequest = (id: string) => {
-      setPendingRequests(prev => prev.filter(req => req.id !== id));
-      // In production: API call to send callback to Treevü
+  // Performance Bridge Data (Scatter)
+  const scatterData = useMemo(() => filteredEmployees.map(emp => ({ x: emp.fwiScore, y: getAbsenteeismDays(emp.absenteeismRisk), z: 100, name: emp.name })), [filteredEmployees]);
+  const correlation = useMemo(() => calculateCorrelation(scatterData.map(d => d.x), scatterData.map(d => d.y)), [scatterData]);
+
+  // Risk Clusters (Grouped by Dept for filtered set)
+  const riskClusters: RiskCluster[] = useMemo(() => {
+      const clusters: Record<string, {count: number, totalIpr: number}> = {};
+      filteredEmployees.forEach(emp => {
+          if (!clusters[emp.department]) clusters[emp.department] = { count: 0, totalIpr: 0 };
+          if (emp.fwiScore < 50) {
+              clusters[emp.department].count++;
+              clusters[emp.department].totalIpr += (emp.turnoverPropensity || 0);
+          }
+      });
+      
+      return Object.keys(clusters).map(dept => ({
+          department: dept,
+          count: clusters[dept].count,
+          severity: clusters[dept].count > 2 ? 'Critical' : 'Medium',
+          projectedLoss: clusters[dept].count * 3500,
+          avgIpr: clusters[dept].count > 0 ? Math.round(clusters[dept].totalIpr / clusters[dept].count) : 0
+      })).filter(c => c.count > 0).sort((a,b) => b.count - a.count);
+  }, [filteredEmployees]);
+
+  // Dynamic Chart Data for Modals based on Filtered Data
+  const modalChartData = useMemo(() => {
+      // 1. FWI Trend (Mocked relative to current Avg)
+      const fwiTrend = [
+          { month: 'Jul', score: kpiStats.fwi - 5 },
+          { month: 'Ago', score: kpiStats.fwi - 2 },
+          { month: 'Sep', score: kpiStats.fwi - 1 },
+          { month: 'Oct', score: kpiStats.fwi }
+      ];
+
+      // 2. Savings Distribution (Mock)
+      const savingsDist = [
+          { name: 'Potencia Ahorro', value: 60, color: '#10B981' }, 
+          { name: 'Gasto Hormiga', value: 40, color: '#F59E0B' } 
+      ];
+
+      // 3. Adoption Histogram (Actual Data)
+      const adoptionDist = [
+          { name: '0', count: filteredEmployees.filter(e => e.ewaFrequency === 0).length },
+          { name: '1-2', count: filteredEmployees.filter(e => e.ewaFrequency >= 1 && e.ewaFrequency <= 2).length },
+          { name: '3+', count: filteredEmployees.filter(e => e.ewaFrequency >= 3).length },
+      ];
+
+      // 4. Engagement Radar (Mock)
+      const engagementRadar = [
+          { subject: 'EWA', A: kpiStats.adoption, fullMark: 100 },
+          { subject: 'Educación', A: kpiStats.engagement - 10, fullMark: 100 },
+          { subject: 'Metas', A: kpiStats.engagement + 5, fullMark: 100 },
+          { subject: 'Gasto', A: kpiStats.engagement, fullMark: 100 },
+      ];
+
+      return { fwiTrend, savingsDist, adoptionDist, engagementRadar };
+  }, [kpiStats, filteredEmployees]);
+
+  const handleIssuePoints = () => {
+      setIssueStep('processing');
+      setTimeout(() => {
+          setIssueStep('success');
+      }, 1500);
   };
 
-  const SidebarItem = ({ id, icon: Icon, label, active, onClick }: { id: string, icon: any, label: string, active: boolean, onClick: () => void }) => (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
-        active 
-          ? 'bg-[#1C81F2] text-white shadow-md' 
-          : 'text-gray-500 hover:bg-white hover:shadow-sm'
-      }`}
-    >
-      <Icon size={20} />
-      <span className="font-bold text-sm">{label}</span>
+  const SidebarItem = ({ id, icon: Icon, label, active, onClick }: any) => (
+    <button onClick={onClick} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${active ? 'bg-[#1C81F2] text-white shadow-md' : 'text-gray-500 hover:bg-white hover:shadow-sm'}`}>
+      <Icon size={20} /> <span className="font-bold text-sm">{label}</span>
     </button>
   );
 
   return (
     <div className="flex h-screen bg-[#F6FAFE] overflow-hidden">
-        {/* DESKTOP SIDEBAR NAVIGATION */}
         <aside className="hidden md:flex flex-col w-64 bg-slate-50 border-r border-slate-200 h-full p-6 fixed left-0 top-0 z-20">
             <div className="flex items-center space-x-2 mb-10 px-2">
-                <div className="bg-[#1C81F2] p-2 rounded-lg">
-                    <PieChartIcon className="text-white" size={24} />
-                </div>
-                <div className="leading-tight">
-                    <span className="text-xl font-bold text-[#1E293B] font-['Space_Grotesk'] block">Treevü Corp</span>
-                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">RR.HH. Intelligence</span>
-                </div>
+                <div className="bg-[#1C81F2] p-2 rounded-lg"><PieChartIcon className="text-white" size={24} /></div>
+                <div><span className="text-xl font-bold text-[#1E293B] font-['Space_Grotesk'] block">Treevü Corp</span><span className="text-[10px] text-gray-500 font-bold uppercase">RR.HH. Intelligence</span></div>
             </div>
-
-            <nav className="flex-1 space-y-2">
-                <div className="px-4 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Estratégico</div>
-                <SidebarItem 
-                    id="reports" 
-                    icon={FileBarChart} 
-                    label="Dashboard Ejecutivo" 
-                    active={activeTab === 'reports'} 
-                    onClick={() => setActiveTab('reports')}
-                />
-                <SidebarItem 
-                    id="partners" 
-                    icon={Store} 
-                    label="Red de Beneficios" 
-                    active={activeTab === 'partners'} 
-                    onClick={() => setActiveTab('partners')}
-                />
-                <div className="mt-6 px-4 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Operativo</div>
-                <SidebarItem 
-                    id="requests" 
-                    icon={Inbox} 
-                    label="Gestión Solicitudes" 
-                    active={activeTab === 'requests'} 
-                    onClick={() => setActiveTab('requests')}
-                />
-                <SidebarItem 
-                    id="reconciliation" 
-                    icon={ClipboardCheck} 
-                    label="Conciliación (Finanzas)" 
-                    active={activeTab === 'reconciliation'} 
-                    onClick={() => setActiveTab('reconciliation')}
-                />
-                <div className="mt-6 px-4 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Sistema</div>
-                <SidebarItem 
-                    id="config" 
-                    icon={Settings} 
-                    label="Configuración" 
-                    active={activeTab === 'config'} 
-                    onClick={() => setActiveTab('config')}
-                />
+            <nav className="flex-1 space-y-1">
+                <div className="mb-6">
+                    <p className="px-4 text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-wider">ESTRATÉGICO</p>
+                    <div className="space-y-1">
+                        <SidebarItem id="reports" icon={FileBarChart} label="Dashboard Ejecutivo" active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} />
+                        <SidebarItem id="partners" icon={Store} label="Red de Beneficios" active={activeTab === 'partners'} onClick={() => setActiveTab('partners')} />
+                    </div>
+                </div>
+                <div className="mb-6">
+                    <p className="px-4 text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-wider">OPERATIVO</p>
+                    <div className="space-y-1">
+                        <SidebarItem id="requests" icon={Inbox} label="Gestión Solicitudes" active={activeTab === 'requests'} onClick={() => setActiveTab('requests')} />
+                        <SidebarItem id="reconciliation" icon={ClipboardCheck} label="Conciliación (Finanzas)" active={activeTab === 'reconciliation'} onClick={() => setActiveTab('reconciliation')} />
+                        <SidebarItem id="treepoints" icon={Award} label="Gestión TreePoints" active={activeTab === 'treepoints'} onClick={() => setActiveTab('treepoints')} />
+                    </div>
+                </div>
+                <div>
+                    <p className="px-4 text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-wider">SISTEMA</p>
+                    <SidebarItem id="config" icon={Settings} label="Configuración" active={activeTab === 'config'} onClick={() => setActiveTab('config')} />
+                </div>
             </nav>
-
-            <div className="mt-auto pt-6 border-t border-slate-200">
-                <div className="flex items-center p-3 bg-white rounded-xl shadow-sm border border-slate-100">
-                    <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
-                        HR
-                    </div>
-                    <div className="ml-3 overflow-hidden">
-                        <p className="text-sm font-bold text-slate-800 truncate">Director People</p>
-                        <p className="text-xs text-slate-500 truncate">Admin Access</p>
-                    </div>
-                    <LogOut size={16} className="ml-auto text-gray-400 cursor-pointer hover:text-red-500" />
-                </div>
-            </div>
         </aside>
 
-        {/* MAIN CONTENT AREA */}
-        <main className="flex-1 md:ml-64 overflow-y-auto h-full scroll-smooth">
-            <div className="p-6 md:p-10 font-sans">
-                
-                {/* --- HEADER --- */}
-                <header className="mb-10 flex justify-between items-center">
-                    <div>
-                        <h1 className="text-3xl font-bold text-[#1E293B] font-['Space_Grotesk']">
-                            {activeTab === 'reports' && 'Inteligencia Corporativa'}
-                            {activeTab === 'requests' && 'Gestión de Solicitudes EWA'}
-                            {activeTab === 'reconciliation' && 'Cierre & Conciliación'}
-                            {activeTab === 'partners' && 'Gestión de Beneficios'}
-                            {activeTab === 'config' && 'Configuración de Cuenta'}
-                        </h1>
-                        <p className="text-gray-500 mt-1">
-                            {activeTab === 'reports' && 'Análisis de correlación: Bienestar Financiero vs Riesgo Operativo.'}
-                            {activeTab === 'requests' && 'Bandeja de entrada de instrucciones de pago pendientes.'}
-                            {activeTab === 'reconciliation' && 'Control de flujo de caja y descuentos de nómina.'}
-                            {activeTab === 'partners' && 'Maximiza el ROI de tu inversión en bienestar.'}
-                            {activeTab === 'config' && 'Control de privacidad e integración de nómina.'}
-                        </p>
+        <main className="flex-1 md:ml-64 overflow-y-auto h-full p-6 md:p-10">
+            <header className="mb-8 flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold text-[#1E293B] font-['Space_Grotesk']">
+                        {activeTab === 'reports' && 'Inteligencia Corporativa'}
+                        {activeTab === 'treepoints' && 'Gestión de TreePoints'}
+                        {activeTab === 'requests' && 'Gestión de Solicitudes'}
+                        {activeTab === 'reconciliation' && 'Conciliación Financiera'}
+                        {activeTab === 'config' && 'Configuración de Cuenta'}
+                        {activeTab === 'partners' && 'Red de Beneficios'}
+                    </h1>
+                    <p className="text-gray-500 text-sm mt-1">
+                        {activeTab === 'reports' && 'Análisis de correlación: Bienestar Financiero vs Riesgo Operativo.'}
+                        {activeTab === 'treepoints' && 'Administración de incentivos y análisis de impacto en FWI.'}
+                    </p>
+                </div>
+                <div className="flex space-x-2">
+                   <div className="bg-green-100 px-3 py-1 rounded-full flex items-center space-x-1"><CheckCircle size={14} className="text-green-600"/><span className="text-xs font-bold text-green-700">Sistema Saludable</span></div>
+                </div>
+            </header>
+
+            {/* Global Filters */}
+            {activeTab === 'reports' && (
+                <div className="flex flex-wrap items-center gap-4 mb-8">
+                    <div className="flex items-center space-x-2 text-gray-400 mr-2"><Filter size={18} /><span className="text-xs font-bold uppercase">Filtros:</span></div>
+                    <div className="relative">
+                        <select value={filterArea} onChange={(e) => setFilterArea(e.target.value)} className="appearance-none bg-white border border-gray-200 shadow-sm text-gray-700 py-2 pl-4 pr-8 rounded-lg text-sm font-medium focus:outline-none focus:border-blue-500 cursor-pointer min-w-[160px]">
+                            <option value="All">Todos los Deptos</option><option value="Ventas">Ventas</option><option value="Logística">Logística</option><option value="IT">Tecnología (IT)</option><option value="Legal">Legal</option><option value="Dirección">Dirección</option><option value="Finanzas">Finanzas</option>
+                        </select>
+                        <ChevronDown size={14} className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
                     </div>
-                    <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 flex items-center space-x-2">
-                        <ShieldCheck size={16} className="text-green-500" />
-                        <span className="font-bold text-[#1E293B] text-sm">Sistema Saludable</span>
+                    <div className="relative">
+                        <select value={filterModality} onChange={(e) => setFilterModality(e.target.value)} className="appearance-none bg-white border border-gray-200 shadow-sm text-gray-700 py-2 pl-4 pr-8 rounded-lg text-sm font-medium focus:outline-none focus:border-blue-500 cursor-pointer min-w-[160px]">
+                            <option value="All">Todas Modalidades</option><option value="On-site">Presencial</option><option value="Hybrid">Híbrido</option><option value="Remote">Remoto</option>
+                        </select>
+                        <ChevronDown size={14} className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
                     </div>
-                </header>
+                    <div className="relative">
+                        <select value={filterTenure} onChange={(e) => setFilterTenure(e.target.value)} className="appearance-none bg-white border border-gray-200 shadow-sm text-gray-700 py-2 pl-4 pr-8 rounded-lg text-sm font-medium focus:outline-none focus:border-blue-500 cursor-pointer min-w-[160px]">
+                            <option value="All">Todas las Edades</option><option value="0-2">Junior (0-2 años)</option><option value="2-5">Mid (2-5 años)</option><option value="5+">Senior (5+ años)</option>
+                        </select>
+                        <ChevronDown size={14} className="absolute right-3 top-3 text-gray-400 pointer-events-none" />
+                    </div>
+                </div>
+            )}
 
-                {/* --- VIEW: REPORTS (B-1 Performance Bridge) --- */}
-                {activeTab === 'reports' && (
-                    <div className="animate-in fade-in duration-500">
-                        {/* ... Reports content remains same ... */}
-                        {/* 0. FILTER BAR (Moved to Top) */}
-                        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-wrap gap-4 items-center mb-6">
-                            <div className="flex items-center text-gray-500 font-bold text-sm">
-                                <Filter size={16} className="mr-2" /> Filtros:
+            {activeTab === 'reports' && (
+                <div className="animate-in fade-in duration-500 space-y-8">
+                    {/* Top KPIs */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border cursor-pointer hover:border-blue-500 hover:shadow-md transition-all group relative overflow-hidden" onClick={() => setActiveKpiModal('fwi')}>
+                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity"><Maximize2 size={16} className="text-gray-400" /></div>
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-1">FWI Promedio</p>
+                            <div className="flex items-baseline space-x-3">
+                                <h2 className="text-4xl font-bold text-[#1E293B]">{kpiStats.fwi}</h2>
+                                <div className="text-xs text-green-700 font-bold bg-green-100 px-2 py-1 rounded-full">+4pts</div>
                             </div>
-                            <select 
-                                className="bg-gray-50 border border-gray-200 text-sm rounded-lg p-2 font-medium outline-none focus:border-[#1C81F2]"
-                                value={filterDept}
-                                onChange={(e) => setFilterDept(e.target.value)}
-                            >
-                                <option value="All">Todos los Deptos</option>
-                                <option value="Ventas">Ventas</option>
-                                <option value="Logística">Logística</option>
-                                <option value="IT">IT</option>
-                                <option value="Legal">Legal</option>
-                            </select>
-                            <select 
-                                className="bg-gray-50 border border-gray-200 text-sm rounded-lg p-2 font-medium outline-none focus:border-[#1C81F2]"
-                                value={filterModality}
-                                onChange={(e) => setFilterModality(e.target.value)}
-                            >
-                                <option value="All">Todas Modalidades</option>
-                                <option value="On-site">Presencial</option>
-                                <option value="Hybrid">Híbrido</option>
-                                <option value="Remote">Remoto</option>
-                            </select>
-                            <select 
-                                className="bg-gray-50 border border-gray-200 text-sm rounded-lg p-2 font-medium outline-none focus:border-[#1C81F2]"
-                                value={filterAge}
-                                onChange={(e) => setFilterAge(e.target.value)}
-                            >
-                                <option value="All">Todas las Edades</option>
-                                <option value="18-25">18-25</option>
-                                <option value="26-35">26-35</option>
-                                <option value="36-45">36-45</option>
-                                <option value="46+">46+</option>
-                            </select>
+                            <div className="mt-2 text-[10px] text-gray-400 flex items-center">Ver detalle de tendencia <ArrowUpRight size={10} className="ml-1" /></div>
                         </div>
-
-                        {/* 1. TOP KPIS (Dynamic & Interactive) */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                             {/* FWI Card */}
-                             <div 
-                                onClick={() => setActiveKpiModal('fwi')}
-                                className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:shadow-md hover:border-[#1C81F2] transition-all group relative overflow-hidden"
-                             >
-                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Maximize2 size={16} className="text-gray-400" />
-                                </div>
-                                <p className="text-xs font-bold text-gray-400 uppercase mb-2">FWI Promedio</p>
-                                <div className="flex items-end">
-                                    <h2 className="text-4xl font-bold text-[#1E293B] font-['Space_Grotesk']">{kpiStats.fwi}</h2>
-                                    <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full ml-2 mb-1">+4pts</span>
-                                </div>
-                                <p className="text-[10px] text-gray-400 mt-2 flex items-center group-hover:text-[#1C81F2]">Ver detalle de tendencia <ArrowUpRight size={10} className="ml-1" /></p>
-                             </div>
-                             
-                             {/* Savings Card */}
-                             <div 
-                                onClick={() => setActiveKpiModal('savings')}
-                                className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:shadow-md hover:border-[#3CB7A9] transition-all group relative"
-                             >
-                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Maximize2 size={16} className="text-gray-400" />
-                                </div>
-                                <p className="text-xs font-bold text-gray-400 uppercase mb-2">Ahorro Proyectado</p>
-                                <div className="flex items-end">
-                                    <h2 className="text-4xl font-bold text-[#1E293B] font-['Space_Grotesk']">${kpiStats.savings}</h2>
-                                    <span className="text-xs font-bold text-gray-500 ml-2 mb-1">/ mes</span>
-                                </div>
-                                <p className="text-[10px] text-gray-400 mt-2 flex items-center group-hover:text-[#3CB7A9]">Ver desglose de ahorro <ArrowUpRight size={10} className="ml-1" /></p>
-                             </div>
-                             
-                             {/* Adoption Card */}
-                             <div 
-                                onClick={() => setActiveKpiModal('adoption')}
-                                className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:shadow-md hover:border-indigo-500 transition-all group relative"
-                             >
-                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Maximize2 size={16} className="text-gray-400" />
-                                </div>
-                                <p className="text-xs font-bold text-gray-400 uppercase mb-2">Adopción EWA</p>
-                                <div className="flex items-end">
-                                    <h2 className="text-4xl font-bold text-indigo-600 font-['Space_Grotesk']">{kpiStats.adoption}%</h2>
-                                    <span className="text-xs font-bold text-gray-400 ml-2 mb-1">Activa</span>
-                                </div>
-                                <p className="text-[10px] text-gray-400 mt-2 flex items-center group-hover:text-indigo-500">Ver frecuencia de uso <ArrowUpRight size={10} className="ml-1" /></p>
-                             </div>
-                             
-                             {/* Engagement Card */}
-                             <div 
-                                onClick={() => setActiveKpiModal('engagement')}
-                                className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:shadow-md hover:border-[#F59E0B] transition-all group relative"
-                             >
-                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Maximize2 size={16} className="text-gray-400" />
-                                </div>
-                                <p className="text-xs font-bold text-gray-400 uppercase mb-2">Engagement</p>
-                                <div className="flex items-end">
-                                    <h2 className="text-4xl font-bold text-[#3CB7A9] font-['Space_Grotesk']">{kpiStats.engagement}%</h2>
-                                    <span className="text-xs font-bold text-green-600 ml-2 mb-1">↑ 12%</span>
-                                </div>
-                                <p className="text-[10px] text-gray-400 mt-2 flex items-center group-hover:text-[#F59E0B]">Ver distribución <ArrowUpRight size={10} className="ml-1" /></p>
-                             </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border cursor-pointer hover:border-blue-500 hover:shadow-md transition-all group relative overflow-hidden" onClick={() => setActiveKpiModal('savings')}>
+                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity"><Maximize2 size={16} className="text-gray-400" /></div>
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Ahorro Proyectado</p>
+                            <div className="flex items-baseline space-x-2">
+                                <h2 className="text-4xl font-bold text-[#1E293B]">${kpiStats.savings}</h2>
+                                <span className="text-sm text-gray-500 font-medium">/ mes</span>
+                            </div>
+                            <div className="mt-2 text-[10px] text-gray-400 flex items-center">Ver desglose de ahorro <ArrowUpRight size={10} className="ml-1" /></div>
                         </div>
-
-                        {/* 2. CHART (The Bridge) */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            {/* Left: Chart */}
-                            <div className="lg:col-span-2 space-y-6">
-                                {/* The Performance Bridge Chart */}
-                                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div>
-                                            <h3 className="font-bold text-lg text-[#1E293B]">Puente de Rendimiento</h3>
-                                            <p className="text-sm text-gray-500">Correlación: Bienestar Financiero vs Riesgo Operativo</p>
-                                        </div>
-                                        <div className={`px-4 py-2 rounded-lg text-sm font-bold border ${
-                                            correlation < -0.5 
-                                                ? 'bg-red-50 text-red-700 border-red-100' 
-                                                : 'bg-gray-50 text-gray-600 border-gray-100'
-                                        }`}>
-                                            Correlación (r): {correlation.toFixed(2)}
-                                        </div>
-                                    </div>
-
-                                    <div className="h-80 w-full relative">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                                                <CartesianGrid strokeDasharray="3 3" />
-                                                <XAxis type="number" dataKey="x" name="FWI Score" unit=" pts" domain={[0, 100]} />
-                                                <YAxis type="number" dataKey="y" name="Días Ausente" unit=" días" />
-                                                <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                                                <Scatter name="Colaborador" data={scatterData} fill="#1C81F2" />
-                                            </ScatterChart>
-                                        </ResponsiveContainer>
-                                        
-                                        {/* Dynamic Insight Overlay */}
-                                        {correlation < -0.7 && (
-                                            <div className="absolute top-4 right-4 max-w-xs bg-red-50/90 backdrop-blur-sm border border-red-200 p-3 rounded-xl shadow-lg">
-                                                <div className="flex items-start">
-                                                    <AlertTriangle size={18} className="text-red-600 mr-2 mt-0.5" />
-                                                    <p className="text-xs text-red-800">
-                                                        <strong>Insight Crítico:</strong> En {filterDept === 'All' ? 'la organización' : filterDept}, los empleados con FWI &lt; 50 tienen <strong>5x más absentismo</strong>.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border cursor-pointer hover:border-blue-500 hover:shadow-md transition-all group relative overflow-hidden" onClick={() => setActiveKpiModal('adoption')}>
+                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity"><Maximize2 size={16} className="text-gray-400" /></div>
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Adopción EWA</p>
+                            <div className="flex items-baseline space-x-2">
+                                <h2 className="text-4xl font-bold text-[#1C81F2]">{kpiStats.adoption}%</h2>
+                                <span className="text-xs text-gray-500 font-bold">Activa</span>
                             </div>
-
-                            {/* Right: Risk Clusters (Group Actions) */}
-                            <div className="space-y-6">
-                                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                                    <h3 className="font-bold text-lg text-[#1E293B] mb-4">Focos de Riesgo (Clusters)</h3>
-                                    <p className="text-xs text-gray-500 mb-4">Grupos con FWI &lt; 50 que requieren intervención.</p>
-
-                                    <div className="space-y-4">
-                                        {riskClusters.map((cluster, idx) => (
-                                            <div key={idx} className="p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-[#1C81F2] transition-colors relative overflow-hidden">
-                                                <div className={`absolute top-0 left-0 w-1 h-full ${
-                                                    cluster.severity === 'Critical' ? 'bg-red-500' : 'bg-orange-500'
-                                                }`}></div>
-                                                
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div>
-                                                        <h4 className="font-bold text-[#1E293B] text-sm">{cluster.department}</h4>
-                                                        <p className="text-xs text-gray-500">{cluster.count} Personas en riesgo</p>
-                                                    </div>
-                                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${
-                                                        cluster.severity === 'Critical' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
-                                                    }`}>{cluster.severity}</span>
-                                                </div>
-                                                
-                                                <div className="flex items-center justify-between mt-3">
-                                                    <span className="text-xs font-bold text-gray-600">
-                                                        Pérdida Proy: <span className="text-red-600">${(cluster.projectedLoss / 1000).toFixed(1)}k</span>
-                                                    </span>
-                                                    <button 
-                                                        onClick={() => { setSelectedCluster(cluster); setShowInterventionModal(true); }}
-                                                        className="text-xs bg-white border border-gray-300 px-3 py-1 rounded-lg font-bold hover:bg-[#1C81F2] hover:text-white hover:border-transparent transition-all"
-                                                    >
-                                                        Intervenir
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                            <div className="mt-2 text-[10px] text-gray-400 flex items-center">Ver frecuencia de uso <ArrowUpRight size={10} className="ml-1" /></div>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border cursor-pointer hover:border-blue-500 hover:shadow-md transition-all group relative overflow-hidden" onClick={() => setActiveKpiModal('engagement')}>
+                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity"><Maximize2 size={16} className="text-gray-400" /></div>
+                            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Engagement</p>
+                            <div className="flex items-baseline space-x-2">
+                                <h2 className="text-4xl font-bold text-[#3CB7A9]">{kpiStats.engagement}%</h2>
+                                <span className="text-xs text-green-600 font-bold">↑ 12%</span>
                             </div>
+                            <div className="mt-2 text-[10px] text-gray-400 flex items-center">Ver distribución <ArrowUpRight size={10} className="ml-1" /></div>
                         </div>
                     </div>
-                )}
 
-                {/* --- VIEW: REQUESTS (OPERATIONAL INBOX) --- */}
-                {activeTab === 'requests' && (
-                    <div className="animate-in slide-in-from-right-4 duration-500">
-                        {/* ... Requests content remains same ... */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                                <div>
-                                    <h2 className="text-xl font-bold text-[#1E293B] flex items-center">
-                                        <Inbox size={24} className="mr-2 text-[#1C81F2]" /> Bandeja de Solicitudes
-                                    </h2>
-                                    <p className="text-sm text-gray-500 mt-1">Solicitudes enrutadas por Treevü, pendientes de ejecución por Tesorería.</p>
-                                </div>
-                                <button className="flex items-center px-4 py-2 border border-gray-300 rounded-xl text-sm font-bold hover:bg-gray-50">
-                                    <Download size={16} className="mr-2" /> Exportar Lote (TXT Bancario)
-                                </button>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border">
+                            <div className="flex justify-between items-start mb-6">
+                                <div><h3 className="font-bold text-lg text-[#1E293B]">Puente de Rendimiento</h3><p className="text-sm text-gray-500">Correlación: Bienestar Financiero vs Riesgo Operativo</p></div>
+                                <div className="bg-red-50 text-red-700 px-4 py-2 rounded-lg text-sm font-bold border border-red-100 shadow-sm">Correlación (r): {correlation.toFixed(2)}</div>
                             </div>
-
-                            {pendingRequests.length === 0 ? (
-                                <div className="p-12 text-center text-gray-400">
-                                    <CheckCircle size={48} className="mx-auto mb-4 text-green-200" />
-                                    <p className="font-bold text-gray-600">¡Todo al día!</p>
-                                    <p className="text-sm">No hay solicitudes pendientes de desembolso.</p>
+                            {Math.abs(correlation) > 0.7 && (
+                                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start space-x-3 shadow-sm relative overflow-hidden">
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-400"></div>
+                                    <AlertTriangle className="text-red-500 flex-shrink-0 mt-0.5" size={16} />
+                                    <div className="text-xs text-red-800">
+                                        <span className="font-bold">Insight Crítico:</span> En {filterArea === 'All' ? 'la organización' : filterArea}, los empleados con FWI &lt; 50 tienen <span className="font-bold text-red-600">5x más absentismo.</span>
+                                    </div>
                                 </div>
-                            ) : (
-                                <table className="w-full text-left text-sm text-gray-600">
-                                    <thead className="bg-gray-50 text-gray-500 font-bold uppercase text-xs">
-                                        <tr>
-                                            <th className="p-4">ID Solicitud</th>
-                                            <th className="p-4">Colaborador</th>
-                                            <th className="p-4">Monto</th>
-                                            <th className="p-4">Propósito</th>
-                                            <th className="p-4">Cuenta Destino</th>
-                                            <th className="p-4 text-right">Acción (Tesorería)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {pendingRequests.map((req) => (
-                                            <tr key={req.id} className="hover:bg-[#F6FAFE] transition-colors group">
-                                                <td className="p-4 font-mono text-xs">{req.id}</td>
-                                                <td className="p-4">
-                                                    <p className="font-bold text-gray-900">{req.empName}</p>
-                                                    <p className="text-xs text-gray-400">{req.empId}</p>
-                                                </td>
-                                                <td className="p-4 font-bold text-[#1E293B]">${req.amount.toFixed(2)}</td>
-                                                <td className="p-4">
-                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
-                                                        req.purpose === 'Aporte Ahorro' ? 'bg-teal-100 text-teal-700' : 
-                                                        req.purpose === 'Emergencia' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'
-                                                    }`}>
-                                                        {req.purpose}
-                                                    </span>
-                                                </td>
-                                                <td className="p-4 font-mono text-xs">{req.bank}</td>
-                                                <td className="p-4 text-right">
-                                                    <div className="flex items-center justify-end space-x-2">
-                                                        <button 
-                                                            className="text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50"
-                                                            title="Rechazar"
-                                                        >
-                                                            <XCircle size={18} />
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => handleDisburseRequest(req.id)}
-                                                            className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-bold hover:bg-green-200 transition-colors"
-                                                        >
-                                                            <CheckCircle size={14} className="mr-1" /> Marcar Desembolsado
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
                             )}
-                        </div>
-                        
-                        <div className="mt-6 bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-start text-sm text-blue-800">
-                            <ShieldCheck className="mr-3 mt-1 text-blue-600" size={20} />
-                            <div>
-                                <p className="font-bold">Nota de Seguridad EWA Lite:</p>
-                                <p>Al marcar como "Desembolsado", Treevü enviará una notificación al empleado y actualizará su saldo disponible. La ejecución real de la transferencia depende de la carga del archivo en su portal bancario.</p>
+                            <div className="h-64 mb-4">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                        <XAxis type="number" dataKey="x" name="FWI Score" unit=" pts" domain={[0, 100]} tick={{fontSize: 12, fill: '#6b7280'}} axisLine={{stroke: '#9ca3af'}} tickLine={false} />
+                                        <YAxis type="number" dataKey="y" name="Días Absentismo" unit=" días" tick={{fontSize: 12, fill: '#6b7280'}} axisLine={{stroke: '#9ca3af'}} tickLine={false} />
+                                        <Tooltip cursor={{ strokeDasharray: '3 3' }} content={({ payload }) => {
+                                            if (payload && payload.length) {
+                                                const data = payload[0].payload;
+                                                return <div className="bg-white p-2 shadow-lg border rounded text-xs"><strong>{data.name}</strong><br/>FWI: {data.x}<br/>Ausencias: {data.y}</div>;
+                                            }
+                                            return null;
+                                        }}/>
+                                        <Scatter name="Colaborador" data={scatterData} fill="#1C81F2" />
+                                    </ScatterChart>
+                                </ResponsiveContainer>
                             </div>
                         </div>
-                    </div>
-                )}
-
-                {/* --- VIEW: RECONCILIATION (FINANCE) --- */}
-                {activeTab === 'reconciliation' && (
-                    <div className="animate-in fade-in duration-500">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                            {/* Card 1: Receivable (Interactive) */}
-                            <div 
-                                onClick={() => setActiveFinanceModal('receivable')}
-                                className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:shadow-md hover:border-orange-400 transition-all group relative"
-                            >
-                                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Maximize2 size={16} className="text-gray-400" />
-                                </div>
-                                <h3 className="text-sm font-bold text-gray-500 uppercase mb-2">Cuenta x Cobrar (Activo)</h3>
-                                <div className="flex items-end justify-between">
-                                    <div>
-                                        <h2 className="text-3xl font-bold text-[#1E293B]">$985.50</h2>
-                                        <p className="text-xs text-gray-400 mt-1">Adelantos Pendientes de Nómina</p>
-                                    </div>
-                                    <div className="bg-orange-50 p-2 rounded-lg text-orange-600">
-                                        <Clock size={24} />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Card 2: Deduction (Interactive) */}
-                            <div 
-                                onClick={() => setActiveFinanceModal('deduction')}
-                                className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:shadow-md hover:border-green-400 transition-all group relative"
-                            >
-                                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Maximize2 size={16} className="text-gray-400" />
-                                </div>
-                                <h3 className="text-sm font-bold text-gray-500 uppercase mb-2">Total a Descontar (Próx. Ciclo)</h3>
-                                <div className="flex items-end justify-between">
-                                    <div>
-                                        <h2 className="text-3xl font-bold text-[#1E293B]">$1,013.00</h2>
-                                        <p className="text-xs text-green-600 font-bold mt-1">Incluye $27.50 en tarifas EWA</p>
-                                    </div>
-                                    <div className="bg-green-50 p-2 rounded-lg text-green-600">
-                                        <DollarSign size={24} />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
-                            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                                <h3 className="font-bold text-lg text-[#1E293B] flex items-center">
-                                    <ClipboardCheck size={20} className="mr-2 text-[#3CB7A9]" /> Detalle de Descuentos
-                                </h3>
-                                <button className="text-[#1C81F2] text-sm font-bold flex items-center hover:underline">
-                                    <FileText size={16} className="mr-1" /> Generar Reporte Contable
-                                </button>
-                            </div>
-                            <table className="w-full text-left text-sm text-gray-600">
-                                <thead className="bg-gray-50 text-gray-500 font-bold uppercase text-xs">
-                                    <tr>
-                                        <th className="p-4">ID Empleado</th>
-                                        <th className="p-4">Nombre</th>
-                                        <th className="p-4">Depto</th>
-                                        <th className="p-4 text-right">Total Adelantado</th>
-                                        <th className="p-4 text-right">Tarifa Servicio</th>
-                                        <th className="p-4 text-right">Total a Descontar</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {RECONCILIATION_DATA.map((rec, idx) => (
-                                        <tr key={idx} className="hover:bg-[#F6FAFE]">
-                                            <td className="p-4 font-mono text-xs">{rec.id}</td>
-                                            <td className="p-4 font-bold text-gray-900">{rec.name}</td>
-                                            <td className="p-4">{rec.dept}</td>
-                                            <td className="p-4 text-right">${rec.totalDisbursed.toFixed(2)}</td>
-                                            <td className="p-4 text-right text-gray-400">${rec.fee.toFixed(2)}</td>
-                                            <td className="p-4 text-right font-bold text-red-600">-${(rec.totalDisbursed + rec.fee).toFixed(2)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
-
-                {/* --- VIEW: PARTNERS (Marketplace Mgmt) --- */}
-                {activeTab === 'partners' && (
-                    <div className="animate-in slide-in-from-right-4 duration-500">
-                        {/* ... Partners content remains same ... */}
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-[#1E293B]">Aliados & Beneficios Activos</h2>
-                            <button className="bg-[#1C81F2] text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center shadow-lg hover:bg-blue-600">
-                                <Plus size={16} className="mr-2" /> Agregar Nuevo Beneficio
-                            </button>
-                        </div>
-
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                            <table className="w-full text-left text-sm text-gray-600">
-                                <thead className="bg-gray-50 text-gray-500 font-bold uppercase text-xs">
-                                    <tr>
-                                        <th className="p-4">Beneficio / Oferta</th>
-                                        <th className="p-4">Proveedor</th>
-                                        <th className="p-4">Estado</th>
-                                        <th className="p-4">Tasa de Adopción</th>
-                                        <th className="p-4">Costo Corp.</th>
-                                        <th className="p-4 text-right">Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {PARTNER_OFFERS.map((offer) => (
-                                        <tr key={offer.id} className="hover:bg-[#F6FAFE] transition-colors">
-                                            <td className="p-4 font-bold text-gray-900">{offer.name}</td>
-                                            <td className="p-4">{offer.provider}</td>
-                                            <td className="p-4">
-                                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                                    offer.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                                                }`}>
-                                                    {offer.status === 'Active' ? 'Activo' : 'Inactivo'}
-                                                </span>
-                                            </td>
-                                            <td className="p-4">
-                                                <div className="flex items-center">
-                                                    <span className="font-bold mr-2">{offer.adoption}</span>
-                                                    <div className="w-20 bg-gray-200 rounded-full h-1.5">
-                                                        <div 
-                                                            className="bg-[#1C81F2] h-1.5 rounded-full" 
-                                                            style={{width: offer.adoption}}
-                                                        ></div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="p-4 font-mono text-xs">{offer.cost}</td>
-                                            <td className="p-4 text-right">
-                                                <button className="text-gray-400 hover:text-[#1C81F2]">
-                                                    {offer.status === 'Active' ? <ToggleRight size={24} className="text-green-500" /> : <ToggleLeft size={24} />}
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
-
-                {/* --- VIEW: CONFIG --- */}
-                {activeTab === 'config' && (
-                    <div className="max-w-3xl animate-in fade-in duration-500">
-                        {/* ... Config content remains same ... */}
-                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 mb-8">
-                            <h3 className="font-bold text-xl text-[#1E293B] mb-6">Integración de Datos (Data Bridge)</h3>
-                            <div className="flex items-center p-4 bg-green-50 border border-green-100 rounded-xl mb-6">
-                                <CheckCircle size={24} className="text-green-600 mr-3" />
-                                <div>
-                                    <p className="font-bold text-green-900">Sincronización HRIS Activa</p>
-                                    <p className="text-xs text-green-700">Última actualización: Hoy, 08:30 AM (Workday API)</p>
-                                </div>
-                            </div>
-                            
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border">
+                            <h3 className="font-bold text-lg text-[#1E293B] mb-6">Focos de Riesgo (Clusters)</h3>
+                            <p className="text-xs text-gray-500 mb-4">Grupos con FWI &lt; 50 que requieren intervención.</p>
                             <div className="space-y-4">
-                                <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                                    <div className="flex items-center">
-                                        <Layers size={18} className="mr-3 text-gray-400" />
-                                        <span className="text-sm font-medium text-gray-600">Mapeo de Departamentos</span>
-                                    </div>
-                                    <button 
-                                        onClick={() => setActiveConfigModal('mapping')}
-                                        className="text-[#1C81F2] text-sm font-bold border border-[#1C81F2] px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors"
-                                    >
-                                        Verificar
-                                    </button>
-                                </div>
-                                <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                                    <div className="flex items-center">
-                                        <RefreshCw size={18} className="mr-3 text-gray-400" />
-                                        <span className="text-sm font-medium text-gray-600">Ingesta de Nómina (para EWA)</span>
-                                    </div>
-                                    <button 
-                                        onClick={() => setActiveConfigModal('payroll')}
-                                        className="text-[#1C81F2] text-sm font-bold border border-[#1C81F2] px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors"
-                                    >
-                                        Configurar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 className="font-bold text-xl text-[#1E293B] mb-6">Privacidad y Accesos</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <button className="p-4 border border-gray-200 rounded-xl text-left hover:border-[#1C81F2] transition-colors">
-                                    <Shield size={20} className="text-gray-400 mb-2" />
-                                    <p className="font-bold text-sm text-gray-800">Usuarios Administradores</p>
-                                    <p className="text-xs text-gray-500">Gestionar roles de RR.HH.</p>
-                                </button>
-                                <button className="p-4 border border-gray-200 rounded-xl text-left hover:border-[#1C81F2] transition-colors">
-                                    <Database size={20} className="text-gray-400 mb-2" />
-                                    <p className="font-bold text-sm text-gray-800">Retención de Datos</p>
-                                    <p className="text-xs text-gray-500">Configurar políticas de purga.</p>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* --- DETAILED FINANCE MODALS (RECONCILIATION DRILL-DOWN) --- */}
-                
-                {/* 1. Accounts Receivable (Activo) */}
-                {activeFinanceModal === 'receivable' && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-                             <div className="bg-orange-500 p-6 flex justify-between items-center text-white">
-                                <div>
-                                    <h2 className="text-2xl font-bold font-['Space_Grotesk']">Análisis de Adelantos Pendientes (Activo)</h2>
-                                    <p className="text-orange-100 text-sm">Detalle del flujo de efectivo desembolsado</p>
-                                </div>
-                                <button onClick={() => setActiveFinanceModal(null)} className="text-white/80 hover:text-white"><X size={24} /></button>
-                            </div>
-                            <div className="p-8 overflow-y-auto">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                                    {/* Aging Chart */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-                                        <h4 className="font-bold text-gray-800 mb-4 flex items-center">
-                                            <Clock size={18} className="mr-2 text-orange-500" /> Antigüedad del Activo
-                                        </h4>
-                                        <div className="h-64">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart data={AGING_DATA}>
-                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                                    <XAxis dataKey="range" axisLine={false} tickLine={false} />
-                                                    <YAxis axisLine={false} tickLine={false} />
-                                                    <Tooltip cursor={{fill: '#fff7ed'}} />
-                                                    <Bar dataKey="amount" fill="#F97316" radius={[4, 4, 0, 0]} barSize={40} />
-                                                </BarChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Purpose Breakdown */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-                                        <h4 className="font-bold text-gray-800 mb-4 flex items-center">
-                                            <PieChartIcon size={18} className="mr-2 text-orange-500" /> Activo por Propósito
-                                        </h4>
-                                        <div className="h-64 relative">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                    <Pie
-                                                        data={PURPOSE_BREAKDOWN}
-                                                        cx="50%"
-                                                        cy="50%"
-                                                        innerRadius={60}
-                                                        outerRadius={80}
-                                                        paddingAngle={5}
-                                                        dataKey="value"
-                                                    >
-                                                        {PURPOSE_BREAKDOWN.map((entry, index) => (
-                                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                                        ))}
-                                                    </Pie>
-                                                    <Tooltip />
-                                                    <Legend verticalAlign="bottom" height={36}/>
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
-                                                <span className="text-3xl font-bold text-gray-800 font-['Space_Grotesk']">$985</span>
-                                                <span className="text-[10px] uppercase text-gray-400 font-bold">Total</span>
+                                {riskClusters.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-400 text-sm">No se detectaron focos de riesgo críticos.</div>
+                                ) : (
+                                    riskClusters.map((cluster, idx) => (
+                                        <div key={idx} className="p-4 border border-gray-100 rounded-xl bg-gray-50 hover:shadow-md transition-all">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <h4 className="font-bold text-[#1E293B]">{cluster.department}</h4>
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${cluster.severity === 'Critical' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'}`}>{cluster.severity}</span>
+                                            </div>
+                                            <p className="text-xs text-gray-500 mb-3">{cluster.count} Personas en riesgo</p>
+                                            <div className="flex justify-between items-center border-t border-gray-200 pt-3">
+                                                <div><p className="text-[10px] font-bold text-gray-400 uppercase">Pérdida Proy:</p><p className="font-bold text-red-600 text-xs">${(cluster.projectedLoss/1000).toFixed(1)}k</p></div>
+                                                <button className="bg-white border border-gray-200 text-[#1E293B] px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-100 shadow-sm">Intervenir</button>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                                
-                                <div className="bg-orange-50 border border-orange-100 p-6 rounded-xl flex items-start mb-6">
-                                    <CheckCircle className="text-orange-600 mr-4 mt-1" size={24} />
-                                    <div>
-                                        <h4 className="text-lg font-bold text-orange-900">Conclusión Operativa:</h4>
-                                        <p className="text-orange-800 text-sm mt-1">
-                                            El 95% del activo es menor a 5 días. La cuenta por cobrar está saludable y el riesgo de insolvencia es bajo, ya que el activo se liquida en el próximo ciclo.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex justify-end">
-                                    <button className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 font-bold hover:bg-gray-50 flex items-center">
-                                        <Download size={18} className="mr-2" /> Exportar Listado Detallado
-                                    </button>
-                                </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {/* 2. Deduction Detail (Próx. Ciclo) */}
-                {activeFinanceModal === 'deduction' && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-                             <div className="bg-green-600 p-6 flex justify-between items-center text-white">
-                                <div>
-                                    <h2 className="text-2xl font-bold font-['Space_Grotesk']">Conciliación de Nómina</h2>
-                                    <p className="text-green-100 text-sm">Desglose de Principal vs. Tarifas</p>
-                                </div>
-                                <button onClick={() => setActiveFinanceModal(null)} className="text-white/80 hover:text-white"><X size={24} /></button>
-                            </div>
-                            <div className="p-8 overflow-y-auto">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                                    {/* Composition Chart */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-                                        <h4 className="font-bold text-gray-800 mb-4 flex items-center">
-                                            <DollarSign size={18} className="mr-2 text-green-600" /> Composición del Descuento
-                                        </h4>
-                                        <div className="h-64 relative">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                    <Pie
-                                                        data={DEDUCTION_COMPOSITION}
-                                                        cx="50%"
-                                                        cy="50%"
-                                                        innerRadius={60}
-                                                        outerRadius={80}
-                                                        paddingAngle={5}
-                                                        dataKey="value"
-                                                    >
-                                                        {DEDUCTION_COMPOSITION.map((entry, index) => (
-                                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                                        ))}
-                                                    </Pie>
-                                                    <Tooltip />
-                                                    <Legend verticalAlign="bottom" height={36}/>
-                                                </PieChart>
-                                            </ResponsiveContainer>
+            {activeTab === 'requests' && (
+                <div className="bg-white rounded-2xl shadow-sm border overflow-hidden animate-in slide-in-from-right-4 duration-500">
+                    <div className="p-6 border-b flex justify-between items-center">
+                        <div><h2 className="text-xl font-bold text-[#1E293B]">Gestión de Solicitudes (Inbox)</h2><p className="text-sm text-gray-500">Instrucciones de pago enrutadas por Treevü.</p></div>
+                        <button className="flex items-center space-x-2 text-blue-600 font-bold bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100"><Download size={18} /><span>Descargar Payload Bancario</span></button>
+                    </div>
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-gray-50 uppercase text-xs font-bold text-gray-500">
+                            <tr><th className="p-4">ID Solicitud</th><th className="p-4">Colaborador</th><th className="p-4">Propósito</th><th className="p-4">Banco Destino</th><th className="p-4 text-right">Monto</th><th className="p-4 text-center">Acción</th></tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {pendingRequests.map(req => (
+                                <tr key={req.id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="p-4 font-mono text-xs">{req.id}</td>
+                                    <td className="p-4 font-bold text-gray-700">{req.empName} <span className="text-xs font-normal text-gray-400 block">{req.empId}</span></td>
+                                    <td className="p-4"><span className={`px-2 py-1 rounded text-xs font-bold ${req.purpose === 'Aporte Ahorro' ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-600'}`}>{req.purpose}</span></td>
+                                    <td className="p-4 text-gray-500 text-xs">{req.bank}</td>
+                                    <td className="p-4 text-right font-bold text-[#1E293B]">${req.amount.toFixed(2)}</td>
+                                    <td className="p-4 text-center">
+                                        <div className="flex justify-center space-x-2">
+                                            <button className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors" title="Rechazar"><XCircle size={18} /></button>
+                                            <button className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors font-bold text-xs px-3" onClick={() => setPendingRequests(prev => prev.filter(p => p.id !== req.id))}>Desembolsar</button>
                                         </div>
-                                    </div>
-                                    
-                                    {/* Fee Breakdown */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-                                        <h4 className="font-bold text-gray-800 mb-4 flex items-center">
-                                            <FileText size={18} className="mr-2 text-[#F59E0B]" /> Detalle de Tarifas
-                                        </h4>
-                                        <table className="w-full text-sm text-left">
-                                            <thead>
-                                                <tr className="text-gray-400 border-b border-gray-100">
-                                                    <th className="pb-2 font-bold">Tipo Tarifa</th>
-                                                    <th className="pb-2 text-right font-bold">Cant.</th>
-                                                    <th className="pb-2 text-right font-bold">Monto</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-50">
-                                                {FEE_BREAKDOWN.map((item, idx) => (
-                                                    <tr key={idx}>
-                                                        <td className="py-3 font-medium text-gray-700">{item.type}</td>
-                                                        <td className="py-3 text-right text-gray-500">{item.count}</td>
-                                                        <td className="py-3 text-right font-bold text-[#1E293B]">${item.amount.toFixed(2)}</td>
-                                                    </tr>
-                                                ))}
-                                                <tr className="bg-gray-50">
-                                                    <td className="py-3 font-bold text-gray-900 pl-2">Total Fees</td>
-                                                    <td className="py-3"></td>
-                                                    <td className="py-3 text-right font-bold text-[#F59E0B] pr-2">$27.50</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                
-                                <div className="bg-blue-50 border border-blue-100 p-6 rounded-xl flex items-start mb-6">
-                                    <ClipboardCheck className="text-blue-600 mr-4 mt-1" size={24} />
-                                    <div>
-                                        <h4 className="text-lg font-bold text-blue-900">Instrucción Contable:</h4>
-                                        <p className="text-blue-800 text-sm mt-1">
-                                            El principal a recuperar (<strong>$985.50</strong>) liquida la cuenta de Activo, y la diferencia de <strong>$27.50</strong> debe ser aplicada como Tarifa de Servicio (deducción) al colaborador.
-                                        </p>
-                                    </div>
-                                </div>
+                                    </td>
+                                </tr>
+                            ))}
+                            {pendingRequests.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-gray-400">No hay solicitudes pendientes.</td></tr>}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
-                                <div className="flex justify-end">
-                                    <button className="px-6 py-3 bg-[#1E293B] text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 flex items-center transition-colors">
-                                        <FileText size={18} className="mr-2" /> Generar Archivo de Conciliación (.CSV)
-                                    </button>
-                                </div>
+            {activeTab === 'treepoints' && (
+                <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                    {/* TP Overview Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border cursor-pointer hover:border-green-400 group" onClick={() => setActiveTpModal('issuance')}>
+                            <div className="flex justify-between items-start mb-2">
+                                <p className="text-xs font-bold text-gray-400 uppercase">Total Emitidos</p>
+                                <div className="bg-green-100 p-2 rounded-lg text-green-600 group-hover:bg-green-500 group-hover:text-white transition-colors"><Leaf size={20}/></div>
                             </div>
+                            <h2 className="text-3xl font-bold text-[#1E293B]">{MOCK_TP_STATS.totalIssued.toLocaleString()} pts</h2>
+                            <p className="text-xs text-gray-500 mt-1">Impacto FWI: <span className="text-green-600 font-bold">+{MOCK_TP_STATS.fwiImpact} pts</span></p>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border cursor-pointer hover:border-blue-400 group" onClick={() => setActiveTpModal('redemption')}>
+                            <div className="flex justify-between items-start mb-2">
+                                <p className="text-xs font-bold text-gray-400 uppercase">Tasa de Canje</p>
+                                <div className="bg-blue-100 p-2 rounded-lg text-blue-600 group-hover:bg-blue-500 group-hover:text-white transition-colors"><Gift size={20}/></div>
+                            </div>
+                            <h2 className="text-3xl font-bold text-[#1E293B]">{MOCK_TP_STATS.redemptionRate}%</h2>
+                            <p className="text-xs text-gray-500 mt-1">Alta participación</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border cursor-pointer hover:border-purple-400 group" onClick={() => setActiveTpModal('budget')}>
+                            <div className="flex justify-between items-start mb-2">
+                                <p className="text-xs font-bold text-gray-400 uppercase">Utilización Presupuesto</p>
+                                <div className="bg-purple-100 p-2 rounded-lg text-purple-600 group-hover:bg-purple-500 group-hover:text-white transition-colors"><DollarSign size={20}/></div>
+                            </div>
+                            <h2 className="text-3xl font-bold text-[#1E293B]">{MOCK_TP_STATS.budgetUtilization}%</h2>
+                            <div className="w-full bg-gray-100 h-1.5 rounded-full mt-2 overflow-hidden"><div className="bg-purple-500 h-full" style={{width: `${MOCK_TP_STATS.budgetUtilization}%`}}></div></div>
                         </div>
                     </div>
-                )}
 
-                {/* ... Other Modals (KPI Detail, Config, Onboarding) remain same ... */}
-                {/* 1. FWI DETAIL MODAL */}
-                {activeKpiModal === 'fwi' && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-                             <div className="bg-[#1E293B] p-6 flex justify-between items-center text-white">
-                                <div>
-                                    <h2 className="text-2xl font-bold font-['Space_Grotesk']">Análisis Detallado: FWI Promedio</h2>
-                                    <p className="text-gray-400 text-sm">Tendencia Histórica y Desglose por Segmento</p>
-                                </div>
-                                <button onClick={() => setActiveKpiModal(null)} className="text-white/80 hover:text-white"><X size={24} /></button>
-                            </div>
-                            <div className="p-8 overflow-y-auto">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                                    {/* Trend Chart */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-                                        <h4 className="font-bold text-gray-800 mb-4 flex items-center">
-                                            <TrendingUp size={18} className="mr-2 text-green-500" /> Tendencia (6 Meses)
-                                        </h4>
-                                        <div className="h-64">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <LineChart data={FWI_TREND_DATA}>
-                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                                    <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                                                    <YAxis domain={[0, 100]} axisLine={false} tickLine={false} />
-                                                    <Tooltip />
-                                                    <Line type="monotone" dataKey="score" stroke="#10B981" strokeWidth={3} dot={{r: 4}} />
-                                                </LineChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Segment Breakdown */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-                                        <h4 className="font-bold text-gray-800 mb-4 flex items-center">
-                                            <Layers size={18} className="mr-2 text-[#1C81F2]" /> FWI por Departamento vs Uso EWA
-                                        </h4>
-                                        <table className="w-full text-sm">
-                                            <thead>
-                                                <tr className="text-gray-400 border-b border-gray-100">
-                                                    <th className="text-left pb-2 font-bold">Depto</th>
-                                                    <th className="text-right pb-2 font-bold">Score</th>
-                                                    <th className="text-right pb-2 font-bold">Uso EWA</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-50">
-                                                {FWI_BY_SEGMENT.map((item, idx) => (
-                                                    <tr key={idx}>
-                                                        <td className="py-3 font-medium text-gray-700">{item.department}</td>
-                                                        <td className="py-3 text-right font-bold">
-                                                            <span className={`px-2 py-1 rounded-full text-xs ${item.score < 50 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                                                {item.score}
-                                                            </span>
-                                                        </td>
-                                                        <td className="py-3 text-right text-gray-500">{item.ewaUsage}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div className="bg-green-50 border border-green-100 p-6 rounded-xl flex items-start">
-                                    <CheckCircle className="text-green-600 mr-4 mt-1" size={24} />
-                                    <div>
-                                        <h4 className="text-lg font-bold text-green-900">Conclusión Operativa:</h4>
-                                        <p className="text-green-800 text-sm mt-1">
-                                            El incremento de <strong>4pts</strong> está correlacionado con el uso de la función 'Gasto Hormiga Detectado'. 
-                                            Los departamentos con mayor uso de herramientas de autolimitación muestran mejor recuperación de FWI.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* 2. SAVINGS DETAIL MODAL */}
-                {activeKpiModal === 'savings' && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-                             <div className="bg-[#3CB7A9] p-6 flex justify-between items-center text-white">
-                                <div>
-                                    <h2 className="text-2xl font-bold font-['Space_Grotesk']">Impacto Proyectado: Ahorro Colectivo</h2>
-                                    <p className="text-teal-100 text-sm">Distribución de capital retenido por empleados</p>
-                                </div>
-                                <button onClick={() => setActiveKpiModal(null)} className="text-white/80 hover:text-white"><X size={24} /></button>
-                            </div>
-                            <div className="p-8 overflow-y-auto">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                                    {/* Distribution Chart */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-                                        <h4 className="font-bold text-gray-800 mb-4 flex items-center">
-                                            <PieChartIcon size={18} className="mr-2 text-[#3CB7A9]" /> Fuente del Ahorro
-                                        </h4>
-                                        <div className="h-64 relative">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                    <Pie
-                                                        data={SAVINGS_DISTRIBUTION}
-                                                        cx="50%"
-                                                        cy="50%"
-                                                        innerRadius={60}
-                                                        outerRadius={80}
-                                                        paddingAngle={5}
-                                                        dataKey="value"
-                                                    >
-                                                        {SAVINGS_DISTRIBUTION.map((entry, index) => (
-                                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                                        ))}
-                                                    </Pie>
-                                                    <Tooltip />
-                                                    <Legend verticalAlign="bottom" height={36}/>
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
-                                                <span className="text-3xl font-bold text-gray-800 font-['Space_Grotesk']">60%</span>
-                                                <span className="text-[10px] uppercase text-gray-400 font-bold">Vía EWA</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Actionable Insight */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1 flex flex-col justify-center">
-                                        <div className="bg-teal-50 p-6 rounded-xl border border-teal-100 mb-4">
-                                            <h4 className="font-bold text-teal-900 mb-2">EWA con Propósito</h4>
-                                            <p className="text-sm text-teal-800">
-                                                El 60% del ahorro proviene de la función <strong>"Potencia tu Ahorro"</strong>. 
-                                                Esto significa que los empleados están usando el adelanto de nómina para inyectar capital a sus cuentas de ahorro, no para gasto corriente.
-                                            </p>
-                                        </div>
-                                        <button className="w-full py-3 border border-teal-200 text-teal-700 font-bold rounded-xl hover:bg-teal-50 transition-colors">
-                                            Validar con Tesorería (Solicitudes Etiquetadas)
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* 3. ADOPTION DETAIL MODAL */}
-                {activeKpiModal === 'adoption' && (
-                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-                             <div className="bg-indigo-600 p-6 flex justify-between items-center text-white">
-                                <div>
-                                    <h2 className="text-2xl font-bold font-['Space_Grotesk']">Métricas de Uso Operacional EWA</h2>
-                                    <p className="text-indigo-100 text-sm">Frecuencia y Monto Promedio de Retiro</p>
-                                </div>
-                                <button onClick={() => setActiveKpiModal(null)} className="text-white/80 hover:text-white"><X size={24} /></button>
-                            </div>
-                            <div className="p-8 overflow-y-auto">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                                    {/* Frequency Histogram */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-                                        <h4 className="font-bold text-gray-800 mb-4 flex items-center">
-                                            <BarChart2 size={18} className="mr-2 text-indigo-600" /> Frecuencia de Uso Mensual
-                                        </h4>
-                                        <div className="h-64">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart data={EWA_FREQUENCY_DATA}>
-                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                                    <XAxis dataKey="usage" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
-                                                    <YAxis axisLine={false} tickLine={false} />
-                                                    <Tooltip cursor={{fill: '#e0e7ff'}} />
-                                                    <Bar dataKey="count" fill="#4F46E5" radius={[4, 4, 0, 0]} barSize={40} />
-                                                </BarChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Stats Panel */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1 flex flex-col justify-center">
-                                        <div className="flex items-center justify-between mb-6 p-4 bg-gray-50 rounded-xl">
-                                            <span className="text-sm font-bold text-gray-500">Monto Promedio</span>
-                                            <span className="text-2xl font-bold text-[#1E293B]">$150.00</span>
-                                        </div>
-                                         <div className="flex items-center justify-between mb-6 p-4 bg-gray-50 rounded-xl">
-                                            <span className="text-sm font-bold text-gray-500">Motivo Principal</span>
-                                            <span className="text-sm font-bold text-indigo-600">Emergencia / Ahorro</span>
-                                        </div>
-                                         <div className="bg-blue-50 border-l-4 border-blue-500 p-4">
-                                            <p className="text-xs text-blue-800">
-                                                <strong>Conclusión:</strong> El ticket promedio bajo indica que la función se usa para 'tapar huecos' de liquidez (micro-adelantos), validando la efectividad de las reglas de límite.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* 4. ENGAGEMENT DETAIL MODAL */}
-                {activeKpiModal === 'engagement' && (
-                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-                             <div className="bg-[#F59E0B] p-6 flex justify-between items-center text-white">
-                                <div>
-                                    <h2 className="text-2xl font-bold font-['Space_Grotesk']">Uso y Adherencia</h2>
-                                    <p className="text-yellow-100 text-sm">Distribución de interacción por funcionalidad</p>
-                                </div>
-                                <button onClick={() => setActiveKpiModal(null)} className="text-white/80 hover:text-white"><X size={24} /></button>
-                            </div>
-                            <div className="p-8 overflow-y-auto">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                                    {/* Radar Chart */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1">
-                                        <h4 className="font-bold text-gray-800 mb-4 flex items-center">
-                                            <MousePointer size={18} className="mr-2 text-[#F59E0B]" /> Mapa de Calor de Uso
-                                        </h4>
-                                        <div className="h-64">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={ENGAGEMENT_RADAR}>
-                                                    <PolarGrid />
-                                                    <PolarAngleAxis dataKey="subject" tick={{fontSize: 10, fill: '#64748B'}} />
-                                                    <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                                                    <Radar name="Engagement" dataKey="A" stroke="#F59E0B" fill="#F59E0B" fillOpacity={0.6} />
-                                                    <Tooltip />
-                                                </RadarChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Insight Text */}
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm col-span-2 md:col-span-1 flex flex-col justify-center">
-                                        <h4 className="font-bold text-gray-800 mb-4">Adherencia a Bienestar vs. Pago</h4>
-                                        <p className="text-sm text-gray-600 mb-4">
-                                            Aunque el EWA (Pago) sigue siendo el driver principal, vemos un crecimiento sostenido en el módulo de <strong>FWI y Gastos</strong> (65-75% de uso).
-                                        </p>
-                                        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
-                                            <p className="text-sm text-yellow-800">
-                                                <strong>Insight:</strong> La plataforma está migrando de ser vista como un "cajero automático" a un "consejero financiero". El incremento del 12% en engagement global se debe a las nuevas alertas de IA.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* INTERVENTION MODAL (RISK CLUSTERS) */}
-                {showInterventionModal && selectedCluster && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 animate-in zoom-in-95 duration-200">
+                    {/* Analytics & Actions */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border">
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-bold text-[#1E293B]">Intervención Grupal</h3>
-                                <button onClick={() => setShowInterventionModal(false)}><X size={24} className="text-gray-400" /></button>
+                                <div><h3 className="font-bold text-lg text-[#1E293B]">Mapa de Calor: Impacto por Área</h3><p className="text-xs text-gray-500">Correlación: Puntos emitidos vs FWI Promedio</p></div>
+                                <button onClick={() => { setIssueStep('form'); setShowIssueModal(true); }} className="flex items-center space-x-2 bg-[#1C81F2] text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-600 shadow-sm"><Plus size={16}/><span>Emitir Puntos</span></button>
                             </div>
-                            
-                            <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl mb-6">
-                                <p className="text-sm text-orange-800">
-                                    Estás desplegando una acción para <strong>{selectedCluster.count} empleados</strong> del departamento de <strong>{selectedCluster.department}</strong>.
-                                </p>
-                            </div>
-
-                            <div className="space-y-4 mb-8">
-                                <label className="flex items-center p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-[#1C81F2] transition-all">
-                                    <input type="radio" name="action" className="w-5 h-5 text-[#1C81F2]" />
-                                    <div className="ml-3">
-                                        <span className="block font-bold text-sm text-gray-800">Activar Taller de Bienestar</span>
-                                        <span className="block text-xs text-gray-500">Charla financiera obligatoria. Costo: $200</span>
-                                    </div>
-                                </label>
-                                <label className="flex items-center p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-[#1C81F2] transition-all">
-                                    <input type="radio" name="action" className="w-5 h-5 text-[#1C81F2]" />
-                                    <div className="ml-3">
-                                        <span className="block font-bold text-sm text-gray-800">Campaña de Comunicación EWA</span>
-                                        <span className="block text-xs text-gray-500">Push notification sobre adelanto de sueldo. Gratis.</span>
-                                    </div>
-                                </label>
-                                <label className="flex items-center p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-[#1C81F2] transition-all">
-                                    <input type="radio" name="action" className="w-5 h-5 text-[#1C81F2]" />
-                                    <div className="ml-3">
-                                        <span className="block font-bold text-sm text-gray-800">Subsidio Temporal de Intereses</span>
-                                        <span className="block text-xs text-gray-500">0% interés en préstamos por 30 días. Alto Costo.</span>
-                                    </div>
-                                </label>
-                            </div>
-
-                            <button 
-                                onClick={() => setShowInterventionModal(false)}
-                                className="w-full bg-[#1C81F2] text-white font-bold py-3 rounded-xl shadow-lg hover:bg-blue-600 transition-colors"
-                            >
-                                Confirmar Despliegue
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* MAPPING MODAL */}
-                {activeConfigModal === 'mapping' && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 animate-in zoom-in-95 duration-200">
-                            <div className="flex justify-between items-center mb-6">
-                                <div>
-                                    <h3 className="text-xl font-bold text-[#1E293B] font-['Space_Grotesk']">Verificación de Mapeo</h3>
-                                    <p className="text-sm text-gray-500">Conecta tus Centros de Costo (HRIS) con las unidades de Treevü.</p>
-                                </div>
-                                <button onClick={() => setActiveConfigModal(null)} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
-                            </div>
-
-                            {/* Alert Section */}
-                            <div className="bg-yellow-50 border border-yellow-100 p-4 rounded-xl mb-6 flex items-start">
-                                <AlertTriangle size={20} className="text-yellow-600 mr-3 mt-1" />
-                                <div>
-                                    <p className="text-sm font-bold text-yellow-800">Atención Requerida</p>
-                                    <p className="text-xs text-yellow-700">
-                                        Se detectaron <strong>35 empleados</strong> en 'TEMP_STAFF_Q3' sin un departamento asignado en Treevü. Esto afecta sus métricas de riesgo.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Mapping Table */}
-                            <div className="border border-gray-200 rounded-xl overflow-hidden mb-6">
+                            <div className="overflow-x-auto">
                                 <table className="w-full text-sm text-left">
-                                    <thead className="bg-gray-50 text-gray-500 font-bold uppercase text-xs">
-                                        <tr>
-                                            <th className="p-4">Origen (HRIS ID)</th>
-                                            <th className="p-4">Destino Treevü</th>
-                                            <th className="p-4">Estado</th>
-                                        </tr>
-                                    </thead>
+                                    <thead className="bg-gray-50 uppercase text-xs font-bold text-gray-500"><tr><th className="p-3">Departamento</th><th className="p-3 text-right">Puntos Emitidos</th><th className="p-3 text-right">Tasa Canje</th><th className="p-3 text-right">FWI Promedio</th><th className="p-3 text-center">Impacto</th></tr></thead>
                                     <tbody className="divide-y divide-gray-100">
-                                        {MOCK_DEPT_MAPPING.map((item, idx) => (
+                                        {MOCK_TP_HEATMAP.map((row, idx) => (
                                             <tr key={idx} className="hover:bg-gray-50">
-                                                <td className="p-4 font-mono text-gray-600">{item.source}</td>
-                                                <td className="p-4 font-bold text-[#1E293B] flex items-center">
-                                                    {item.treevu}
-                                                    {item.status === 'warning' && <span className="ml-2 text-xs text-red-500 font-normal">(Sin Mapeo)</span>}
-                                                </td>
-                                                <td className="p-4">
-                                                    {item.status === 'mapped' ? (
-                                                        <span className="flex items-center text-green-600 text-xs font-bold bg-green-100 px-2 py-1 rounded w-max"><Link size={12} className="mr-1"/> Mapeado</span>
-                                                    ) : (
-                                                        <span className="flex items-center text-yellow-600 text-xs font-bold bg-yellow-100 px-2 py-1 rounded w-max"><AlertTriangle size={12} className="mr-1"/> Pendiente</span>
-                                                    )}
-                                                </td>
+                                                <td className="p-3 font-bold text-gray-700">{row.department}</td>
+                                                <td className="p-3 text-right">{row.pointsIssued.toLocaleString()}</td>
+                                                <td className="p-3 text-right">{row.redemptionRate}%</td>
+                                                <td className="p-3 text-right font-bold">{row.avgFwi}</td>
+                                                <td className="p-3 text-center"><span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${row.impactLabel === 'High' ? 'bg-green-100 text-green-700' : row.impactLabel === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>{row.impactLabel}</span></td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
-
-                            <div className="flex justify-end space-x-3">
-                                <button className="px-4 py-2 border border-gray-300 rounded-xl text-gray-600 text-sm font-bold hover:bg-gray-50">Descargar Reporte</button>
-                                <button onClick={() => setActiveConfigModal(null)} className="px-4 py-2 bg-[#1C81F2] text-white rounded-xl text-sm font-bold hover:bg-blue-600 shadow-sm flex items-center">
-                                    <RefreshCw size={16} className="mr-2" /> Sincronizar Manualmente
-                                </button>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border">
+                            <h3 className="font-bold text-lg text-[#1E293B] mb-4">Acciones Recomendadas</h3>
+                            <div className="space-y-4">
+                                <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl">
+                                    <h4 className="font-bold text-sm text-orange-800 mb-1">Bono Retención: IT</h4>
+                                    <p className="text-xs text-orange-600 mb-3">El departamento IT tiene un FWI alto pero baja redención. Incentivar uso.</p>
+                                    <button className="text-xs bg-white border border-orange-200 text-orange-700 px-3 py-1 rounded font-bold">Crear Campaña</button>
+                                </div>
+                                <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                                    <h4 className="font-bold text-sm text-blue-800 mb-1">Refuerzo: Logística</h4>
+                                    <p className="text-xs text-blue-600 mb-3">Alto impacto detectado. Emitir bono de 500 pts para mantener la tendencia.</p>
+                                    <button className="text-xs bg-white border border-blue-200 text-blue-700 px-3 py-1 rounded font-bold" onClick={() => { setIssueForm({...issueForm, targetId: 'Logística'}); setShowIssueModal(true); }}>Emitir Ahora</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {/* PAYROLL CONFIG MODAL */}
-                {activeConfigModal === 'payroll' && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-                            <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                                <div>
-                                    <h3 className="text-xl font-bold text-[#1E293B] font-['Space_Grotesk']">Motor de Reglas EWA</h3>
-                                    <p className="text-sm text-gray-500">Define cómo Treevü calcula la liquidez y enruta las solicitudes.</p>
-                                </div>
-                                <button onClick={() => setActiveConfigModal(null)} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Section 1: Cycle Config */}
-                                <div>
-                                    <h4 className="font-bold text-[#1E293B] mb-4 flex items-center text-sm uppercase tracking-wider">
-                                        <Clock size={16} className="mr-2 text-[#1C81F2]" /> Configuración de Ciclo
-                                    </h4>
-                                    <div className="space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-2">Frecuencia de Pago</label>
-                                            <div className="flex space-x-2">
-                                                <button className="flex-1 py-2 bg-white border border-[#1C81F2] text-[#1C81F2] font-bold rounded-lg text-sm">Quincenal</button>
-                                                <button className="flex-1 py-2 bg-white border border-gray-200 text-gray-500 font-bold rounded-lg text-sm hover:border-gray-300">Mensual</button>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-2">Cortes de Nómina</label>
-                                            <select className="w-full p-2 bg-white border border-gray-200 rounded-lg text-sm outline-none">
-                                                <option>Días 15 y 30</option>
-                                                <option>Días 14 y 28</option>
-                                                <option>Cada Viernes</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Section 2: Calculation Base */}
-                                <div>
-                                    <h4 className="font-bold text-[#1E293B] mb-4 flex items-center text-sm uppercase tracking-wider">
-                                        <DollarSign size={16} className="mr-2 text-[#3CB7A9]" /> Base de Cálculo
-                                    </h4>
-                                    <div className="space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                        <div className="flex justify-between items-center">
-                                            <label className="text-sm font-medium text-gray-700">Salario Base</label>
-                                            <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-1 rounded">Bruto</span>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-2">Estimación Deducciones</label>
-                                            <div className="flex items-center">
-                                                <input type="range" min="0" max="40" defaultValue="20" className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#3CB7A9] mr-3" />
-                                                <span className="font-bold text-[#3CB7A9]">20%</span>
-                                            </div>
-                                            <p className="text-[10px] text-gray-400 mt-1">Margen de seguridad para impuestos y SS.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Section 3: Limits (Crucial) */}
-                                <div className="md:col-span-2">
-                                    <h4 className="font-bold text-[#1E293B] mb-4 flex items-center text-sm uppercase tracking-wider">
-                                        <Shield size={16} className="mr-2 text-orange-500" /> Reglas de Límite (Protección de Nómina)
-                                    </h4>
-                                    <div className="bg-orange-50 p-6 rounded-xl border border-orange-100">
-                                        <div className="grid grid-cols-2 gap-6">
-                                            <div>
-                                                <label className="block text-sm font-bold text-orange-900 mb-2">Límite Máximo General</label>
-                                                <div className="flex items-center bg-white p-2 rounded-lg border border-orange-200">
-                                                    <input type="number" defaultValue="50" className="w-16 font-bold text-right outline-none text-orange-900" />
-                                                    <span className="ml-1 text-orange-900">% del Devengado Neto</span>
-                                                </div>
-                                                <p className="text-xs text-orange-700 mt-2">Recomendado: 50% para evitar saldo negativo.</p>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-bold text-orange-900 mb-2">Límite para Aliados/Comisión</label>
-                                                <div className="flex items-center bg-white p-2 rounded-lg border border-orange-200">
-                                                    <input type="number" defaultValue="70" className="w-16 font-bold text-right outline-none text-orange-900" />
-                                                    <span className="ml-1 text-orange-900">% del Devengado</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Section 4: Routing Channels (EWA Lite Core) */}
-                                <div className="md:col-span-2">
-                                    <h4 className="font-bold text-[#1E293B] mb-4 flex items-center text-sm uppercase tracking-wider">
-                                        <Server size={16} className="mr-2 text-indigo-600" /> Canales de Enrutamiento
-                                    </h4>
-                                    <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-100 flex items-start justify-between">
-                                        <div>
-                                            <p className="text-sm font-bold text-indigo-900 mb-1">Método de Entrega de Solicitudes</p>
-                                            <p className="text-xs text-indigo-700 mb-4">Cómo Treevü envía la instrucción de pago a tu Tesorería.</p>
-                                            <div className="flex space-x-3">
-                                                <span className="flex items-center px-3 py-1 bg-white rounded-full text-xs font-bold text-indigo-600 border border-indigo-200 shadow-sm">
-                                                    <CheckCircle size={12} className="mr-1" /> SFTP (Batch)
-                                                </span>
-                                                <span className="flex items-center px-3 py-1 bg-white/50 rounded-full text-xs font-bold text-gray-400 border border-transparent">
-                                                    API Real-time
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xs font-bold text-indigo-900 uppercase mb-1">Frecuencia de Desembolso</p>
-                                            <p className="font-bold text-lg text-indigo-700">Diario - 10:00 AM</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mt-8 flex justify-end pt-4 border-t border-gray-100">
-                                <button onClick={() => setActiveConfigModal(null)} className="px-6 py-3 bg-[#1E293B] text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 transition-colors">
-                                    Guardar Reglas
-                                </button>
-                            </div>
+            {activeTab === 'reconciliation' && (
+                <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div onClick={() => setActiveFinanceModal('receivable')} className="bg-white p-6 rounded-2xl shadow-sm border cursor-pointer hover:border-orange-400 group">
+                             <div className="flex justify-between items-start mb-4">
+                                 <div><h3 className="font-bold text-lg text-gray-800">Cuentas x Cobrar (Activo)</h3><p className="text-xs text-gray-500">Adelantos pendientes de nómina</p></div>
+                                 <div className="bg-orange-100 p-2 rounded-lg text-orange-600 group-hover:bg-orange-500 group-hover:text-white transition-colors"><Briefcase size={20} /></div>
+                             </div>
+                             <h2 className="text-4xl font-bold text-[#1E293B]">$985.50</h2>
+                             <div className="mt-4 flex items-center text-xs text-gray-500"><Clock size={14} className="mr-1" /><span>Liquidación estimada: 15 Oct</span></div>
+                        </div>
+                        <div onClick={() => setActiveFinanceModal('deduction')} className="bg-white p-6 rounded-2xl shadow-sm border cursor-pointer hover:border-blue-400 group">
+                             <div className="flex justify-between items-start mb-4">
+                                 <div><h3 className="font-bold text-lg text-gray-800">Total a Descontar</h3><p className="text-xs text-gray-500">Ajuste nómina próximo ciclo</p></div>
+                                 <div className="bg-blue-100 p-2 rounded-lg text-blue-600 group-hover:bg-blue-500 group-hover:text-white transition-colors"><FileText size={20} /></div>
+                             </div>
+                             <h2 className="text-4xl font-bold text-[#1E293B]">$1,013.00</h2>
+                             <div className="mt-4 flex items-center text-xs text-gray-500"><Info size={14} className="mr-1" /><span>Incluye $27.50 de tarifas</span></div>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {/* WELCOME ONBOARDING MODAL (B2B EWA Lite Education) */}
-                {showOnboarding && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row animate-in fade-in zoom-in duration-300">
-                            <div className="bg-[#1E293B] p-8 text-white flex flex-col justify-center md:w-2/5 relative overflow-hidden">
-                                <div className="absolute -top-10 -left-10 w-32 h-32 bg-white/10 rounded-full"></div>
-                                <ShieldCheck size={48} className="mb-6 relative z-10 text-[#3CB7A9]" />
-                                <h2 className="text-3xl font-bold font-['Space_Grotesk'] mb-2 relative z-10">Bienvenido al Control</h2>
-                                <p className="text-slate-300 text-sm relative z-10">Gestión Operativa de Liquidez (EWA Lite)</p>
-                            </div>
-                            <div className="p-8 md:w-3/5 bg-white">
-                                <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-                                    Estimado equipo de RR.HH. y Finanzas, Treevü es su socio tecnológico para gestionar el acceso al salario devengado. Nuestra plataforma es el <strong>"Data Bridge"</strong> que transforma la data de su HRIS/Nómina en una prestación de bienestar, sin riesgos de <em>fintech</em> o custodia de fondos.
-                                </p>
-                                
-                                <div className="grid grid-cols-2 gap-4 mb-6">
-                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                        <h4 className="text-xs font-bold text-slate-500 uppercase mb-1">Valor Central</h4>
-                                        <p className="text-sm font-bold text-[#1E293B]">Automatización</p>
-                                        <p className="text-[10px] text-slate-400">Cálculo y límites delegados.</p>
-                                    </div>
-                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                        <h4 className="text-xs font-bold text-slate-500 uppercase mb-1">Modelo</h4>
-                                        <p className="text-sm font-bold text-[#1E293B]">No-Fintech</p>
-                                        <p className="text-[10px] text-slate-400">Treevü no mueve fondos.</p>
-                                    </div>
-                                </div>
+            {activeTab === 'config' && (
+                <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-right-4 duration-500">
+                     <div className="bg-white rounded-2xl shadow-sm border p-8">
+                         <h2 className="text-2xl font-bold text-[#1E293B] mb-2">Integración de Datos (Data Bridge)</h2>
+                         <p className="text-gray-500 mb-8">Estado de la conexión con HRIS y reglas de motor de cálculo.</p>
+                         
+                         <div className="space-y-4">
+                             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                 <div className="flex items-center space-x-4">
+                                     <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><Layers size={24} /></div>
+                                     <div><h4 className="font-bold text-[#1E293B]">Mapeo de Departamentos</h4><p className="text-xs text-gray-500">4 Centros de Costo detectados</p></div>
+                                 </div>
+                                 <button onClick={() => setActiveConfigModal('mapping')} className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50">Verificar</button>
+                             </div>
 
-                                <div className="space-y-3 mb-8">
-                                    <p className="text-xs font-bold text-slate-500 uppercase">Sus pasos iniciales:</p>
-                                    <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
-                                        <span className="flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-bold mr-3">1</span>
-                                        <span className="text-sm text-blue-900">Vaya a <strong>Configuración</strong> y verifique reglas.</span>
-                                    </div>
-                                    <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
-                                        <span className="flex items-center justify-center w-6 h-6 bg-blue-500 text-white rounded-full text-xs font-bold mr-3">2</span>
-                                        <span className="text-sm text-blue-900">Monitoree <strong>Gestión de Solicitudes</strong>.</span>
-                                    </div>
-                                </div>
-
-                                <button onClick={() => setShowOnboarding(false)} className="w-full bg-[#1E293B] text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors shadow-lg">
-                                    Revisar Configuración de Reglas
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-            </div>
+                             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                 <div className="flex items-center space-x-4">
+                                     <div className="bg-teal-100 p-2 rounded-lg text-teal-600"><Server size={24} /></div>
+                                     <div><h4 className="font-bold text-[#1E293B]">Ingesta de Nómina (EWA Rules)</h4><p className="text-xs text-gray-500">Reglas de cálculo y límites</p></div>
+                                 </div>
+                                 <button onClick={() => setActiveConfigModal('payroll')} className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50">Configurar</button>
+                             </div>
+                         </div>
+                     </div>
+                </div>
+            )}
         </main>
+
+        {/* MODALS */}
+        {activeKpiModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 relative overflow-hidden">
+                    <button onClick={() => setActiveKpiModal(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={24} /></button>
+                    
+                    {activeKpiModal === 'fwi' && (
+                        <div>
+                            <div className="mb-6"><h3 className="text-2xl font-bold text-[#1E293B]">Análisis Detallado: FWI Promedio</h3><p className="text-sm text-gray-500">Mostrando datos para: {filterArea} / {filterModality}</p></div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                                <div className="md:col-span-2 h-64 bg-slate-50 rounded-xl p-4">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={modalChartData.fwiTrend}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="month" /><YAxis domain={[0, 100]} /><Tooltip /><Line type="monotone" dataKey="score" stroke="#1C81F2" strokeWidth={3} /></LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="bg-blue-50 p-4 rounded-xl"><h4 className="font-bold text-blue-800 text-2xl">{kpiStats.fwi}</h4><p className="text-xs text-blue-600 uppercase">Score Actual</p></div>
+                                    <div className="bg-green-50 p-4 rounded-xl"><h4 className="font-bold text-green-800 text-2xl">+4</h4><p className="text-xs text-green-600 uppercase">Tendencia</p></div>
+                                </div>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-xl border-l-4 border-blue-500 text-sm text-gray-700"><strong>Conclusión Operativa:</strong> El FWI en {filterArea} se mantiene estable. El uso de "Gasto Hormiga Detectado" ha correlacionado positivamente con la mejora de 4 puntos.</div>
+                        </div>
+                    )}
+                    {activeKpiModal === 'savings' && (
+                        <div>
+                            <div className="mb-6"><h3 className="text-2xl font-bold text-[#1E293B]">Impacto Proyectado: Ahorro</h3><p className="text-sm text-gray-500">Distribución de mecanismos de ahorro</p></div>
+                            <div className="flex items-center justify-center h-64 mb-6">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={modalChartData.savingsDist} cx="50%" cy="50%" outerRadius={80} fill="#8884d8" dataKey="value" label>{modalChartData.savingsDist.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}</Pie>
+                                        <Legend />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-xl border-l-4 border-teal-500 text-sm text-gray-700"><strong>Conclusión Operativa:</strong> El 60% del ahorro proviene de la función "Potencia tu Ahorro" (Solicitudes EWA dirigidas). Validar con Tesorería el procesamiento de estas etiquetas.</div>
+                        </div>
+                    )}
+                    {activeKpiModal === 'adoption' && (
+                        <div>
+                             <div className="mb-6"><h3 className="text-2xl font-bold text-[#1E293B]">Adopción EWA</h3><p className="text-sm text-gray-500">Frecuencia de uso mensual</p></div>
+                             <div className="h-64 mb-6 bg-slate-50 rounded-xl p-4">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={modalChartData.adoptionDist}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="name" label={{ value: 'Retiros/Mes', position: 'bottom', offset: 0 }} /><YAxis /><Tooltip /><Bar dataKey="count" fill="#1C81F2" radius={[4, 4, 0, 0]} /></BarChart>
+                                </ResponsiveContainer>
+                             </div>
+                             <div className="bg-gray-50 p-4 rounded-xl border-l-4 border-blue-500 text-sm text-gray-700"><strong>Conclusión Operativa:</strong> La mayoría de usuarios realiza 1-2 retiros al mes, indicando uso para emergencias puntuales y no dependencia crónica.</div>
+                        </div>
+                    )}
+                    {activeKpiModal === 'engagement' && (
+                        <div>
+                            <div className="mb-6"><h3 className="text-2xl font-bold text-[#1E293B]">Engagement Score</h3><p className="text-sm text-gray-500">Uso por módulo de bienestar</p></div>
+                            <div className="h-64 mb-6 bg-slate-50 rounded-xl p-4">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={modalChartData.engagementRadar}>
+                                        <PolarGrid />
+                                        <PolarAngleAxis dataKey="subject" />
+                                        <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                                        <Radar name="Engagement" dataKey="A" stroke="#3CB7A9" fill="#3CB7A9" fillOpacity={0.6} />
+                                        <Legend />
+                                    </RadarChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-xl border-l-4 border-teal-500 text-sm text-gray-700"><strong>Conclusión Operativa:</strong> Alto interés en "Metas". La plataforma es vista como herramienta de planificación, no solo de liquidez.</div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
+
+        {activeFinanceModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 relative">
+                    <button onClick={() => setActiveFinanceModal(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={24} /></button>
+                    {activeFinanceModal === 'receivable' ? (
+                        <div>
+                            <div className="mb-6"><h3 className="text-xl font-bold text-[#1E293B]">Análisis de Adelantos Pendientes (Activo)</h3><p className="text-sm text-gray-500">Antigüedad y Composición del Activo</p></div>
+                            <div className="grid grid-cols-2 gap-6 mb-6">
+                                <div className="bg-slate-50 rounded-xl p-4 h-56">
+                                    <h4 className="text-xs font-bold uppercase text-gray-400 mb-2">Aging (Días)</h4>
+                                    <ResponsiveContainer width="100%" height="90%"><BarChart data={AGING_DATA}><CartesianGrid vertical={false} /><XAxis dataKey="range" tick={{fontSize: 10}} /><YAxis hide /><Tooltip /><Bar dataKey="amount" fill="#1C81F2" radius={[4,4,0,0]} /></BarChart></ResponsiveContainer>
+                                </div>
+                                <div className="bg-slate-50 rounded-xl p-4 h-56">
+                                    <h4 className="text-xs font-bold uppercase text-gray-400 mb-2">Por Propósito</h4>
+                                    <ResponsiveContainer width="100%" height="90%"><PieChart><Pie data={PURPOSE_BREAKDOWN} cx="50%" cy="50%" innerRadius={40} outerRadius={60} dataKey="value"><Cell fill="#EF4444"/><Cell fill="#1C81F2"/><Cell fill="#10B981"/></Pie><Tooltip /></PieChart></ResponsiveContainer>
+                                </div>
+                            </div>
+                            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <p className="text-xs text-gray-600 w-2/3">El 95% del activo es menor a 5 días. Riesgo de insolvencia bajo.</p>
+                                <button className="text-blue-600 font-bold text-xs flex items-center"><Download size={14} className="mr-1"/> Exportar Detalle</button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <div className="mb-6"><h3 className="text-xl font-bold text-[#1E293B]">Conciliación de Nómina</h3><p className="text-sm text-gray-500">Desglose Principal vs Tarifas</p></div>
+                            <div className="grid grid-cols-2 gap-6 mb-6">
+                                <div className="h-56"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={DEDUCTION_COMPOSITION} cx="50%" cy="50%" outerRadius={70} dataKey="value" label><Cell fill="#1C81F2"/><Cell fill="#F59E0B"/></Pie><Legend /></PieChart></ResponsiveContainer></div>
+                                <div>
+                                    <h4 className="font-bold text-sm mb-3">Desglose de Tarifas</h4>
+                                    <table className="w-full text-xs">
+                                        <thead className="bg-gray-50 text-gray-500 font-bold"><tr><th className="p-2 text-left">Tipo</th><th className="p-2 text-right">Total</th></tr></thead>
+                                        <tbody className="divide-y">
+                                            {FEE_BREAKDOWN.map((f,i) => (<tr key={i}> <td className="p-2">{f.type}</td><td className="p-2 text-right">${f.total.toFixed(2)}</td></tr>))}
+                                        </tbody>
+                                        <tfoot className="border-t font-bold"><tr><td className="p-2">Total</td><td className="p-2 text-right text-orange-500">$27.50</td></tr></tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                            <button className="w-full bg-[#1E293B] text-white py-3 rounded-xl font-bold flex justify-center items-center"><FileText size={18} className="mr-2"/> Generar Archivo de Nómina (.CSV)</button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
+
+        {/* TreePoints Issuance Modal */}
+        {showIssueModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
+                    <div className="flex justify-between items-center mb-6"><h3 className="font-bold text-lg">Asignar TreePoints</h3><button onClick={() => setShowIssueModal(false)}><X size={20} /></button></div>
+                    {issueStep === 'form' ? (
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 mb-1">Tipo de Asignación</label>
+                                <div className="flex space-x-2">
+                                    <button onClick={() => setIssueForm({...issueForm, targetType: 'Department'})} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${issueForm.targetType === 'Department' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-gray-200 text-gray-500'}`}>Departamento</button>
+                                    <button onClick={() => setIssueForm({...issueForm, targetType: 'Individual'})} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${issueForm.targetType === 'Individual' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-gray-200 text-gray-500'}`}>Individual</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 mb-1">{issueForm.targetType === 'Department' ? 'Departamento' : 'ID Empleado'}</label>
+                                {issueForm.targetType === 'Department' ? (
+                                    <select value={issueForm.targetId} onChange={(e) => setIssueForm({...issueForm, targetId: e.target.value})} className="w-full p-2 border rounded-lg text-sm">
+                                        <option>Ventas</option><option>Logística</option><option>IT</option><option>Finanzas</option>
+                                    </select>
+                                ) : (
+                                    <input type="text" value={issueForm.targetId} onChange={(e) => setIssueForm({...issueForm, targetId: e.target.value})} className="w-full p-2 border rounded-lg text-sm" placeholder="EMP-XXX" />
+                                )}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 mb-1">Cantidad de Puntos</label>
+                                <input type="number" value={issueForm.amount} onChange={(e) => setIssueForm({...issueForm, amount: Number(e.target.value)})} className="w-full p-2 border rounded-lg text-sm font-bold" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 mb-1">Motivo / Campaña</label>
+                                <input type="text" value={issueForm.reason} onChange={(e) => setIssueForm({...issueForm, reason: e.target.value})} className="w-full p-2 border rounded-lg text-sm" />
+                            </div>
+                            <div className="pt-4 flex space-x-3">
+                                <button onClick={() => setShowIssueModal(false)} className="flex-1 py-3 border rounded-xl font-bold text-gray-500">Cancelar</button>
+                                <button onClick={handleIssuePoints} className="flex-1 bg-[#1C81F2] text-white py-3 rounded-xl font-bold">Asignar Puntos</button>
+                            </div>
+                        </div>
+                    ) : issueStep === 'processing' ? (
+                        <div className="py-8 text-center"><RefreshCw className="animate-spin mx-auto text-[#1C81F2] mb-4" size={32} /><p>Procesando asignación...</p></div>
+                    ) : (
+                        <div className="py-4 text-center">
+                            <CheckCircle className="mx-auto text-green-500 mb-4" size={48} />
+                            <h3 className="font-bold text-lg mb-2">¡Asignación Exitosa!</h3>
+                            <p className="text-xs text-gray-500 mb-6">Se han emitido {issueForm.amount} puntos a {issueForm.targetId}.</p>
+                            <button onClick={() => setShowIssueModal(false)} className="w-full bg-[#1C81F2] text-white py-3 rounded-xl font-bold">Cerrar</button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
+
+        {/* TreePoints Statistical Drill-down Modals */}
+        {activeTpModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 relative">
+                    <button onClick={() => setActiveTpModal(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={24} /></button>
+                    
+                    {activeTpModal === 'issuance' && (
+                        <div>
+                            <div className="mb-6"><h3 className="text-xl font-bold text-[#1E293B]">Tendencia de Emisión</h3><p className="text-sm text-gray-500">Puntos otorgados vs. Objetivo</p></div>
+                            <div className="h-64 mb-6 bg-slate-50 rounded-xl p-4">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={TP_ISSUANCE_TREND}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis dataKey="month" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="issued" name="Emitidos" stroke="#1C81F2" strokeWidth={2} />
+                                        <Line type="monotone" dataKey="target" name="Objetivo" stroke="#94A3B8" strokeDasharray="5 5" />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-xl border-l-4 border-blue-500 text-sm text-gray-700">
+                                <strong>Insight:</strong> La emisión de puntos ha superado el objetivo en Octubre debido a la campaña de "Retención Q4".
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTpModal === 'redemption' && (
+                        <div>
+                            <div className="mb-6"><h3 className="text-xl font-bold text-[#1E293B]">Desglose de Canje</h3><p className="text-sm text-gray-500">Preferencias de los empleados</p></div>
+                            <div className="h-64 mb-6 flex justify-center">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={TP_REDEMPTION_CATS} cx="50%" cy="50%" innerRadius={60} outerRadius={80} dataKey="value" label>
+                                            {TP_REDEMPTION_CATS.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                        <Legend />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-xl border-l-4 border-teal-500 text-sm text-gray-700">
+                                <strong>Insight:</strong> El 45% de los puntos se usan en el Marketplace, lo que valida la estrategia de beneficios externos.
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTpModal === 'budget' && (
+                        <div>
+                            <div className="mb-6"><h3 className="text-xl font-bold text-[#1E293B]">Utilización del Presupuesto</h3><p className="text-sm text-gray-500">Consumo acumulado por trimestre</p></div>
+                            <div className="h-64 mb-6 bg-slate-50 rounded-xl p-4">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={TP_BUDGET_USAGE}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis dataKey="month" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Area type="monotone" dataKey="used" name="Usado" stackId="1" stroke="#8884d8" fill="#8884d8" />
+                                        <Area type="monotone" dataKey="budget" name="Presupuesto Total" stackId="2" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.2} />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-xl border-l-4 border-purple-500 text-sm text-gray-700">
+                                <strong>Insight:</strong> Q4 muestra un consumo del 45% del presupuesto anual asignado, alineado con las bonificaciones de fin de año.
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
+
+        {activeConfigModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 relative">
+                    <button onClick={() => setActiveConfigModal(null)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={24} /></button>
+                    {activeConfigModal === 'mapping' ? (
+                        <div>
+                            <h3 className="text-xl font-bold text-[#1E293B] mb-4">Mapeo de Departamentos (Data Bridge)</h3>
+                            <table className="w-full text-sm text-left mb-6">
+                                <thead className="bg-gray-50 uppercase text-xs font-bold text-gray-500"><tr><th className="p-3">Código HRIS</th><th className="p-3">Nombre HRIS</th><th className="p-3">Mapeo Treevü</th><th className="p-3">Estado</th></tr></thead>
+                                <tbody className="divide-y">
+                                    {MOCK_DEPT_MAPPING.map((m,i) => (
+                                        <tr key={i}>
+                                            <td className="p-3 font-mono text-xs">{m.hrisCode}</td>
+                                            <td className="p-3">{m.hrisName}</td>
+                                            <td className="p-3 font-bold">{m.treevuMapping}</td>
+                                            <td className="p-3"><span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${m.status === 'ok' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>{m.status}</span></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            <div className="flex justify-end space-x-3"><button className="px-4 py-2 border rounded-lg font-bold text-gray-500">Descargar Reporte</button><button className="px-4 py-2 bg-[#1C81F2] text-white rounded-lg font-bold">Sincronizar Manualmente</button></div>
+                        </div>
+                    ) : (
+                        <div>
+                            <h3 className="text-xl font-bold text-[#1E293B] mb-6">Configuración de Reglas EWA</h3>
+                            <div className="grid grid-cols-2 gap-6 mb-6">
+                                <div className="space-y-4">
+                                    <h4 className="font-bold text-sm text-gray-400 uppercase border-b pb-2">Cálculo Devengado</h4>
+                                    <div><label className="block text-xs font-bold text-gray-700 mb-1">Base de Cálculo</label><select className="w-full border rounded-lg p-2 text-sm"><option>Salario Neto (Recomendado)</option><option>Salario Bruto</option></select></div>
+                                    <div><label className="block text-xs font-bold text-gray-700 mb-1">Estimación Deducciones</label><input type="text" value="22.5%" className="w-full border rounded-lg p-2 text-sm" readOnly /></div>
+                                </div>
+                                <div className="space-y-4">
+                                    <h4 className="font-bold text-sm text-gray-400 uppercase border-b pb-2">Límites y Enrutamiento</h4>
+                                    <div><label className="block text-xs font-bold text-gray-700 mb-1">Límite Máximo EWA</label><select className="w-full border rounded-lg p-2 text-sm"><option>50% del Neto</option><option>30% del Neto</option></select></div>
+                                    <div><label className="block text-xs font-bold text-gray-700 mb-1">Canal de Solicitudes</label><select className="w-full border rounded-lg p-2 text-sm"><option>API (Real-time)</option><option>SFTP (Batch Diario)</option></select></div>
+                                </div>
+                            </div>
+                            <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 text-xs text-yellow-800 mb-6"><strong>Nota:</strong> Los cambios en el límite máximo afectarán la disponibilidad de todos los colaboradores en el siguiente ciclo de cálculo.</div>
+                            <button className="w-full bg-[#1E293B] text-white py-3 rounded-xl font-bold">Guardar Cambios</button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
+
+        {/* Onboarding Modal logic retained... */}
+        {showOnboarding && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
+                    <div className="bg-[#1E293B] p-8 text-center text-white">
+                        <Server size={48} className="mx-auto mb-4 text-blue-400" />
+                        <h2 className="text-3xl font-bold mb-2 font-['Space_Grotesk']">Bienvenido al Centro de Control</h2>
+                        <p className="text-blue-200">Gestión de Liquidez y Riesgo Operativo</p>
+                    </div>
+                    <div className="p-8">
+                        <p className="text-gray-600 mb-6 text-sm leading-relaxed">
+                            Han dado el primer paso para transformar la nómina en una herramienta estratégica. Treevü es su <strong>Plataforma de Inteligencia Interna</strong>.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <ShieldCheck className="text-green-600 mb-2" size={24} />
+                                <h4 className="font-bold text-sm text-[#1E293B] mb-1">Cero Riesgo Custodia</h4>
+                                <p className="text-xs text-gray-500">Tesorería mantiene el control total del flujo de caja.</p>
+                            </div>
+                            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <Settings className="text-blue-600 mb-2" size={24} />
+                                <h4 className="font-bold text-sm text-[#1E293B] mb-1">Automatización</h4>
+                                <p className="text-xs text-gray-500">Nosotros gestionamos reglas y límites. Ustedes ejecutan.</p>
+                            </div>
+                            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <TrendingUp className="text-purple-600 mb-2" size={24} />
+                                <h4 className="font-bold text-sm text-[#1E293B] mb-1">Visibilidad Total</h4>
+                                <p className="text-xs text-gray-500">Correlacione estrés financiero con riesgo de rotación.</p>
+                            </div>
+                        </div>
+                        <div className="flex space-x-4">
+                            <button onClick={() => { setShowOnboarding(false); setActiveTab('config'); }} className="flex-1 py-4 border-2 border-slate-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50">Configurar Reglas</button>
+                            <button onClick={() => setShowOnboarding(false)} className="flex-1 bg-[#1C81F2] text-white py-4 rounded-xl font-bold shadow-lg hover:bg-blue-600">Ir al Dashboard Ejecutivo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
     </div>
   );
 };
