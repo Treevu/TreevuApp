@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Wallet, TrendingUp, Plus, Leaf, Award, CreditCard, Zap, Activity, ArrowRight,
   ShoppingBag, Gift, Shield, TrendingDown, Home, User, Search, Camera, X,
   CheckCircle, Clock, Tag, Receipt, Target, PiggyBank, Calendar, AlertCircle,
   ShieldCheck, BarChart2, Store, GraduationCap, Plane, Smartphone, Shirt,
   Settings, Bell, ChevronRight, Sliders, LineChart as LineChartIcon, Smile,
-  Meh, Frown, Menu, Briefcase, Scissors, ArrowUp, RotateCcw, Layout, LogOut,
+  Meh, Frown, Menu, Briefcase, Scissors, ArrowUp, ArrowDown, RotateCcw, Layout, LogOut,
   Sparkles, ArrowDownLeft, ArrowUpRight, Banknote, Info, CreditCard as CreditCardIcon,
   Lock, Building2, Globe, Coffee, Car, Utensils, Filter, MessageSquare, Send,
   Bot, Landmark, FileText, ToggleLeft, ToggleRight, RefreshCw, Server, Copy,
-  Bookmark, UserX, UserCheck, Mail, Save, AlertTriangle, Maximize2, LifeBuoy
+  Bookmark, UserX, UserCheck, Mail, Save, AlertTriangle, Maximize2, LifeBuoy, CheckSquare,
+  HelpCircle, XCircle
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, CartesianGrid, LineChart, Line } from 'recharts';
 import { UserProfile, Transaction, MarketOffer, FinancialGoal, ExpenseAnalysis, ChatMessage, AiAdviceCard, EwaRequest, AppAlert } from '../types';
@@ -36,7 +37,7 @@ const INITIAL_USER: UserProfile = {
   streakDays: 5,
   level: 3,
   monthlyIncome: 3200,
-  availableEwa: 450
+  availableEwa: 0 // Will be calculated dynamically
 };
 
 const MOCK_TRANSACTIONS: Transaction[] = [
@@ -45,6 +46,8 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   { id: '3', merchant: 'Shell', amount: 45.00, category: 'Transporte', date: 'Ayer', isDiscretionary: false },
   { id: '4', merchant: 'Starbucks', amount: 8.50, category: 'Ocio', date: 'Hace 2 días', isDiscretionary: true },
   { id: '5', merchant: 'Farmacia Cruz Verde', amount: 32.10, category: 'Salud', date: 'Hace 3 días', isDiscretionary: false },
+  { id: '6', merchant: 'Cinepolis', amount: 25.00, category: 'Ocio', date: 'Hace 4 días', isDiscretionary: true },
+  { id: '7', merchant: 'Spotify', amount: 9.99, category: 'Suscripción', date: 'Hace 5 días', isDiscretionary: true },
 ];
 
 const MOCK_EWA_HISTORY: EwaRequest[] = [
@@ -72,7 +75,7 @@ const MOCK_ADVICE_CARDS: AiAdviceCard[] = [
 
 const MOCK_NOTIFICATIONS: AppAlert[] = [
     { id: 'n1', type: 'achievement', message: '¡Has mantenido tu racha por 5 días! Sigue así.', severity: 'info' },
-    { id: 'n2', type: 'liquidity_warning', message: 'Tu disponible EWA ha aumentado a $450 por días trabajados.', severity: 'info' },
+    { id: 'n2', type: 'liquidity_warning', message: 'Tu disponible EWA ha aumentado por los días trabajados.', severity: 'info' },
     { id: 'n3', type: 'policy_rejection', message: 'Recordatorio de seguridad: Se recomienda activar MFA.', severity: 'warning' }
 ];
 
@@ -104,6 +107,11 @@ const getCategoryIcon = (category: string) => {
     }
 };
 
+// Simulation Constants
+const SIMULATED_DAY_OF_MONTH = 12;
+const SIMULATED_TOTAL_DAYS = 30;
+const EWA_SAFETY_CAP_PERCENT = 0.5; // 50% max access rule
+
 export const DashboardEmployee: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'market' | 'expense' | 'goals' | 'wallet' | 'assistant' | 'profile'>('home');
   const [user, setUser] = useState<UserProfile>(INITIAL_USER);
@@ -112,6 +120,9 @@ export const DashboardEmployee: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<AppAlert[]>(MOCK_NOTIFICATIONS);
   
+  // Mobile Menu State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   // Expense State
   const [expenseStep, setExpenseStep] = useState<'input' | 'processing' | 'result'>('input');
   const [expenseInput, setExpenseInput] = useState('');
@@ -126,6 +137,8 @@ export const DashboardEmployee: React.FC = () => {
   const [processingWithdrawal, setProcessingWithdrawal] = useState(false);
   const [ewaStep, setEwaStep] = useState<'select' | 'processing' | 'success'>('select');
   const [ewaSettings, setEwaSettings] = useState({ notifyAvailable: true, notifyLowFwi: true });
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [ewaSort, setEwaSort] = useState<{ key: keyof EwaRequest; direction: 'asc' | 'desc' }>({ key: 'date', direction: 'desc' });
 
   // Market State
   const [marketFilter, setMarketFilter] = useState<'all' | 'corporate' | 'global' | 'saved'>('all');
@@ -133,6 +146,8 @@ export const DashboardEmployee: React.FC = () => {
   const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [redeemStep, setRedeemStep] = useState<'confirm' | 'processing' | 'success'>('confirm');
   const [savedOfferIds, setSavedOfferIds] = useState<Set<string>>(new Set());
+  const [recommendedOffer, setRecommendedOffer] = useState<MarketOffer | null>(null);
+  const [offerPitch, setOfferPitch] = useState<string>("");
 
   // Assistant State
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([{ id: 'msg_init', text: '¡Hola Alex! Soy Treevü Brain. He analizado tus finanzas de esta semana. ¿En qué puedo ayudarte hoy?', sender: 'ai', timestamp: Date.now() }]);
@@ -154,14 +169,68 @@ export const DashboardEmployee: React.FC = () => {
   const [bankRequestStep, setBankRequestStep] = useState<'input' | 'processing' | 'success'>('input');
   const [newBankAccount, setNewBankAccount] = useState('');
 
+  // Derived State for Income & EWA Calculations
+  const grossEarned = (user.monthlyIncome / SIMULATED_TOTAL_DAYS) * SIMULATED_DAY_OF_MONTH;
+  const maxSafeLimit = grossEarned * EWA_SAFETY_CAP_PERCENT;
+  const totalWithdrawn = ewaHistory.reduce((sum, req) => sum + req.amount, 0);
+  
+  // Update available EWA on mount based on simulation math
+  useEffect(() => {
+    const calculatedAvailable = Math.max(0, maxSafeLimit - totalWithdrawn);
+    setUser(prev => ({ ...prev, availableEwa: calculatedAvailable }));
+  }, [maxSafeLimit, totalWithdrawn]);
+
   useEffect(() => {
     if (user.status === 'ACTIVE') {
       logCriticalEvent(MOAT_EVENTS.DASHBOARD_VIEW, { session_id: 'sess_' + Math.random().toString(36).substr(2, 9) }, { fwiScore: user.fwiScore });
       getFinancialAdvice(user.fwiScore, transactions).then(setAiNudge);
+
+      // Select recommended offer logic
+      const segment = user.fwiScore < 50 ? 'low' : user.fwiScore < 75 ? 'mid' : 'high';
+      // Fallback for 'all' or specific segment matches
+      const rec = MARKET_OFFERS.find(o => o.targetFwiSegment === segment || o.targetFwiSegment === 'all');
+      
+      if (rec) {
+        setRecommendedOffer(rec);
+        getOfferPitch(rec.title, user.fwiScore).then(setOfferPitch);
+      }
     }
-  }, [user.status]);
+  }, [user.status, user.fwiScore]);
 
   useEffect(() => { if (activeTab === 'assistant') chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatHistory, activeTab]);
+
+  // --- CHART DATA PREPARATION (Discretionary Expenses) ---
+  const discretionaryStats = useMemo(() => {
+    const groupedData: Record<string, number> = {};
+    
+    transactions
+      .filter(t => t.isDiscretionary)
+      .forEach(t => {
+        groupedData[t.category] = (groupedData[t.category] || 0) + t.amount;
+      });
+
+    const chartData = Object.keys(groupedData).map(cat => ({
+      name: cat,
+      amount: groupedData[cat],
+      fill: '#F59E0B' // Warning color for discretionary
+    }));
+
+    // If filter is active, we might want to still show everything but highlight, 
+    // or filter the chart. Let's filter the chart based on the dropdown for consistency.
+    if (expenseFilter !== 'all') {
+      return chartData.filter(d => d.name === expenseFilter);
+    }
+    
+    return chartData;
+  }, [transactions, expenseFilter]);
+
+  const uniqueCategories = useMemo(() => {
+      const cats = new Set(transactions.map(t => t.category));
+      return Array.from(cats);
+  }, [transactions]);
+
+  const totalDiscretionary = discretionaryStats.reduce((sum, item) => sum + item.amount, 0);
+
 
   const handleExpenseSubmit = async () => {
     if (user.status !== 'ACTIVE' || !expenseInput) return;
@@ -174,7 +243,7 @@ export const DashboardEmployee: React.FC = () => {
   };
 
   const handleEwaRequest = () => {
-      if (user.status !== 'ACTIVE') return;
+      if (user.status !== 'ACTIVE' || !termsAccepted) return;
       setProcessingWithdrawal(true);
       setEwaStep('processing');
       setTimeout(() => {
@@ -185,14 +254,47 @@ export const DashboardEmployee: React.FC = () => {
       }, 2000);
   };
 
+  const handleSort = (key: keyof EwaRequest) => {
+    setEwaSort(prev => ({
+        key,
+        direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const sortedEwaHistory = [...ewaHistory].sort((a, b) => {
+    const valA = a[ewaSort.key];
+    const valB = b[ewaSort.key];
+    if (valA < valB) return ewaSort.direction === 'asc' ? -1 : 1;
+    if (valA > valB) return ewaSort.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   const handleAdviceClick = (card: AiAdviceCard) => { if (user.status === 'ACTIVE') { setActiveAdvice(card); setAdviceStep('info'); } };
-  const handleRiskCommitment = () => { setAdviceStep('processing'); setTimeout(() => { setUser(prev => ({ ...prev, availableEwa: Math.max(0, prev.availableEwa - 22.50) })); setAdviceStep('success'); }, 1500); };
+  
+  const handleRiskCommitment = () => { 
+      setAdviceStep('processing'); 
+      logCriticalEvent(MOAT_EVENTS.NUDGE_COMMITMENT, { type: 'risk_reduction', amount: 22.50 }, { fwiScore: user.fwiScore });
+      setTimeout(() => { 
+          setUser(prev => ({ ...prev, availableEwa: Math.max(0, prev.availableEwa - 22.50) })); 
+          setNotifications(prev => [{
+              id: `n_comm_${Date.now()}`,
+              type: 'achievement',
+              message: 'Compromiso Activo: Tu límite EWA se ha ajustado para asegurar tu ahorro.',
+              severity: 'info'
+          }, ...prev]);
+          setAdviceStep('success'); 
+      }, 1500); 
+  };
+
   const handleSavingsInjection = () => { setAdviceStep('processing'); setTimeout(() => { setEwaHistory(prev => [{ id: `req_sav_${Date.now()}`, amount: 20, date: 'Hoy', status: 'processing_transfer', fee: 0.00, estimatedArrival: 'Próximo Corte' }, ...prev]); setUser(prev => ({...prev, availableEwa: prev.availableEwa - 20})); setAdviceStep('success'); }, 1500); };
+  
   const handleRecordContribution = () => {
-    setGoals(prev => prev.map(g => g.category === 'Vacation' ? { ...g, currentAmount: g.currentAmount + 20, lastContribution: Date.now() } : g));
+    const vacationGoal = goals.find(g => g.category === 'Vacation') || goals[0];
+    setGoals(prev => prev.map(g => g.id === vacationGoal.id ? { ...g, currentAmount: g.currentAmount + 20, lastContribution: Date.now() } : g));
     setActiveAdvice(null);
     setActiveTab('goals');
   };
+  
   const handleBankRequest = () => { setBankRequestStep('processing'); setTimeout(() => { setBankRequestStep('success'); }, 2000); };
   const handleSendMessage = async () => {
     if (user.status !== 'ACTIVE' || !currentMessage.trim()) return;
@@ -215,6 +317,13 @@ export const DashboardEmployee: React.FC = () => {
     });
   };
 
+  const getFWILabel = (score: number) => {
+      if (score >= 80) return { label: 'Excelente', color: 'text-green-600', bg: 'bg-green-100' };
+      if (score >= 60) return { label: 'Saludable', color: 'text-blue-600', bg: 'bg-blue-100' };
+      if (score >= 40) return { label: 'En Progreso', color: 'text-yellow-600', bg: 'bg-yellow-100' };
+      return { label: 'Vulnerable', color: 'text-red-600', bg: 'bg-red-100' };
+  };
+
   const SidebarItem = ({ id, icon: Icon, label, active, onClick, disabled }: any) => (
     <button onClick={disabled ? undefined : onClick} disabled={disabled} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${disabled ? 'opacity-40 cursor-not-allowed text-gray-400' : active ? 'bg-[#1C81F2] text-white shadow-md' : 'text-gray-500 hover:bg-white hover:shadow-sm'}`}>
       <Icon size={20} /> <span className="font-bold text-sm text-left">{label}</span>
@@ -222,8 +331,9 @@ export const DashboardEmployee: React.FC = () => {
   );
 
   return (
-    <div className="flex h-screen bg-[#F6FAFE] overflow-hidden">
-      <div className="fixed top-4 right-20 z-50">
+    <div className="flex h-screen bg-[#F6FAFE] overflow-hidden relative">
+      {/* Simulation Dropdown */}
+      <div className="fixed top-4 right-20 z-50 hidden md:block">
          <select className="bg-white border border-gray-300 text-xs rounded p-1 opacity-50 hover:opacity-100" value={user.status} onChange={(e) => setUser(prev => ({...prev, status: e.target.value as any}))}>
             <option value="ACTIVE">Simular: Activo</option>
             <option value="PENDING">Simular: Pendiente</option>
@@ -231,21 +341,42 @@ export const DashboardEmployee: React.FC = () => {
          </select>
       </div>
 
-      <aside className="hidden md:flex flex-col w-64 bg-slate-50 border-r border-slate-200 h-full p-6 fixed left-0 top-0 z-20">
-          <div className="flex items-center space-x-2 mb-8 px-2">
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-20 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Navigation */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-30 w-64 bg-slate-50 border-r border-slate-200 h-full p-6 
+        transform transition-transform duration-300 ease-in-out
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0 md:static md:flex md:flex-col
+      `}>
+          <div className="flex items-center justify-between mb-8 px-2">
+            <div className="flex items-center space-x-2">
               <div className="bg-[#1C81F2] p-2 rounded-lg"><Leaf className="text-white" size={24} /></div>
               <div><span className="text-xl font-bold text-[#1E293B] font-['Space_Grotesk'] block">Treevü</span><span className="text-[10px] text-gray-500 font-bold uppercase">Colaborador</span></div>
+            </div>
+            {/* Close button only visible on mobile */}
+            <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-gray-400">
+              <X size={24} />
+            </button>
           </div>
+
           <nav className="flex-1 space-y-1 overflow-y-auto pr-2">
               
               {/* BIENESTAR SECTION */}
               <div className="mb-6">
                   <p className="px-4 text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-wider">BIENESTAR</p>
                   <div className="space-y-1">
-                    <SidebarItem id="home" icon={Layout} label="Mi Dashboard (FWI)" active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
-                    <SidebarItem id="goals" icon={Target} label="Metas y Ahorro" active={activeTab === 'goals'} onClick={() => setActiveTab('goals')} disabled={user.status !== 'ACTIVE'} />
-                    <SidebarItem id="assistant" icon={MessageSquare} label="Asistente IA" active={activeTab === 'assistant'} onClick={() => setActiveTab('assistant')} disabled={user.status !== 'ACTIVE'} />
-                    <SidebarItem id="market" icon={Store} label="Marketplace" active={activeTab === 'market'} onClick={() => setActiveTab('market')} />
+                    <SidebarItem id="home" icon={Layout} label="Mi Dashboard (FWI)" active={activeTab === 'home'} onClick={() => { setActiveTab('home'); setIsMobileMenuOpen(false); }} />
+                    <SidebarItem id="goals" icon={Target} label="Metas y Ahorro" active={activeTab === 'goals'} onClick={() => { setActiveTab('goals'); setIsMobileMenuOpen(false); }} disabled={user.status !== 'ACTIVE'} />
+                    <SidebarItem id="assistant" icon={MessageSquare} label="Asistente IA" active={activeTab === 'assistant'} onClick={() => { setActiveTab('assistant'); setIsMobileMenuOpen(false); }} disabled={user.status !== 'ACTIVE'} />
+                    <SidebarItem id="market" icon={Store} label="Marketplace" active={activeTab === 'market'} onClick={() => { setActiveTab('market'); setIsMobileMenuOpen(false); }} />
                   </div>
               </div>
 
@@ -253,8 +384,8 @@ export const DashboardEmployee: React.FC = () => {
               <div className="mb-6">
                   <p className="px-4 text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-wider">FINANZAS</p>
                   <div className="space-y-1">
-                    <SidebarItem id="wallet" icon={Banknote} label="Nómina On-Demand" active={activeTab === 'wallet'} onClick={() => setActiveTab('wallet')} disabled={user.status !== 'ACTIVE'} />
-                    <SidebarItem id="expense" icon={CreditCard} label="Centro de Operaciones" active={activeTab === 'expense'} onClick={() => setActiveTab('expense')} disabled={user.status !== 'ACTIVE'} />
+                    <SidebarItem id="wallet" icon={Banknote} label="Acceso Salario" active={activeTab === 'wallet'} onClick={() => { setActiveTab('wallet'); setIsMobileMenuOpen(false); }} disabled={user.status !== 'ACTIVE'} />
+                    <SidebarItem id="expense" icon={CreditCard} label="Centro de Operaciones" active={activeTab === 'expense'} onClick={() => { setActiveTab('expense'); setIsMobileMenuOpen(false); }} disabled={user.status !== 'ACTIVE'} />
                   </div>
               </div>
 
@@ -262,38 +393,46 @@ export const DashboardEmployee: React.FC = () => {
               <div>
                   <p className="px-4 text-[10px] font-bold text-gray-400 uppercase mb-3 tracking-wider">SISTEMA</p>
                   <div className="space-y-1">
-                    <SidebarItem id="profile" icon={User} label="Mi Perfil y Cuentas" active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} />
+                    <SidebarItem id="profile" icon={User} label="Mi Perfil y Cuentas" active={activeTab === 'profile'} onClick={() => { setActiveTab('profile'); setIsMobileMenuOpen(false); }} />
                   </div>
               </div>
           </nav>
       </aside>
 
-      <main className="flex-1 md:ml-64 overflow-y-auto h-full p-6 md:p-10">
-          <header className="mb-10 flex justify-between items-center">
-              <div>
-                  <h1 className="text-3xl font-bold text-[#1E293B] font-['Space_Grotesk']">
-                      {activeTab === 'home' && `Hola, ${user.name.split(' ')[0]}`}
-                      {activeTab === 'market' && 'Marketplace de Beneficios'}
-                      {activeTab === 'expense' && 'Centro de Operaciones'}
-                      {activeTab === 'wallet' && 'Nómina On-Demand'}
-                      {activeTab === 'goals' && 'Metas Financieras'}
-                      {activeTab === 'assistant' && 'Treevü Brain'}
-                      {activeTab === 'profile' && 'Mi Perfil'}
-                  </h1>
-                  {activeTab === 'home' && <p className="text-gray-500 mt-2">{aiNudge}</p>}
+      <main className="flex-1 overflow-y-auto h-full p-4 md:p-10 w-full">
+          <header className="mb-6 md:mb-10 flex justify-between items-center">
+              <div className="flex items-center">
+                  <button 
+                    onClick={() => setIsMobileMenuOpen(true)} 
+                    className="mr-4 md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                  >
+                    <Menu size={24} />
+                  </button>
+                  <div>
+                      <h1 className="text-xl md:text-3xl font-bold text-[#1E293B] font-['Space_Grotesk'] truncate max-w-[200px] md:max-w-none">
+                          {activeTab === 'home' && `Hola, ${user.name.split(' ')[0]}`}
+                          {activeTab === 'market' && 'Marketplace'}
+                          {activeTab === 'expense' && 'Centro Ops'}
+                          {activeTab === 'wallet' && 'Acceso a Salario Devengado'}
+                          {activeTab === 'goals' && 'Metas Financieras'}
+                          {activeTab === 'assistant' && 'Treevü Brain'}
+                          {activeTab === 'profile' && 'Mi Perfil'}
+                      </h1>
+                      {activeTab === 'home' && <p className="text-gray-500 mt-1 md:mt-2 text-xs md:text-sm">{aiNudge}</p>}
+                  </div>
               </div>
-              <div className="flex items-center space-x-4">
-                  <div className="bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 flex items-center space-x-2">
+              <div className="flex items-center space-x-2 md:space-x-4">
+                  <div className="hidden md:flex bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 items-center space-x-2">
                       <Leaf className="text-green-500" size={16} />
                       <span className="font-bold text-[#1E293B]">{user.treePoints} pts</span>
                   </div>
                    <div className="relative">
-                      <button onClick={() => setShowNotifications(!showNotifications)} className="bg-white p-3 rounded-full shadow-sm border border-slate-200 relative hover:bg-slate-50">
+                      <button onClick={() => setShowNotifications(!showNotifications)} className="bg-white p-2 md:p-3 rounded-full shadow-sm border border-slate-200 relative hover:bg-slate-50">
                           <Bell size={20} className="text-gray-600" />
                           {notifications.length > 0 && <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>}
                       </button>
                       {showNotifications && (
-                          <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                          <div className="absolute right-0 mt-2 w-72 md:w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
                               <div className="p-4 border-b bg-gray-50 flex justify-between items-center"><h4 className="font-bold text-sm">Notificaciones</h4><button onClick={() => setNotifications([])} className="text-xs text-blue-600 font-bold">Limpiar</button></div>
                               <div className="max-h-64 overflow-y-auto">
                                   {notifications.length === 0 ? <div className="p-4 text-center text-gray-400 text-xs">No tienes notificaciones</div> : notifications.map(n => (
@@ -310,14 +449,18 @@ export const DashboardEmployee: React.FC = () => {
                           </div>
                       )}
                    </div>
-                  <div className="w-10 h-10 bg-[#1C81F2] rounded-full flex items-center justify-center text-white font-bold">{user.name.charAt(0)}</div>
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-[#1C81F2] rounded-full flex items-center justify-center text-white font-bold">{user.name.charAt(0)}</div>
               </div>
           </header>
 
           {/* --- MAIN CONTENT RENDERERS --- */}
           {activeTab === 'home' && (
-             <div className="space-y-8 animate-in fade-in duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="space-y-6 md:space-x-0 md:space-y-8 animate-in fade-in duration-500">
+                <div className="flex items-center space-x-2 text-[#1E293B] mb-2">
+                    <Sparkles size={18} className="text-purple-500" />
+                    <h3 className="font-bold text-lg">Alertas de Bienestar (Treevü Brain)</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                    {MOCK_ADVICE_CARDS.map(card => (
                        <div key={card.id} className={`p-4 rounded-xl border flex items-start space-x-4 ${card.type === 'risk' ? 'bg-orange-50 border-orange-100' : 'bg-teal-50 border-teal-100'}`}>
                            <div className={`p-2 rounded-lg ${card.type === 'risk' ? 'bg-orange-100' : 'bg-teal-100'}`}>
@@ -335,23 +478,79 @@ export const DashboardEmployee: React.FC = () => {
                    ))}
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* FWI CARD */}
                     <div onClick={() => setActiveInfoModal('fwi')} className="bg-white p-6 rounded-2xl shadow-sm border cursor-pointer hover:shadow-md transition-all group relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity"><Maximize2 size={16} className="text-gray-400" /></div>
-                        <h2 className="text-4xl font-bold text-[#1E293B]">{user.fwiScore}/100</h2>
-                        <p className="text-sm text-gray-500 font-medium uppercase mt-2">FWI Score</p>
-                        <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-red-400 via-yellow-400 to-green-500" style={{width: `${user.fwiScore}%`}}></div></div>
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h2 className="text-4xl font-bold text-[#1E293B]">{user.fwiScore}/100</h2>
+                                <p className="text-sm text-gray-500 font-medium uppercase mt-2">FWI Score (Resiliencia)</p>
+                            </div>
+                            <div className={`px-2 py-1 rounded text-xs font-bold ${getFWILabel(user.fwiScore).bg} ${getFWILabel(user.fwiScore).color}`}>
+                                {getFWILabel(user.fwiScore).label}
+                            </div>
+                        </div>
+                        <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden relative">
+                            <div className="h-full bg-gradient-to-r from-red-400 via-yellow-400 to-green-500 w-full absolute opacity-20"></div>
+                            <div className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 relative" style={{width: `${user.fwiScore}%`}}></div>
+                        </div>
                     </div>
+
+                    {/* STREAK CARD */}
                     <div onClick={() => setActiveInfoModal('streak')} className="bg-[#1C81F2] text-white p-6 rounded-2xl shadow-sm cursor-pointer hover:shadow-md transition-all relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity"><Maximize2 size={16} className="text-white/50" /></div>
                         <h2 className="text-4xl font-bold">{user.streakDays} Días</h2>
-                        <p className="text-sm opacity-80 font-medium uppercase mt-2">Racha Actual</p>
-                        <div className="mt-4 flex space-x-1">{[1,2,3,4,5].map(i => <div key={i} className={`h-2 w-8 rounded-full ${i <= user.streakDays ? 'bg-white' : 'bg-white/30'}`}></div>)}</div>
-                    </div>
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border flex flex-col justify-center">
-                        <div className="flex justify-between items-end">
-                            <div><h2 className="text-3xl font-bold text-[#1E293B]">${user.availableEwa.toFixed(2)}</h2><p className="text-sm text-gray-500 font-medium uppercase mt-2">Devengado Disp.</p></div>
-                            <button onClick={() => setActiveTab('wallet')} className="bg-gray-50 p-3 rounded-full hover:bg-gray-100"><ArrowRight size={20} className="text-[#1C81F2]" /></button>
+                        <p className="text-sm opacity-80 font-medium uppercase mt-2">Racha Sin Deuda</p>
+                        <div className="mt-4 flex space-x-1">
+                            {[1,2,3,4,5,6,7].map(i => (
+                                <div key={i} className={`h-2 flex-1 rounded-full ${i <= user.streakDays ? 'bg-white' : 'bg-white/30'}`}></div>
+                            ))}
                         </div>
+                    </div>
+                    
+                    {/* Marketplace Shortcut for Accessibility */}
+                    <div className="bg-gradient-to-br from-purple-500 to-indigo-600 p-6 rounded-2xl shadow-sm text-white relative overflow-hidden group cursor-pointer" onClick={() => setActiveTab('market')}>
+                        <div className="relative z-10 h-full flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-center space-x-2 mb-2">
+                                <Store size={20} className="text-white/80" />
+                                <span className="text-xs font-bold uppercase text-white/80">Marketplace</span>
+                              </div>
+                              <h3 className="text-xl font-bold leading-tight mb-1">
+                                {recommendedOffer ? 'Tu Beneficio Destacado' : 'Explorar Ofertas'}
+                              </h3>
+                              <p className="text-sm text-white/90">
+                                {recommendedOffer ? `${recommendedOffer.title}: ${recommendedOffer.discountValue}` : 'Ahorra en tus marcas favoritas'}
+                              </p>
+                            </div>
+                            <div className="flex items-center space-x-2 mt-4 text-xs font-bold bg-white/20 w-fit px-3 py-1.5 rounded-lg hover:bg-white/30 transition-colors">
+                              <span>Ir al Marketplace</span>
+                              <ArrowRight size={14} />
+                            </div>
+                        </div>
+                        <Store className="absolute -bottom-4 -right-4 text-white/10" size={120} />
+                    </div>
+                </div>
+
+                {/* EARNED WAGE (DEVENGADO) CARD */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border flex flex-col justify-center relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-2 h-full bg-[#1C81F2]"></div>
+                    <div className="flex justify-between items-end">
+                        <div>
+                            <div className="flex items-center space-x-2 mb-1">
+                                <h2 className="text-3xl font-bold text-[#1E293B]">${user.availableEwa.toFixed(2)}</h2>
+                                <HelpCircle size={14} className="text-gray-400 cursor-help" title="Monto neto disponible tras deducciones y regla del 50%"/>
+                            </div>
+                            <p className="text-sm text-gray-500 font-medium uppercase">Disponible (Regla 50%)</p>
+                            
+                            <div className="mt-3 flex items-center text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded w-fit">
+                                <Activity size={12} className="mr-1 text-green-500"/>
+                                <span>Generado Bruto al día {SIMULATED_DAY_OF_MONTH}: <strong>${grossEarned.toFixed(2)}</strong></span>
+                            </div>
+                        </div>
+                        <button onClick={() => setActiveTab('wallet')} className="bg-gray-50 p-3 rounded-full hover:bg-gray-100 group transition-all">
+                            <ArrowRight size={20} className="text-[#1C81F2] group-hover:translate-x-1 transition-transform" />
+                        </button>
                     </div>
                 </div>
              </div>
@@ -362,32 +561,63 @@ export const DashboardEmployee: React.FC = () => {
               <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-right-4 duration-500">
                   <div className="bg-gradient-to-br from-[#1E293B] to-[#0F172A] rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
                       <div className="relative z-10">
-                          <div className="flex justify-between items-start mb-8">
-                              <div><p className="text-gray-400 text-sm font-medium uppercase tracking-wider">Salario Devengado</p><h2 className="text-5xl font-bold mt-2">${user.availableEwa.toFixed(2)}</h2></div>
-                              <div className="flex space-x-3">
+                          <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
+                              <div><p className="text-gray-400 text-sm font-medium uppercase tracking-wider">Salario Devengado (Calculado)</p><h2 className="text-5xl font-bold mt-2">${user.availableEwa.toFixed(2)}</h2></div>
+                              <div className="flex space-x-3 w-full md:w-auto">
                                   <button onClick={() => setShowWalletSettings(true)} className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-all"><Settings className="text-white" size={20} /></button>
-                                  <button onClick={() => setShowWithdrawModal(true)} className="flex items-center space-x-2 bg-[#1C81F2] hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20"><Zap size={20} /><span>Solicitar Adelanto</span></button>
+                                  <button onClick={() => setShowWithdrawModal(true)} className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-[#1C81F2] hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20"><Zap size={20} /><span>Solicitar Dispersión</span></button>
                               </div>
                           </div>
-                          <div className="grid grid-cols-3 gap-8 pt-6 border-t border-white/10">
-                              <div><p className="text-xs text-gray-400 uppercase mb-1">Días Trabajados</p><p className="font-mono text-xl">12 / 30</p></div>
-                              <div><p className="text-xs text-gray-400 uppercase mb-1">Próximo Corte</p><p className="font-mono text-xl">15 Oct</p></div>
-                              <div><p className="text-xs text-gray-400 uppercase mb-1">Límite EWA</p><p className="font-mono text-xl text-green-400">50%</p></div>
+                          <div className="grid grid-cols-3 gap-4 md:gap-8 pt-6 border-t border-white/10">
+                              <div><p className="text-xs text-gray-400 uppercase mb-1">Días Trab.</p><p className="font-mono text-lg md:text-xl">{SIMULATED_DAY_OF_MONTH} / {SIMULATED_TOTAL_DAYS}</p></div>
+                              <div><p className="text-xs text-gray-400 uppercase mb-1">Próx. Nómina</p><p className="font-mono text-lg md:text-xl">15 Oct</p></div>
+                              <div><p className="text-xs text-gray-400 uppercase mb-1">Límite Acceso</p><p className="font-mono text-lg md:text-xl text-green-400">{EWA_SAFETY_CAP_PERCENT * 100}%</p></div>
                           </div>
                       </div>
                   </div>
                   <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                      <div className="p-6 border-b border-gray-100 flex justify-between items-center"><h3 className="font-bold text-lg text-[#1E293B]">Historial de Solicitudes</h3></div>
-                      <div className="divide-y divide-gray-100">
-                          {ewaHistory.map(req => (
-                              <div key={req.id} className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                  <div className="flex items-center space-x-4">
-                                      <div className={`p-3 rounded-xl ${req.status === 'disbursed' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}><Clock size={20} /></div>
-                                      <div><p className="font-bold text-[#1E293B]">Solicitud de Adelanto</p><p className="text-xs text-gray-500">{req.date} • {req.status === 'disbursed' ? 'Enviado a Banco' : 'Procesando'}</p></div>
-                                  </div>
-                                  <div className="text-right"><p className="font-bold text-[#1E293B] text-lg">-${req.amount.toFixed(2)}</p><p className="text-xs text-gray-400">Tarifa: ${req.fee.toFixed(2)}</p></div>
-                              </div>
-                          ))}
+                      <div className="p-6 border-b border-gray-100 flex justify-between items-center"><h3 className="font-bold text-lg text-[#1E293B]">Historial de Instrucciones de Pago</h3></div>
+                      <div className="overflow-x-auto">
+                          <table className="w-full text-left text-sm">
+                              <thead className="bg-gray-50 text-xs uppercase font-bold text-gray-500">
+                                  <tr>
+                                      <th className="p-4 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => handleSort('date')}>
+                                          <div className="flex items-center">Fecha {ewaSort.key === 'date' && (ewaSort.direction === 'asc' ? <ArrowUp size={12} className="ml-1"/> : <ArrowDown size={12} className="ml-1"/>)}</div>
+                                      </th>
+                                      <th className="p-4 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => handleSort('status')}>
+                                          <div className="flex items-center">Estado {ewaSort.key === 'status' && (ewaSort.direction === 'asc' ? <ArrowUp size={12} className="ml-1"/> : <ArrowDown size={12} className="ml-1"/>)}</div>
+                                      </th>
+                                      <th className="p-4 cursor-pointer hover:bg-gray-100 transition-colors text-right" onClick={() => handleSort('amount')}>
+                                          <div className="flex items-center justify-end">Monto {ewaSort.key === 'amount' && (ewaSort.direction === 'asc' ? <ArrowUp size={12} className="ml-1"/> : <ArrowDown size={12} className="ml-1"/>)}</div>
+                                      </th>
+                                  </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100">
+                                  {sortedEwaHistory.map(req => (
+                                      <tr key={req.id} className="hover:bg-gray-50 transition-colors">
+                                          <td className="p-4 text-gray-700 font-medium">{req.date}</td>
+                                          <td className="p-4">
+                                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                  req.status === 'disbursed' ? 'bg-green-100 text-green-800' :
+                                                  req.status === 'processing_transfer' ? 'bg-blue-100 text-blue-800' :
+                                                  req.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                  'bg-yellow-100 text-yellow-800'
+                                              }`}>
+                                                  {req.status === 'disbursed' && <CheckCircle size={12} className="mr-1" />}
+                                                  {req.status === 'processing_transfer' && <RefreshCw size={12} className="mr-1 animate-spin" />}
+                                                  {req.status === 'pending_approval' && <Clock size={12} className="mr-1" />}
+                                                  {req.status === 'rejected' && <XCircle size={12} className="mr-1" />}
+                                                  {req.status === 'disbursed' ? 'Completado' : req.status === 'processing_transfer' ? 'Procesando' : req.status === 'rejected' ? 'Rechazado' : 'Pendiente'}
+                                              </span>
+                                          </td>
+                                          <td className="p-4 text-right">
+                                              <p className="font-bold text-[#1E293B] text-base">-${req.amount.toFixed(2)}</p>
+                                              <p className="text-[10px] text-gray-400">Fee: ${req.fee.toFixed(2)}</p>
+                                          </td>
+                                      </tr>
+                                  ))}
+                              </tbody>
+                          </table>
                       </div>
                   </div>
               </div>
@@ -430,6 +660,62 @@ export const DashboardEmployee: React.FC = () => {
                           )}
                       </div>
                   </div>
+
+                  {/* Discretionary Expenses Chart Section */}
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                          <div>
+                            <h3 className="font-bold text-lg text-[#1E293B]">Análisis de Gastos Discrecionales</h3>
+                            <p className="text-xs text-gray-500">Última semana • Total: ${totalDiscretionary.toFixed(2)}</p>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+                              <Filter size={16} className="text-gray-400 ml-2" />
+                              <select 
+                                value={expenseFilter} 
+                                onChange={(e) => setExpenseFilter(e.target.value)}
+                                className="bg-transparent text-sm font-medium text-gray-700 outline-none pr-8 py-1"
+                              >
+                                  <option value="all">Todas las Categorías</option>
+                                  {uniqueCategories.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                  ))}
+                              </select>
+                          </div>
+                      </div>
+
+                      <div className="h-64 w-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={discretionaryStats} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                  <XAxis dataKey="name" tick={{fontSize: 12, fill: '#64748B'}} axisLine={false} tickLine={false} />
+                                  <YAxis tick={{fontSize: 12, fill: '#64748B'}} axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
+                                  <Tooltip 
+                                    cursor={{fill: '#F1F5F9'}}
+                                    content={({ active, payload }) => {
+                                      if (active && payload && payload.length) {
+                                        return (
+                                          <div className="bg-white p-3 shadow-lg rounded-xl border border-slate-100">
+                                            <p className="font-bold text-[#1E293B] mb-1">{payload[0].payload.name}</p>
+                                            <p className="text-sm text-orange-500 font-bold">
+                                              ${Number(payload[0].value).toFixed(2)}
+                                            </p>
+                                          </div>
+                                        );
+                                      }
+                                      return null;
+                                    }}
+                                  />
+                                  <Bar dataKey="amount" fill="#F59E0B" radius={[6, 6, 0, 0]} barSize={40} />
+                              </BarChart>
+                          </ResponsiveContainer>
+                      </div>
+                      <div className="mt-4 p-3 bg-orange-50 rounded-xl border border-orange-100 text-xs text-orange-800 flex items-start">
+                          <Info size={16} className="mr-2 flex-shrink-0 mt-0.5" />
+                          <p>Los gastos discrecionales (Ocio, Suscripciones) impactan tu FWI. Reducirlos es la forma más rápida de mejorar tu score.</p>
+                      </div>
+                  </div>
+
                   <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                       <div className="p-6 border-b border-gray-100 flex justify-between items-center"><h3 className="font-bold text-lg text-[#1E293B]">Historial Operativo</h3></div>
                       <div className="divide-y divide-gray-100">
@@ -452,18 +738,50 @@ export const DashboardEmployee: React.FC = () => {
 
           {activeTab === 'market' && (
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
-                  {/* Market content */}
-                  <div className="flex space-x-2 mb-6">
-                      <button onClick={() => setMarketFilter('all')} className={`px-4 py-2 rounded-full text-xs font-bold ${marketFilter === 'all' ? 'bg-[#1E293B] text-white' : 'bg-white border text-gray-500'}`}>Todos</button>
-                      <button onClick={() => setMarketFilter('corporate')} className={`px-4 py-2 rounded-full text-xs font-bold flex items-center space-x-2 ${marketFilter === 'corporate' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-white border text-gray-500'}`}><Building2 size={12} /><span>Corporativos</span></button>
-                      <button onClick={() => setMarketFilter('global')} className={`px-4 py-2 rounded-full text-xs font-bold flex items-center space-x-2 ${marketFilter === 'global' ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-white border text-gray-500'}`}><Globe size={12} /><span>Globales</span></button>
-                      <button onClick={() => setMarketFilter('saved')} className={`px-4 py-2 rounded-full text-xs font-bold flex items-center space-x-2 ${marketFilter === 'saved' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-white border text-gray-500'}`}><Bookmark size={12} /><span>Guardados</span></button>
+                  
+                  {/* AI Recommendation Section */}
+                  {recommendedOffer && (
+                     <div className="bg-gradient-to-r from-indigo-900 to-purple-800 rounded-2xl p-6 text-white relative overflow-hidden shadow-lg">
+                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                           <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <Sparkles className="text-yellow-400" size={20} />
+                                <span className="text-xs font-bold uppercase tracking-widest text-yellow-400">Recomendación Inteligente</span>
+                              </div>
+                              <h3 className="text-2xl font-bold mb-2">Hola Alex, {offerPitch}</h3>
+                              <p className="text-sm opacity-80 mb-4">Basado en tu FWI Score actual ({user.fwiScore}) y segmento.</p>
+                              <div className="bg-white/10 p-3 rounded-xl border border-white/20 inline-block">
+                                 <p className="font-bold text-lg">{recommendedOffer.title}</p>
+                                 <p className="text-xs">{recommendedOffer.discountValue} • {recommendedOffer.costPoints} pts</p>
+                              </div>
+                           </div>
+                           <button 
+                             onClick={() => { setSelectedOffer(recommendedOffer); setRedeemStep('confirm'); setShowRedeemModal(true); }}
+                             className="bg-white text-purple-900 px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-gray-100 transition-colors whitespace-nowrap"
+                           >
+                             Canjear Ahora
+                           </button>
+                        </div>
+                        {/* Abstract Background Decoration */}
+                        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-50"></div>
+                     </div>
+                  )}
+
+                  {/* Market Filters */}
+                  <div className="flex space-x-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+                      <button onClick={() => setMarketFilter('all')} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap ${marketFilter === 'all' ? 'bg-[#1E293B] text-white' : 'bg-white border text-gray-500'}`}>Todos</button>
+                      <button onClick={() => setMarketFilter('corporate')} className={`px-4 py-2 rounded-full text-xs font-bold flex items-center space-x-2 whitespace-nowrap ${marketFilter === 'corporate' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-white border text-gray-500'}`}><Building2 size={12} /><span>Corporativos</span></button>
+                      <button onClick={() => setMarketFilter('global')} className={`px-4 py-2 rounded-full text-xs font-bold flex items-center space-x-2 whitespace-nowrap ${marketFilter === 'global' ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-white border text-gray-500'}`}><Globe size={12} /><span>Globales</span></button>
+                      <button onClick={() => setMarketFilter('saved')} className={`px-4 py-2 rounded-full text-xs font-bold flex items-center space-x-2 whitespace-nowrap ${marketFilter === 'saved' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-white border text-gray-500'}`}><Bookmark size={12} /><span>Guardados</span></button>
                   </div>
+                  
+                  {/* Market Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {MARKET_OFFERS.filter(o => {
                           if (marketFilter === 'saved') return savedOfferIds.has(o.id);
-                          if (marketFilter !== 'all') return o.origin === marketFilter;
-                          return true;
+                          if (marketFilter === 'all') return true;
+                          if (['Financial', 'Lifestyle', 'Emergency'].includes(marketFilter)) return o.category === marketFilter;
+                          return o.origin === marketFilter;
                       }).map(offer => (
                           <div key={offer.id} className="bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-lg transition-all group">
                               <div className={`h-32 ${offer.category === 'Emergency' ? 'bg-orange-100' : 'bg-blue-100'} p-6 relative`}>
@@ -508,7 +826,7 @@ export const DashboardEmployee: React.FC = () => {
           )}
 
           {activeTab === 'assistant' && (
-              <div className="flex flex-col h-[calc(100vh-8rem)] bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden animate-in slide-in-from-right-4 duration-500">
+              <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-8rem)] bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden animate-in slide-in-from-right-4 duration-500">
                   <div className="flex-1 overflow-y-auto p-6 space-y-4">
                       {chatHistory.map(msg => (
                           <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -539,10 +857,14 @@ export const DashboardEmployee: React.FC = () => {
                           <input type="range" min="10" max="100" value={personalEwaLimit} onChange={(e) => setPersonalEwaLimit(Number(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1C81F2]" />
                           <p className="text-xs text-gray-500 mt-2">Restringe voluntariamente cuánto puedes retirar, incluso si la empresa permite más.</p>
                       </div>
+                      <div className="space-y-4">
+                          <div className="flex items-center justify-between"><span className="text-sm font-medium">Notificar cuando haya disponible</span><button onClick={() => setEwaSettings(s => ({...s, notifyAvailable: !s.notifyAvailable}))} className={`w-11 h-6 rounded-full relative transition-colors ${ewaSettings.notifyAvailable ? 'bg-green-50' : 'bg-gray-300'}`}><span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${ewaSettings.notifyAvailable ? 'translate-x-5' : ''}`} /></button></div>
+                          <div className="flex items-center justify-between"><span className="text-sm font-medium">Alerta de FWI Bajo (Freno)</span><button onClick={() => setEwaSettings(s => ({...s, notifyLowFwi: !s.notifyLowFwi}))} className={`w-11 h-6 rounded-full relative transition-colors ${ewaSettings.notifyLowFwi ? 'bg-green-50' : 'bg-gray-300'}`}><span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${ewaSettings.notifyLowFwi ? 'translate-x-5' : ''}`} /></button></div>
+                      </div>
                   </div>
                   <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
                       <div className="flex justify-between items-start mb-6">
-                          <div><h3 className="text-xl font-bold text-[#1E293B]">Cuenta de Nómina</h3><p className="text-sm text-gray-500">Cuenta destino para desembolsos de la EMPRESA</p></div>
+                          <div><h3 className="text-xl font-bold text-[#1E293B]">Cuenta de Nómina</h3><p className="text-sm text-gray-500">Cuenta destino para dispersión de la EMPRESA</p></div>
                           <button onClick={() => setShowBankRequestModal(true)} className="text-[#1C81F2] text-sm font-bold hover:underline">Solicitar Cambio</button>
                       </div>
                       <div className="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-200"><Landmark size={24} className="text-gray-400 mr-3" /><div><p className="font-bold text-[#1E293B] font-mono">Chase Bank **** 4492</p><p className="text-xs text-gray-500">Verificado por RR.HH.</p></div><CheckCircle size={16} className="text-green-500 ml-auto" /></div>
@@ -582,29 +904,58 @@ export const DashboardEmployee: React.FC = () => {
                   <button onClick={() => setShowWithdrawModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X size={24} /></button>
                   {ewaStep === 'select' && (
                       <>
-                          <div className="text-center mb-8">
+                          <div className="text-center mb-6">
                               <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4"><Banknote size={32} className="text-[#1C81F2]" /></div>
-                              <h3 className="text-2xl font-bold text-[#1E293B]">Solicitar Adelanto</h3>
-                              <p className="text-sm text-gray-500 mt-2">Enviaremos una instrucción a tu empresa.</p>
+                              <h3 className="text-2xl font-bold text-[#1E293B]">Solicitar Dispersión</h3>
+                              <p className="text-sm text-gray-500 mt-2">Generar instrucción de pago a tu empresa.</p>
                           </div>
-                          <div className="mb-8">
+                          <div className="mb-6">
                               <div className="flex justify-between text-sm font-bold mb-4 text-gray-500"><span>Monto a solicitar</span><span>${withdrawAmount}</span></div>
                               <input type="range" min="20" max={user.availableEwa} step="10" value={withdrawAmount} onChange={(e) => setWithdrawAmount(Number(e.target.value))} className="w-full h-3 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#1C81F2]" />
-                              <div className="flex justify-between text-xs text-gray-400 mt-2"><span>$20</span><span>Max: ${user.availableEwa}</span></div>
+                              <div className="flex justify-between text-xs text-gray-400 mt-2"><span>$20</span><span>Max: ${user.availableEwa.toFixed(2)}</span></div>
                           </div>
+                          
+                          {/* PAY STUB PREVIEW (SIMULACIÓN DE NÓMINA) - NEW */}
                           <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6">
-                              <div className="flex justify-between text-sm mb-2"><span className="text-gray-600">Comisión por Servicio</span><span className="font-bold text-[#1E293B]">$2.50</span></div>
-                              <div className="flex justify-between text-sm mb-2"><span className="text-gray-600">A depositar por Empresa</span><span className="font-bold text-[#1C81F2]">${(withdrawAmount - 2.50).toFixed(2)}</span></div>
-                              <div className="mt-2 pt-2 border-t border-blue-200 text-xs text-blue-800">Se descontará de tu nómina del día 15 Oct.</div>
+                              <h4 className="font-bold text-xs text-blue-800 uppercase mb-3 flex items-center"><Receipt size={12} className="mr-1"/> Proyección de Próxima Nómina</h4>
+                              <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between text-gray-600"><span>Salario Neto Estimado</span><span>${(user.monthlyIncome * 0.8).toFixed(2)}</span></div>
+                                  <div className="flex justify-between text-red-500 font-medium"><span>(-) Dispersión Solicitada</span><span>-${withdrawAmount.toFixed(2)}</span></div>
+                                  <div className="flex justify-between text-orange-500 font-medium"><span>(-) Tarifa Servicio</span><span>-$2.50</span></div>
+                                  <div className="border-t border-blue-200 pt-2 flex justify-between font-bold text-[#1E293B] text-base">
+                                      <span>A Recibir (Aprox)</span>
+                                      <span>${((user.monthlyIncome * 0.8) - withdrawAmount - 2.50).toFixed(2)}</span>
+                                  </div>
+                              </div>
                           </div>
+
+                          {/* LEGAL CHECK - NEW */}
+                          <div className="flex items-start space-x-3 mb-6 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                              <button 
+                                onClick={() => setTermsAccepted(!termsAccepted)}
+                                className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center transition-colors ${termsAccepted ? 'bg-[#1C81F2] border-[#1C81F2] text-white' : 'bg-white border-gray-300 text-transparent'}`}
+                              >
+                                  <CheckSquare size={14} />
+                              </button>
+                              <p className="text-[10px] text-gray-500 leading-tight">
+                                  Entiendo que este monto <strong>no es un crédito</strong>, sino un acceso anticipado a mi salario ya trabajado. Autorizo irrevocablemente a mi empleador a descontar el monto total (${(withdrawAmount + 2.50).toFixed(2)}) de mi próxima nómina.
+                              </p>
+                          </div>
+
                           <div className="flex space-x-3">
                               <button onClick={() => setShowWithdrawModal(false)} className="flex-1 py-3 border rounded-xl font-bold text-gray-500">Cancelar</button>
-                              <button onClick={handleEwaRequest} className="flex-1 bg-[#1E293B] text-white py-4 rounded-xl font-bold hover:bg-black transition-all shadow-lg">Confirmar Solicitud</button>
+                              <button 
+                                onClick={handleEwaRequest} 
+                                disabled={!termsAccepted}
+                                className={`flex-1 text-white py-4 rounded-xl font-bold transition-all shadow-lg ${termsAccepted ? 'bg-[#1E293B] hover:bg-black' : 'bg-gray-300 cursor-not-allowed'}`}
+                              >
+                                Confirmar
+                              </button>
                           </div>
                       </>
                   )}
                   {ewaStep === 'processing' && <div className="text-center py-12"><RefreshCw className="animate-spin mx-auto text-[#1C81F2] mb-6" size={48} /><h3 className="text-xl font-bold text-[#1E293B]">Enviando instrucción...</h3></div>}
-                  {ewaStep === 'success' && <div className="text-center py-8"><CheckCircle size={40} className="text-green-600 mx-auto mb-6" /><h3 className="text-2xl font-bold mb-2">¡Solicitud Enviada!</h3><button onClick={() => setShowWithdrawModal(false)} className="w-full bg-gray-100 text-gray-800 font-bold py-3 rounded-xl">Entendido</button></div>}
+                  {ewaStep === 'success' && <div className="text-center py-8"><CheckCircle size={40} className="text-green-600 mx-auto mb-6" /><h3 className="text-2xl font-bold mb-2">¡Instrucción Enviada!</h3><button onClick={() => setShowWithdrawModal(false)} className="w-full bg-gray-100 text-gray-800 font-bold py-3 rounded-xl">Entendido</button></div>}
               </div>
           </div>
       )}
@@ -615,8 +966,8 @@ export const DashboardEmployee: React.FC = () => {
               <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
                   <div className="flex justify-between mb-6"><h3 className="font-bold text-lg">Configuración de Nómina</h3><button onClick={() => setShowWalletSettings(false)}><X size={20} /></button></div>
                   <div className="space-y-4 mb-8">
-                      <div className="flex items-center justify-between"><span className="text-sm font-medium">Notificar cuando haya disponible</span><button onClick={() => setEwaSettings(s => ({...s, notifyAvailable: !s.notifyAvailable}))} className={`w-11 h-6 rounded-full relative transition-colors ${ewaSettings.notifyAvailable ? 'bg-green-500' : 'bg-gray-300'}`}><span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${ewaSettings.notifyAvailable ? 'translate-x-5' : ''}`} /></button></div>
-                      <div className="flex items-center justify-between"><span className="text-sm font-medium">Alerta de FWI Bajo (Freno)</span><button onClick={() => setEwaSettings(s => ({...s, notifyLowFwi: !s.notifyLowFwi}))} className={`w-11 h-6 rounded-full relative transition-colors ${ewaSettings.notifyLowFwi ? 'bg-green-500' : 'bg-gray-300'}`}><span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${ewaSettings.notifyLowFwi ? 'translate-x-5' : ''}`} /></button></div>
+                      <div className="flex items-center justify-between"><span className="text-sm font-medium">Notificar cuando haya disponible</span><button onClick={() => setEwaSettings(s => ({...s, notifyAvailable: !s.notifyAvailable}))} className={`w-11 h-6 rounded-full relative transition-colors ${ewaSettings.notifyAvailable ? 'bg-green-50' : 'bg-gray-300'}`}><span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${ewaSettings.notifyAvailable ? 'translate-x-5' : ''}`} /></button></div>
+                      <div className="flex items-center justify-between"><span className="text-sm font-medium">Alerta de FWI Bajo (Freno)</span><button onClick={() => setEwaSettings(s => ({...s, notifyLowFwi: !s.notifyLowFwi}))} className={`w-11 h-6 rounded-full relative transition-colors ${ewaSettings.notifyLowFwi ? 'bg-green-50' : 'bg-gray-300'}`}><span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${ewaSettings.notifyLowFwi ? 'translate-x-5' : ''}`} /></button></div>
                   </div>
                   <div className="flex space-x-3">
                        <button onClick={() => setShowWalletSettings(false)} className="flex-1 py-3 border rounded-xl font-bold text-gray-500">Cancelar</button>
@@ -676,7 +1027,7 @@ export const DashboardEmployee: React.FC = () => {
                       <div className="py-4 text-center">
                           <CheckCircle className="mx-auto text-green-500 mb-4" size={48} />
                           <h3 className="font-bold text-lg mb-2">{activeAdvice.type === 'risk' ? '¡Compromiso Guardado!' : '¡Aporte Iniciado!'}</h3>
-                          <p className="text-xs text-gray-500 mb-6">{activeAdvice.type === 'risk' ? 'Te ayudaremos a mantener tu racha.' : 'La empresa depositará los $20 en tu cuenta. Recuerda moverlos a tu ahorro.'}</p>
+                          <p className="text-xs text-gray-500 mb-6">{activeAdvice.type === 'risk' ? 'Tu límite EWA se ha ajustado (autolimitación) para proteger tu liquidez futura y evitar deuda innecesaria.' : 'Instrucción enviada. La empresa depositará los $20 en tu cuenta. Recuerda moverlos a tu ahorro.'}</p>
                           {activeAdvice.type === 'opportunity' && <button onClick={handleRecordContribution} className="w-full bg-[#3CB7A9] text-white py-3 rounded-xl font-bold mb-2">Registrar Aporte en Meta</button>}
                           <button onClick={() => setActiveAdvice(null)} className="w-full bg-gray-100 text-gray-800 py-3 rounded-xl font-bold">Cerrar</button>
                       </div>
@@ -698,21 +1049,21 @@ export const DashboardEmployee: React.FC = () => {
                                   <LineChart data={FWI_HISTORY_DATA}><CartesianGrid strokeDasharray="3 3" vertical={false} /><XAxis dataKey="month" /><YAxis domain={[0, 100]} hide /><Tooltip /><Line type="monotone" dataKey="score" stroke="#1C81F2" strokeWidth={3} dot={{r: 4}} /></LineChart>
                               </ResponsiveContainer>
                           </div>
-                          <h4 className="font-bold text-sm text-gray-800 mb-3">¿Cómo se calcula?</h4>
+                          <h4 className="font-bold text-sm text-gray-800 mb-3">¿Qué mide este número?</h4>
                           <div className="space-y-3 mb-6">
-                              <div className="flex justify-between text-sm"><span className="text-gray-600">Uso del Devengado (30%)</span><span className="font-bold text-green-500">Excelente</span></div>
-                              <div className="flex justify-between text-sm"><span className="text-gray-600">Cumplimiento Ahorro (25%)</span><span className="font-bold text-yellow-500">Regular</span></div>
-                              <div className="flex justify-between text-sm"><span className="text-gray-600">Frecuencia Retiro (20%)</span><span className="font-bold text-green-500">Baja</span></div>
+                              <div className="flex justify-between text-sm"><span className="text-gray-600">Liquidez (Capacidad de Pago)</span><span className="font-bold text-green-500">Alta</span></div>
+                              <div className="flex justify-between text-sm"><span className="text-gray-600">Resiliencia (Fondo Emergencia)</span><span className="font-bold text-yellow-500">En Progreso</span></div>
+                              <div className="flex justify-between text-sm"><span className="text-gray-600">Control de Deuda</span><span className="font-bold text-green-500">Excelente</span></div>
                           </div>
-                          <div className="bg-blue-50 p-4 rounded-xl text-xs text-blue-800 mb-4"><strong>Recomendación:</strong> Para llegar a 75+, intenta cumplir tu próximo compromiso de Gasto Hormiga.</div>
-                          <p className="text-[10px] text-gray-400 text-center">El FWI Score es una guía interna de hábitos. NO es un puntaje de crédito externo.</p>
+                          <div className="bg-blue-50 p-4 rounded-xl text-xs text-blue-800 mb-4"><strong>Concepto Clave: Resiliencia Financiera.</strong> El FWI no es un score de crédito para pedir prestado. Es un termómetro de tu capacidad para absorber un "golpe" económico (una emergencia) sin tener que recurrir a deuda externa costosa.</div>
+                          <p className="text-[10px] text-gray-400 text-center">Este indicador es privado y solo para tu guía personal.</p>
                       </div>
                   ) : (
                       <div>
                           <div className="text-center mb-6">
                               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3"><Award size={32} className="text-[#1C81F2]" /></div>
                               <h3 className="text-2xl font-bold text-[#1E293B]">¡5 Días de Racha!</h3>
-                              <p className="text-sm text-gray-500">Mantienes hábitos positivos consistentemente.</p>
+                              <p className="text-sm text-gray-500">Independencia Financiera en acción.</p>
                           </div>
                           <div className="grid grid-cols-7 gap-2 mb-6 p-4 bg-slate-50 rounded-xl">
                               {STREAK_CALENDAR_DATA.slice(0, 14).map(d => (
@@ -722,11 +1073,11 @@ export const DashboardEmployee: React.FC = () => {
                           <div className="space-y-4 mb-6">
                               <div className="flex items-start space-x-3">
                                   <ShieldCheck className="text-green-500 mt-1" size={16} />
-                                  <div><p className="text-sm font-bold text-gray-800">Regla de Oro</p><p className="text-xs text-gray-500">La racha sigue si no retiras EWA innecesariamente o si cumples tus compromisos de ahorro.</p></div>
+                                  <div><p className="text-sm font-bold text-gray-800">¿Qué significa la Racha?</p><p className="text-xs text-gray-500">Cada día que pasas sin solicitar adelantos para gastos <strong>no esenciales</strong> (discrecionales), tu racha aumenta. Estás rompiendo el ciclo de dependencia del salario diario.</p></div>
                               </div>
                               <div className="flex items-start space-x-3">
                                   <Gift className="text-purple-500 mt-1" size={16} />
-                                  <div><p className="text-sm font-bold text-gray-800">Próximo Hito (10 Días)</p><p className="text-xs text-gray-500">Desbloqueas 50% OFF en la tarifa de tu próximo adelanto.</p></div>
+                                  <div><p className="text-sm font-bold text-gray-800">Próximo Hito (10 Días)</p><p className="text-xs text-gray-500">Desbloqueas 50% OFF en la tarifa de tu próxima dispersión (si llegaras a necesitarla).</p></div>
                               </div>
                           </div>
                           <button onClick={() => setActiveInfoModal(null)} className="w-full bg-[#1E293B] text-white py-3 rounded-xl font-bold">¡A por ello!</button>
@@ -759,7 +1110,7 @@ export const DashboardEmployee: React.FC = () => {
                           </div>
                           <div className="flex items-start space-x-3">
                               <div className="bg-purple-100 p-2 rounded-lg text-purple-600"><FileText size={20} /></div>
-                              <div><h4 className="font-bold text-sm text-[#1E293B]">Descuento Transparente</h4><p className="text-xs text-gray-500">Lo que adelantes se descuenta automáticamente en tu próxima nómina.</p></div>
+                              <div><h4 className="font-bold text-sm text-[#1E293B]">Deducción Transparente</h4><p className="text-xs text-gray-500">Lo que adelantes se ajusta automáticamente en tu próximo recibo de nómina.</p></div>
                           </div>
                       </div>
                       <button onClick={() => setShowOnboarding(false)} className="w-full bg-[#1E293B] text-white py-4 rounded-xl font-bold shadow-lg hover:bg-black transition-all">Explorar Mi Dashboard</button>

@@ -120,9 +120,16 @@ export const getOfferPitch = async (offerTitle: string, fwiScore: number) => {
     if (!ai) throw new Error("AI not initialized");
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `Escribe un pitch de venta muy corto y persuasivo (máximo 10 palabras) en español para una oferta titulada "${offerTitle}". El usuario tiene un Score Financiero de ${fwiScore}/100. Si es bajo, enfócate en seguridad/ahorro. Si es alto, enfócate en crecimiento/recompensa.`,
+      contents: `Eres un redactor UX experto. Escribe un pitch de venta PERSUASIVO de máximo 8 palabras para la oferta: "${offerTitle}".
+      Contexto Usuario: Score Financiero ${fwiScore}/100.
+      Instrucción CRÍTICA: Responde SOLAMENTE con el texto del pitch. NO uses markdown, NO uses negritas (**), NO uses comillas, NO des explicaciones previas ni posteriores. Solo el texto plano.`,
     });
-    return response.text || "Oferta exclusiva para ti.";
+    
+    let text = response.text || "Oferta exclusiva para ti.";
+    // Post-processing to strip any accidental markdown or quotes
+    text = text.replace(/\*\*/g, '').replace(/"/g, '').replace(/^Pitch:\s*/i, '').trim();
+    
+    return text;
   } catch (error) {
     return "Oferta exclusiva para ti.";
   }
@@ -156,5 +163,55 @@ export const chatWithFinancialAdvisor = async (userMessage: string, fwiScore: nu
   } catch (error) {
     console.error("Chat error:", error);
     return "Tengo problemas conectando con el servidor de análisis. Intenta más tarde.";
+  }
+};
+
+export const generateSmartOffer = async (topOffers: { title: string, conversions: number }[]) => {
+  try {
+    if (!ai) throw new Error("AI not initialized");
+    
+    const prompt = `
+      Actúa como un experto en Marketing para Comercios. 
+      Basado en estas ofertas exitosas anteriores del comercio: ${JSON.stringify(topOffers)},
+      sugiere una NUEVA oferta (Smart Offer) diseñada para maximizar conversiones.
+      
+      La oferta debe ser atractiva pero sostenible.
+      Responde SOLO en JSON con este formato:
+      {
+        "suggestedTitle": "Título corto y pegadizo",
+        "suggestedDiscount": "ej: 25% OFF o 2x1",
+        "rationale": "Breve explicación de por qué funcionará (basado en los datos)"
+      }
+    `;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            suggestedTitle: { type: Type.STRING },
+            suggestedDiscount: { type: Type.STRING },
+            rationale: { type: Type.STRING }
+          },
+          required: ["suggestedTitle", "suggestedDiscount", "rationale"]
+        }
+      }
+    });
+
+    const text = response.text;
+    if (!text) throw new Error("No response");
+    
+    return JSON.parse(text) as { suggestedTitle: string, suggestedDiscount: string, rationale: string };
+
+  } catch (error) {
+    console.error("Smart Offer generation failed", error);
+    return {
+      suggestedTitle: "Pack Ahorro Familiar",
+      suggestedDiscount: "15% OFF",
+      rationale: "Basado en el éxito de tus ofertas de canasta básica."
+    };
   }
 };
