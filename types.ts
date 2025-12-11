@@ -63,6 +63,7 @@ export interface MarketOffer {
   targetFwiSegment: 'low' | 'mid' | 'high' | 'all';
   discountValue?: string;
   origin: 'corporate' | 'global';
+  imageUrl?: string; // Visual enrichment
 }
 
 export interface FinancialGoal {
@@ -74,6 +75,7 @@ export interface FinancialGoal {
   category: 'Emergency' | 'Vacation' | 'Purchase' | 'Investment';
   priority: boolean;
   lastContribution?: number; // timestamp
+  imageUrl?: string; // Visual enrichment
 }
 
 export interface B2BMetric {

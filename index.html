@@ -12,9 +12,24 @@
       body {
         font-family: 'Inter', sans-serif;
         background-color: #F6FAFE;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
       h1, h2, h3, h4, h5, h6 {
         font-family: 'Space Grotesk', sans-serif;
+        letter-spacing: -0.02em; /* Tighter headings for modern look */
+      }
+      /* Utility to hide scrollbar for native-like horizontal scrolling */
+      .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+      }
+      .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+      }
+      /* Numeric font features for alignment */
+      .numeric-tabular {
+        font-variant-numeric: tabular-nums;
       }
     </style>
   <script type="importmap">
